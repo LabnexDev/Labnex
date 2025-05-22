@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Labnex - Page Not Found</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment.
+      var segmentCount = 1; // Since your URL is like /Labnex/path, segmentCount is 1 for 'Labnex'
+
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + // Reconstructs the base path (e.g., /Labnex)
+        '/?p=/' + // Adds the p query parameter
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') + // The rest of the path
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') + // The original query string
+        l.hash // The original hash
+      );
+    </script>
+  </head>
+  <body>
+    <!-- You can add a "If you are not redirected automatically, follow this <a href="...">link to the Labnex app</a>." message -->
+  </body>
+</html> 
