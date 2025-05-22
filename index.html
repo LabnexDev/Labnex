@@ -5,6 +5,30 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='%233B82F6'%3EL%3C/text%3E%3C/svg%3E" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Labnex</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      (function(l) {
+        if (l.search) {
+          var q = {};
+          l.search.slice(1).split('&').forEach(function(v) {
+            var a = v.split('=');
+            q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
+          });
+          if (q.p !== undefined) {
+            var basePath = l.pathname.substring(0, l.pathname.lastIndexOf('/') + 1);
+            var pagePath = (q.p || '').startsWith('/') ? (q.p || '').substring(1) : (q.p || '');
+            var newPath = basePath + pagePath;
+            window.history.replaceState(null, null,
+              newPath +
+              (q.q ? ('?' + q.q) : '') +
+              l.hash
+            );
+          }
+        }
+      }(window.location))
+    </script>
     <script type="module" crossorigin src="/Labnex/assets/index-Dy0lvkCj.js"></script>
     <link rel="stylesheet" crossorigin href="/Labnex/assets/index-Cf9ofjrL.css">
   </head>
