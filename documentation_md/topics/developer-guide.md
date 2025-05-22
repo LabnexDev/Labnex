@@ -1,81 +1,85 @@
-# Developer Guide (Contributing to Labnex)
+# Labnex Local Development Guide
 
-Thank you for your interest in contributing to Labnex! This guide provides information to help you get started with the development environment, understand our coding standards, and navigate the contribution process.
-
-**(Placeholder: This guide assumes Labnex is an open-source project or has a clear path for community contributions. Specific details depend on the project's actual nature.)**
+This guide provides information to help you set up the Labnex development environment locally and understand our coding standards.
 
 ## Getting Started
 
 ### Prerequisites
 
 -   **Git**: For version control.
--   **Node.js & npm/yarn**: For frontend development (e.g., Node.js >= 18.x).
--   **(Backend Specifics)**: (e.g., Python with Poetry, Java with Maven, Go, etc. - Specify backend stack requirements here.)
--   **Docker (Optional but Recommended)**: For containerizing services and ensuring a consistent development environment.
+-   **Node.js & npm**: For both frontend and backend development (e.g., Node.js >= 18.x recommended).
+-   **MongoDB**: Labnex uses MongoDB as its database. A local instance or a cloud-hosted instance (e.g., MongoDB Atlas free tier) will be needed.
+-   **Docker (Optional but Recommended)**: For easily running MongoDB and other services in a containerized environment.
 -   An IDE/Text Editor of your choice (e.g., VS Code).
 
 ### Setting Up the Development Environment
 
-1.  **Fork & Clone the Repository**:
-    -   Fork the main Labnex repository on GitHub/GitLab.
-    -   Clone your fork locally: `git clone <your_fork_url>`
+1.  **Clone the Repository**:
+    -   Clone the Labnex repository locally: `git clone <labnex_repo_url>` (Replace with actual URL if public, otherwise assume local access).
     -   Navigate into the project directory: `cd Labnex`
-    -   Add the upstream repository: `git remote add upstream <main_repo_url>`
 
 2.  **Install Dependencies**:
-    -   **Frontend**: Navigate to `frontend/` and run `npm install` or `yarn install`.
-    -   **Backend**: (Provide instructions specific to the backend, e.g., `cd backend/ && poetry install`)
+    -   **Frontend**: Navigate to `frontend/` and run `npm install`.
+    -   **Backend**: Navigate to `backend/` and run `npm install`.
 
 3.  **Environment Variables**:
-    -   Copy example environment files (e.g., `.env.example` to `.env`) in both `frontend/` and `backend/` (or root, depending on structure).
-    -   Fill in necessary variables (API keys for services, database connection strings, etc.). Some may have defaults suitable for local development.
+    -   In both `frontend/` and `backend/` directories, copy the `.env.example` file (if one exists) to a new file named `.env`.
+    -   Review and fill in the necessary variables in each `.env` file:
+        -   **Backend `.env`**: Crucially, set `MONGO_URI` to your MongoDB connection string. Also include `JWT_SECRET`, `DISCORD_BOT_TOKEN`, `DISCORD_CLIENT_ID`, `OPENAI_API_KEY`, etc.
+        -   **Frontend `.env`**: Typically `VITE_API_BASE_URL` (e.g., `http://localhost:5001/api/v1` if your backend runs on port 5001) and `BASE_URL` (e.g., `/` for local dev, or `/Labnex/` if mimicking GitHub Pages deployment).
 
-4.  **Database Setup (If Applicable)**:
-    -   (Provide instructions for setting up the local database, e.g., using Docker Compose to spin up a PostgreSQL/MongoDB instance, running migrations.)
+4.  **Database Setup (MongoDB)**:
+    -   If using Docker: A `docker-compose.yml` file might be provided at the root or in `backend/` to quickly start a MongoDB instance. Run `docker-compose up -d`.
+    -   Alternatively, ensure your local or cloud MongoDB instance is running and accessible.
+    -   No explicit database migration step is usually needed with Mongoose if schemas are defined to be flexible, but ensure your connection string in `backend/.env` is correct.
 
 5.  **Running the Application Locally**:
-    -   **Frontend**: `cd frontend/ && npm run dev` (or `yarn dev`)
-    -   **Backend**: (Provide command, e.g., `cd backend/ && poetry run uvicorn main:app --reload`)
-    -   Access the application at `http://localhost:xxxx` (frontend) and ensure the backend is running on its configured port.
+    -   **Backend**: Navigate to `backend/` and run `npm run dev`. This typically starts the backend server on a port like `5000` or `5001` (check console output).
+    -   **Frontend**: Navigate to `frontend/` and run `npm run dev`. This typically starts the Vite development server on a port like `5173` (check console output).
+    -   Access the frontend application in your browser (e.g., `http://localhost:5173`).
 
 ## Codebase Overview
 
-(Placeholder: Briefly describe the main directories and their purpose, e.g., `frontend/src/`, `backend/app/`, `docs/`, etc. Refer to `STRUCTURE.md` for a more detailed view if it exists at the root.)
-
--   **`frontend/`**: Contains the React-based user interface.
-    -   `src/api/`: API service integrations.
+-   **`frontend/`**: Contains the React-based user interface (Vite, TypeScript).
+    -   `src/api/`: Services for calling backend APIs.
     -   `src/components/`: Reusable UI components.
-    -   `src/pages/`: Top-level page components.
+    -   `src/pages/`: Top-level page components and views.
     -   `src/hooks/`: Custom React hooks.
--   **`backend/`**: (Structure depends on the chosen backend framework, e.g., routes, controllers, models, services.)
--   **`documentation_md/`**: Markdown files for the in-app documentation system.
+    -   `src/contexts/`: Global state and context providers.
+-   **`backend/`**: Node.js, Express.js, TypeScript API.
+    -   `src/config/`: Database connection, etc.
+    -   `src/controllers/`: Request handlers.
+    -   `src/middleware/`: Custom middleware (e.g., auth).
+    -   `src/models/`: Mongoose schemas for MongoDB.
+    -   `src/routes/`: API route definitions.
+    -   `src/services/`: Business logic.
+    -   `src/bots/`: Logic for the Discord bot.
+-   **`frontend/public/documentation_md/`**: Markdown files for the in-app documentation.
 
 ## Coding Standards & Conventions
 
--   **Language Specifics**: Follow established best practices for TypeScript/JavaScript (frontend) and the backend language (e.g., PEP 8 for Python).
--   **Formatting**: Use Prettier and ESLint (for frontend) or equivalent linters/formatters for the backend. Configuration files should be present in the repository. Run formatters before committing.
--   **Naming Conventions**: Adhere to the naming conventions outlined in the Global Development Rules (PascalCase for components, camelCase for functions/variables).
--   **Testing**: Write unit and integration tests for new features and bug fixes. (Specify testing frameworks, e.g., Jest, React Testing Library for frontend; PyTest, JUnit for backend).
--   **Commit Messages**: Follow conventional commit guidelines (e.g., `feat: Add new login button`, `fix: Correct user authentication flow`).
+-   **Language Specifics**: Follow established best practices for TypeScript (frontend & backend).
+-   **Formatting**: Prettier is used for code formatting. ESLint is used for linting.
+    -   Run `npm run format` in `frontend/` and `backend/` to format code.
+    -   Run `npm run lint` in `frontend/` and `backend/` to check for linting errors.
+-   **Naming Conventions**: Adhere to the project's established naming conventions (generally PascalCase for components/classes, camelCase for functions/variables). Refer to the Global Development Rules provided.
+-   **Testing**: Jest is used for testing.
+    -   Run `npm test` in `frontend/` and `backend/` to execute tests.
+    -   Write unit and integration tests for new features and bug fixes.
+-   **Commit Messages**: Follow conventional commit guidelines (e.g., `feat: Add X feature`, `fix: Correct Y bug`).
 
-## Contribution Process
+## Contribution Process (Internal Development)
 
-1.  **Find an Issue**: Look for open issues on the issue tracker. If you want to work on something new, consider creating an issue first to discuss it with the maintainers.
-2.  **Create a Branch**: Create a new branch from the `main` or `develop` branch: `git checkout -b feat/my-new-feature` or `fix/bug-description`.
-3.  **Develop**: Write your code, including tests and documentation as needed.
-4.  **Test**: Run all tests to ensure no regressions were introduced.
-5.  **Lint & Format**: Ensure your code adheres to linting and formatting standards.
-6.  **Commit**: Commit your changes with clear and descriptive messages.
-7.  **Push**: Push your branch to your fork: `git push origin feat/my-new-feature`.
-8.  **Create a Pull Request (PR)**: Open a PR from your fork's branch to the `main` or `develop` branch of the upstream Labnex repository.
-    -   Provide a clear description of the changes in the PR.
-    -   Link any relevant issues.
-9.  **Code Review**: Project maintainers will review your PR. Address any feedback or requested changes.
-10. **Merge**: Once approved, your PR will be merged.
+1.  **Discuss**: If planning a significant change, discuss with the team or lead.
+2.  **Create a Branch**: Create a new feature or bugfix branch from `main` (or the current development branch): `git checkout -b feat/my-new-feature`.
+3.  **Develop**: Implement your changes, including tests and any necessary documentation updates.
+4.  **Test**: Run all tests (`npm test`).
+5.  **Lint & Format**: Run `npm run lint` and `npm run format`.
+6.  **Commit**: Commit your changes with clear messages.
+7.  **Push**: Push your branch.
+8.  **Create a Pull Request (PR)**: Open a PR for review against the target branch.
+    -   Provide a clear description of changes and link any relevant issues/tasks.
+9.  **Code Review**: Address feedback.
+10. **Merge**: Once approved, the PR will be merged.
 
-## Communication
-
--   **Discord/Slack/Community Forum**: (Specify primary communication channels for developers.)
--   **Issue Tracker**: For discussing specific bugs or features.
-
-Thank you for helping make Labnex better! 
+This guide should help you get Labnex running locally for development purposes. 

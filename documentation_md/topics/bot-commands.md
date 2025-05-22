@@ -1,49 +1,72 @@
 # Available Bot Commands
 
-This page lists the common commands available for the Labnex Discord Bot. Please note that command prefixes (e.g., `/`, `!labnex`, `?`) might vary based on server configuration. The examples below will use `/` as a generic prefix.
+This page lists the common slash commands available for the Labnex Discord Bot. All commands are invoked using the `/` prefix.
 
 ## General Commands
 
--   **`/help` or `/labnex help`**
-    -   Displays a list of available commands or categories of commands.
-    -   Usage: `/help [command_category]`
+-   **`/help`**
+    -   Displays a list of available commands and their descriptions.
+    -   Usage: `/help`
 
 -   **`/linkaccount`**
     -   Initiates the process to link your Discord account with your Labnex account.
-    -   Follow the bot's DM instructions.
+    -   Follow the bot's DM instructions for a secure linking URL.
+    -   Usage: `/linkaccount`
 
 ## Project & Task Management Commands
 
 -   **`/projects`**
-    -   Lists projects you have access to.
+    -   Lists Labnex projects you have access to.
     -   Usage: `/projects`
 
--   **`/tasks [project_name_or_id]`**
-    -   Lists tasks for a specified project. If no project is specified, it might list tasks from a default or recently active project.
-    -   Usage: `/tasks project:MyProject` or `/tasks status:open project:MyProject`
+-   **`/tasks`**
+    -   Lists tasks. Can be filtered by project.
+    -   Usage: `/tasks [project:<project_name_or_id>]`
+    -   Example: `/tasks project:WebApp`
+    -   If `project` is omitted, it may list tasks from a default project or all accessible tasks based on bot configuration.
 
--   **`/createtask [project_name_or_id] <task_title>`**
+-   **`/createtask`**
     -   Creates a new task in the specified project.
-    -   Usage: `/createtask project:WebApp title:Implement login page`
-    -   Additional parameters like `description`, `assignee`, `priority` might be supported.
+    -   **Required Options**:
+        *   `project`: Project name or ID where the task will be created.
+        *   `title`: Title of the task.
+    -   **Optional Options**:
+        *   `description`: Detailed description of the task.
+        *   `priority`: Priority of the task (Choices: `Low`, `Medium`, `High`).
+        *   `status`: Status of the task (Choices: `To Do`, `In Progress`, `Blocked`, `In Review`, `Done`, `Cancelled`).
+        *   `due_date`: Due date in YYYY-MM-DD format (e.g., `2024-12-31`).
+    -   Usage Example: `/createtask project:WebApp title:"Implement User Login" description:"Full login flow with JWT" priority:High status:"To Do"`
 
--   **`/taskinfo <task_id_or_keyword>`**
+-   **`/taskinfo`**
     -   Displays detailed information about a specific task.
-    -   Usage: `/taskinfo task:123` or `/taskinfo keyword:LoginBug`
+    -   **Required Options**:
+        *   `task_identifier`: The ID or unique reference of the task.
+    -   Usage: `/taskinfo task_identifier:TASK-123`
 
--   **`/updatetask <task_id> <field:value...>`**
-    -   Updates a task's properties (e.g., status, assignee, description).
-    -   Usage: `/updatetask task:123 status:in-progress assignee:@user`
+-   **`/updatetask status`**
+    -   Updates the status of a specific task.
+    -   **Required Options**:
+        *   `task_identifier`: The ID or unique reference of the task to update.
+        *   `new_status`: The new status for the task (Choices: `To Do`, `In Progress`, `Blocked`, `In Review`, `Done`, `Cancelled`).
+    -   Usage: `/updatetask status task_identifier:TASK-123 new_status:"In Progress"`
+    -   *(Note: Other update operations like changing assignee or priority via `/updatetask` may be added in the future.)*
 
 ## Notes & Snippets Commands
 
--   **`/addnote <title> <body>`**
+-   **`/addnote`**
     -   Creates a new note.
-    -   Usage: `/addnote title:Meeting Ideas body:Discuss new features...`
+    -   **Required Options**:
+        *   `title`: Title of the note.
+        *   `body`: Content of the note.
+    -   Usage: `/addnote title:"Meeting Recap" body:"Key discussion points..."`
 
--   **`/addsnippet <language> <title> <code>`**
+-   **`/addsnippet`**
     -   Creates a new code snippet.
-    -   Usage: `/addsnippet lang:js title:Helper Function code:\`\`\`function greet() { console.log(\"Hello!\"); }\`\`\``
+    -   **Required Options**:
+        *   `language`: Programming language of the snippet (e.g., `javascript`, `python`).
+        *   `title`: Title of the snippet.
+        *   `code`: The actual code for the snippet.
+    -   Usage: `/addsnippet language:python title:"API Fetch Utility" code:"import requests..."`
 
 -   **`/notes`**
     -   Lists your recent notes.
@@ -55,8 +78,8 @@ This page lists the common commands available for the Labnex Discord Bot. Please
 
 ## Important Notes
 
--   Command availability might depend on your permissions within Labnex and the bot's configuration on the server.
--   For commands requiring multiple arguments (like titles with spaces), use quotes: `/createtask project:MyProject title:\"Design new user interface\"`
+-   Command availability and behavior might depend on your permissions within Labnex and the bot's configuration on the server.
+-   For command options that accept strings with spaces (like titles or descriptions), ensure you enclose the value in quotes if it contains spaces, or rely on Discord's handling of separate arguments for options.
 -   The bot will usually provide feedback or error messages directly in the channel or via DM.
 
-*This list is not exhaustive and may be updated as new features are added to the bot. Always use `/help` for the most current command list on your server.* 
+*This list reflects currently defined commands. Use `/help` for the most up-to-date command list available to you on your server.* 

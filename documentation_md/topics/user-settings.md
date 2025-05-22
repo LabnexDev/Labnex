@@ -6,29 +6,43 @@ This guide describes how to manage your user settings in Labnex.
 
 1.  Locate your profile icon or username, usually in the top-right corner of the application.
 2.  Click on it to open a dropdown menu.
-3.  Select "Settings" or "Profile Settings."
+3.  Select "Settings." This will take you to the main User Settings page.
 
-## Available Settings
+The User Settings page is organized into several sections:
 
-### Profile Information
--   **Username**: Your display name within Labnex.
--   **Email Address**: The email associated with your account (may not be editable).
--   **Avatar/Profile Picture**: Option to upload or change your profile image.
+## Appearance
 
-### Account Management
--   **Change Password**: Securely update your account password.
--   **Linked Accounts**: Manage connections to other services, such as Discord (see "Linking Discord Account" for details).
--   **Account Deletion**: Information and options regarding account deactivation or deletion (use with caution).
+Customize the look and feel of Labnex.
 
-### Preferences
--   **Theme**: (If available) Switch between light/dark themes or other UI appearance settings. Labnex primarily uses a dark theme.
--   **Notifications**: Configure how and when you receive notifications from Labnex (e.g., email, in-app).
--   **Language**: Select your preferred language for the Labnex interface.
+*   **Theme**: Switch between "Light Mode" and "Dark Mode" for the application interface. Labnex defaults to a dark theme.
+
+## Profile Information
+
+Manage your personal details and password. Click "Edit Profile" to make changes.
+
+*   **Full Name**: Your display name within Labnex. This is editable.
+*   **Email Address**: The email associated with your account. This is editable.
+*   **Change Password**: Securely update your account password. You'll need to provide your current password and then enter and confirm your new password. (Leave password fields blank if you don't want to change it while editing other profile details).
+
+*Note: Uploading a custom avatar/profile picture is not currently supported.*
+
+## Application Integrations
+
+Manage your connections to third-party services.
+
+*   **Discord Integration**: This section provides a link to "Manage Discord" settings, where you can link or unlink your Labnex account with your Discord account. This enables features like notifications and bot commands within Discord. (For detailed steps, see the "Linking Discord Account" documentation).
+
+## Notifications
+
+Manage how you receive notifications from Labnex.
+
+*   **Email Notifications**: Toggle on or off to receive important updates and alerts via email.
+
+*(Other notification preferences or account management options like account deletion are not available at this time.)*
 
 ## Updating Your Settings
 
-1.  Make the desired changes in the respective fields.
-2.  Look for a "Save Changes" or "Update Settings" button, usually at the bottom of the settings page.
-3.  Click it to apply your new settings.
+1.  After making changes within a section (e.g., Profile Information), click the "Save Changes" or "Update Settings" button, usually at the bottom of that section's form.
+2.  Theme changes and notification toggles are typically applied immediately.
 
 Always ensure your information is up-to-date for the best experience with Labnex. 

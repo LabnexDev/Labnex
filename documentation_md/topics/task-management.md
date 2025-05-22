@@ -4,61 +4,58 @@ Effective task management is crucial for project success. Labnex provides a comp
 
 ### Accessing Tasks
 
-*   **Project-Specific Tasks**: Navigate to a project's details page. You'll usually find a "Tasks" tab or section listing all tasks associated with that project. This is often displayed as a board (Kanban-style) or a list view.
-*   **My Tasks Page**: Accessible from the main sidebar, the "My Tasks" page consolidates all tasks assigned to you across all your projects, providing a personal to-do list with filtering and sorting options.
+*   **Project-Specific Tasks**: Navigate to a project's details page and then to its dedicated "Tasks" page (usually via a "View Tasks" button). Tasks are typically displayed as a grid of cards.
+*   **My Tasks Page**: Accessible from the main sidebar, the "My Tasks" page consolidates all tasks assigned to you across all your projects, providing a personal to-do list with filtering and sorting options, also displayed as a grid of cards.
 
 ### Creating a New Task
 
-1.  **From a Project's Task Page**:
-    *   Navigate to the desired project's tasks section.
-    *   Look for a "Create Task", "New Task", or "+" button.
+This is typically done from a specific project's Tasks page:
+
+1.  **Initiate Creation**:
+    *   On the project's Tasks page, look for a "Create New Task" or similar button.
     *   A modal or form will appear to enter task details.
 2.  **Task Details**: 
-    *   **Title**: A concise and clear summary of the task (e.g., "Implement user login API", "Design homepage mockups"). (Required)
-    *   **Description**: (Optional but highly recommended) Detailed information about the task, including requirements, acceptance criteria, relevant links, or steps to reproduce if it's a bug.
-    *   **Project**: Usually pre-selected if creating from a project page. If creating from a global "New Task" option, you'll need to select the project.
-    *   **Status**: The current state of the task. Common statuses include:
-        *   `To Do` (or `Open`, `Pending`)
+    *   **Title** (Required): A concise and clear summary of the task (e.g., "Implement user login API").
+    *   **Description** (Optional but highly recommended): Detailed information about the task.
+    *   **Project**: Pre-selected based on the current project context.
+    *   **Status**: The current state of the task. Defaults to `To Do`. Available statuses:
+        *   `To Do`
         *   `In Progress`
-        *   `Blocked` (if impediments exist)
-        *   `In Review` (or `QA`, `Testing`)
-        *   `Done` (or `Completed`, `Closed`)
+        *   `Blocked`
+        *   `In Review`
+        *   `Done`
         *   `Cancelled`
-        *(Labnex allows specific statuses, usually defaulting to "To Do".)*
-    *   **Priority**: The urgency or importance of the task. Common priorities:
+    *   **Priority**: The urgency of the task. Defaults to `MEDIUM`. Available priorities:
         *   `LOW`
-        *   `MEDIUM` (often the default)
+        *   `MEDIUM`
         *   `HIGH`
-    *   **Assigned To**: (Optional) Select a project member to assign the task to. Unassigned tasks are often visible to the team for pickup or later assignment.
-    *   **Due Date**: (Optional) A target completion date for the task.
-    *   **Linked Test Cases**: (Optional) Associate existing test cases from the project with this task, useful for QA and bug tracking.
+    *   **Assigned To** (Optional): Select a project member to assign the task to.
+    *   **Due Date** (Optional): A target completion date.
+    *   **Linked Test Cases** (Optional): Associate existing test cases from the current project with this task.
 3.  **Save Task**: Click "Create" or "Save".
 
 ### Viewing and Editing Tasks
 
-*   **Task Cards/Rows**: Tasks are typically displayed as cards (on a board) or rows (in a list). These summaries usually show the title, status, priority, and assignee.
-*   **Task Details View**: Clicking on a task card/row opens a detailed view (often a modal or a separate page) where you can see all its information, including the full description, comments, activity history, and linked items.
-*   **Editing**: From the task details view, you can usually edit all fields (title, description, status, priority, assignee, due date, linked test cases) provided you have the necessary permissions.
-    *   Changing the **status** is a common action and reflects the task's progress (e.g., moving from "To Do" to "In Progress").
+*   **Task Cards**: Tasks are displayed as cards, showing key information like title, status, and priority. Additional details like assignee, due dates, and linked test cases may also be visible on the cards.
+*   **Editing Tasks (Project Tasks Page)**: Clicking on a task card on the project's Tasks page typically opens a modal where you can edit all its fields (title, description, status, priority, assignee, due date, linked test cases), provided you have permissions.
+*   **Navigating from "My Tasks"**: Clicking on a task card on the "My Tasks" page will navigate you to the main Tasks page for that task's project.
+*   Changing the **status** is a common action and reflects the task's progress.
 
 ### Key Task Management Features
 
-*   **Filtering**: On task list views (both project-specific and "My Tasks"), you can typically filter tasks by:
-    *   Status
-    *   Priority
-    *   Assigned User
-    *   Due Date ranges
-    *   (On "My Tasks") Project
-*   **Sorting**: Sort tasks by creation date, due date, priority, or title to organize your view.
-*   **Task Board (Kanban View)**: If available, this view allows you to drag and drop tasks between columns representing different statuses, providing a visual way to manage workflow.
-*   **Linking to Test Cases**: Essential for quality assurance. Tasks (especially bugs or features requiring testing) can be directly linked to test cases. Updating a test case status might even reflect on the linked task.
+*   **Filtering** (especially on "My Tasks" page):
+    *   Filter tasks by Project, Status, and Priority.
+*   **Sorting** (especially on "My Tasks" page):
+    *   Sort tasks by Date Created, Due Date, and Priority.
+*   **Task Views**: Tasks are generally displayed in a grid or list format. *A Kanban-style drag-and-drop board view is not a standard feature at this time.*
+*   **Linking to Test Cases**: Essential for quality assurance. Tasks can be directly linked to test cases from the same project.
 
 ### "My Tasks" Page
 
 This dedicated page is your personal productivity hub:
 
 *   Lists all tasks assigned to **you** across all projects you're a member of.
-*   Offers powerful filtering (by project, status, priority) and sorting options so you can focus on what's most important.
-*   Task cards typically provide quick links to the task details or the parent project.
+*   Offers filtering (by project, status, priority) and sorting options (by creation date, due date, priority).
+*   Task cards provide quick navigation to the parent project's main Tasks page.
 
 By effectively using Labnex's task management features, you can ensure clarity, accountability, and smooth progress for all your project deliverables. 
