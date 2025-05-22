@@ -11,16 +11,19 @@
       // string into just a query string, and then redirects the browser
       // to the new url with only a query string and hash fragment.
       var segmentCount = 1; // Since your URL is like /Labnex/path, segmentCount is 1 for 'Labnex'
+      console.log('[404.html] Original location:', window.location.href);
 
       var l = window.location;
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      var newRedirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
         l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + // Reconstructs the base path (e.g., /Labnex)
         '/?p=/' + // Adds the p query parameter
         l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') + // The rest of the path
         (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') + // The original query string
-        l.hash // The original hash
-      );
+        l.hash; // The original hash
+      
+      console.log('[404.html] Attempting to redirect to:', newRedirectUrl);
+
+      l.replace(newRedirectUrl);
     </script>
   </head>
   <body>
