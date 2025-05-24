@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18+-61dafb)](https://reactjs.org/)
 
-[🚀 Live Demo](https://labnex.dev) • [📖 Documentation](https://docs.labnex.dev) • [💬 Discord](https://discord.gg/labnex) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
+[🚀 Live Demo](https://labnex.dev) • [📖 Documentation](https://docs.labnex.dev) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
 
 </div>
 
@@ -197,10 +197,10 @@ labnex run --project <project-id> --ai-optimize
 labnex run --project <project-id> --ai-optimize --detailed
 
 # Generate test cases with AI
-labnex generate test "User login functionality"
+labnex ai generate --description "User login functionality"
 
 # Analyze test failures
-labnex analyze failure --run-id <run-id>
+labnex ai analyze <run-id> <failure-id>
 
 # Check system status
 labnex status
@@ -275,15 +275,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: [docs.labnex.dev](https://docs.labnex.dev)
-- **Discord Community**: [Join our Discord](https://discord.gg/labnex)
+- **Discord Community**: [Join our Discord](https://discord.gg/Kx5HrvMB)
 - **GitHub Issues**: [Report bugs or request features](https://github.com/LabnexDev/Labnex/issues)
-- **Email**: support@labnex.dev
+- **Email**: labnexcontact@gmail.com
 
 ---
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/LabnexDev/Labnex)** • **[🐦 Follow on Twitter](https://twitter.com/LabnexDev)** • **[💼 LinkedIn](https://linkedin.com/company/labnex)**
+**[⭐ Star us on GitHub](https://github.com/LabnexDev/Labnex)**
 
 Made with ❤️ for the developer community
 

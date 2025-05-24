@@ -26,7 +26,7 @@ npx @labnex/cli --help
 
 3. **Run tests**
    ```bash
-   labnex test run --project MYAPP --ai
+   labnex run --project MYAPP --ai-optimize
    ```
 
 ## Commands
@@ -42,16 +42,17 @@ labnex auth status          # Check authentication status
 ```bash
 labnex projects list        # List all projects
 labnex projects create      # Create a new project
-labnex project show MYAPP   # Show project details
+labnex projects show MYAPP  # Show project details
 ```
 
-### Test Management
+### Test Execution
 ```bash
-labnex test run --project MYAPP      # Run tests
-labnex test run --ai --parallel 8    # Run with AI optimization
-labnex test status <runId>           # Check test run status
-labnex test results <runId>          # View test results
-labnex test create --interactive     # Create new test case
+labnex run --project MYAPP           # Run tests for a project
+labnex run --ai-optimize             # Run with AI optimization
+labnex run --detailed                # Show detailed action logs
+labnex run --parallel 8              # Set parallel workers
+labnex run --env staging             # Specify environment
+labnex status                        # Check status of active test runs
 ```
 
 ### AI Features
@@ -66,10 +67,13 @@ labnex ai analyze <runId> <failureId> # Analyze test failure
 ### Running Tests with AI Optimization
 ```bash
 # Run optimized test suite based on code changes
-labnex test run --project ECOM --ai --parallel 4 --env staging
+labnex run --project ECOM --ai-optimize --parallel 4 --env staging
+
+# Run with detailed logging
+labnex run --project ECOM --detailed
 
 # Watch mode for continuous testing
-labnex test run --project ECOM --watch
+labnex run --project ECOM --watch
 ```
 
 ### Generating Test Cases
@@ -113,11 +117,10 @@ labnex projects create --name "My App" --code MYAPP
 labnex ai generate --description "Test user registration"
 
 # 4. Run tests with AI optimization
-labnex test run --project MYAPP --ai --parallel 4
+labnex run --project MYAPP --ai-optimize --parallel 4
 
 # 5. Monitor results
-labnex test status abc123
-labnex test results abc123
+labnex status
 ```
 
 ### CI/CD Integration
@@ -125,7 +128,7 @@ labnex test results abc123
 # In your CI pipeline
 export LABNEX_API_URL="https://your-backend.onrender.com/api"
 echo "$LABNEX_TOKEN" | labnex auth login --token
-labnex test run --project $PROJECT_CODE --env production --ai
+labnex run --project $PROJECT_CODE --env production --ai-optimize
 ```
 
 ## Features
@@ -159,9 +162,9 @@ labnex --help
 
 ## Support
 
-- **Documentation**: [docs.labnex.io](https://docs.labnex.io)
-- **Issues**: [GitHub Issues](https://github.com/your-org/labnex/issues)
-- **Discord**: [Join our community](https://discord.gg/labnex)
+- **Documentation**: [docs.labnex.dev](https://docs.labnex.dev)
+- **Issues**: [GitHub Issues](https://github.com/LabnexDev/Labnex/issues)
+- **Discord**: [Join our community](https://discord.gg/Kx5HrvMB)
 
 ## License
 

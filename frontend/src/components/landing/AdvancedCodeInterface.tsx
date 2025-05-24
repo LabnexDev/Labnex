@@ -24,7 +24,7 @@ const AdvancedCodeInterface: React.FC = () => {
 $ npm install -g @labnex/cli
 $ labnex auth login
 $ labnex projects create --name "My App" --code MYAPP
-$ labnex test run --project MYAPP --ai
+$ labnex run --project MYAPP --ai-optimize
 
 ✓ Authenticated successfully
 ✓ Project created: MYAPP  
@@ -55,9 +55,9 @@ $ labnex projects list
 └─────────────┴──────────────────────┴────────────┴─────────────┘
 
 # Run tests with AI optimization
-$ labnex test run --project MYAPP --ai --parallel 2
+$ labnex run --project MYAPP --ai-optimize --parallel 2
 
-🚀 Labnex CLI v1.0.0
+🚀 Labnex CLI v1.2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✓ Project: MYAPP (My Application)
@@ -284,9 +284,10 @@ const client = new LabnexClient({
 });
 
 // Run tests programmatically
-const results = await client.test.run({
-  suites: ['authentication', 'forms'],
-  aiOptimization: true
+const results = await client.run({
+  project: 'MYAPP',
+  aiOptimization: true,
+  parallel: 2
 });`,
       content: `import { LabnexClient } from '@labnex/cli';
 
@@ -301,11 +302,11 @@ const labnex = new LabnexClient({
 async function runAutomatedTests() {
   try {
     // Start AI-optimized test run
-    const testRun = await labnex.test.run({
-      projectCode: 'MYAPP',
+    const testRun = await labnex.run({
+      project: 'MYAPP',
       suites: ['authentication', 'forms'],
       aiOptimization: true,
-      parallelWorkers: 2,
+      parallel: 2,
       environment: 'staging'
     });
 
@@ -363,17 +364,15 @@ async function cicdIntegration() {
   const commit = process.env.GIT_COMMIT || 'latest';
   
   // Run tests with metadata
-  const testRun = await labnex.test.run({
-    projectCode: 'MYAPP',
+  const testRun = await labnex.run({
+    project: 'MYAPP',
     metadata: {
       branch,
       commit,
       buildNumber: process.env.BUILD_NUMBER
     },
-    aiOptimization: {
-      enabled: true,
-      analyzeCodeChanges: true
-    }
+    aiOptimization: true,
+    analyzeCodeChanges: true
   });
 
   // Set exit code based on results
@@ -561,12 +560,22 @@ module.exports = {
               Install the Labnex CLI and start running AI-powered tests in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+              <a 
+                href="https://www.npmjs.com/package/@labnex/cli" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-center"
+              >
                 Install CLI Tool
-              </button>
-              <button className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 hover:bg-white/15 hover:text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]">
+              </a>
+              <a 
+                href="https://github.com/LabnexDev/Labnex/tree/main/packages/cli" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 hover:bg-white/15 hover:text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] text-center"
+              >
                 View CLI Docs
-              </button>
+              </a>
             </div>
             <div className="mt-6 p-4 bg-slate-800/40 rounded-xl border border-slate-600/30">
               <code className="text-slate-300 text-sm font-mono">

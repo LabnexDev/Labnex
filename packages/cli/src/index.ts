@@ -8,6 +8,7 @@ import { projectsCommand } from './commands/projects';
 import { aiCommand } from './commands/ai';
 import { analyzeCommand } from './commands/analyze';
 import { runCommand } from './commands/run';
+import { setupConfigCommands } from './commands/config';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
 import ora from 'ora';
@@ -71,6 +72,7 @@ async function main() {
   program.addCommand(projectsCommand);
   program.addCommand(aiCommand);
   program.addCommand(analyzeCommand);
+  program.addCommand(setupConfigCommands());
 
   // Global error handling
   program.configureHelp({

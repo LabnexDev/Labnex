@@ -143,31 +143,21 @@ export const getTasksForProject = async (req: Request, res: Response) => {
     const { status, assignedTo, priority, sortBy, sortOrder } = req.query;
     const userId = (req as any).user._id;
 
-    console.log(`[getTasksForProject] Attempting to fetch tasks for projectId: ${projectId}, userId: ${userId}`);
-
     if (!Types.ObjectId.isValid(projectId)) {
-        console.error(`[getTasksForProject] Invalid projectId: ${projectId}`);
         return res.status(400).json({ message: 'Invalid project ID.' });
     }
 
     try {
         const projectDoc = await Project.findById(projectId);
         if (!projectDoc) {
-            console.warn(`[getTasksForProject] Project not found for projectId: ${projectId}`);
             return res.status(404).json({ message: 'Project not found.' });
         }
 
-        console.log(`[getTasksForProject] Querying Role: { userId: ${userId}, projectId: ${projectId} }`);
         const userRole = await Role.findOne({ userId: userId, projectId: projectId });
         
         if (!userRole) {
-            console.warn(`[getTasksForProject] User role not found for userId: ${userId} in project: ${projectId}. User is NOT owner/member via Role.`);
-            if (projectDoc.owner.equals(userId)) {
-                console.warn(`[getTasksForProject] DEBUG: User ${userId} IS the project owner (project.owner) but no Role found.`);
-            }
             return res.status(403).json({ message: 'You are not a member of this project and cannot view its tasks.' });
         }
-        console.log(`[getTasksForProject] User role found:`, JSON.stringify(userRole));
 
         const query: any = { project: projectId };
         if (status) query.status = status as string;
@@ -246,8 +236,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     }
 };
 
-// TODO: Implement other CRUD operations:
-// updateTask, deleteTask, getTasksForUser (for "My Tasks") 
+// All CRUD operations implemented: createTask, getTasksForProject, getTaskById, updateTask, deleteTask, getMyAssignedTasks 
 
 /**
  * @route   PUT /api/projects/:projectId/tasks/:taskId

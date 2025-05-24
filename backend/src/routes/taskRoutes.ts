@@ -35,10 +35,7 @@ router.put('/:taskId', auth, updateTask);
 // @access  Private (Permissions checked in controller)
 router.delete('/:taskId', auth, deleteTask);
 
-// TODO: Define other routes for tasks:
-// router.delete('/:taskId', auth, deleteTask);
-
-// Special route for "My Tasks" - might be top-level or user-specific
-// router.get('/user/my-tasks', auth, getTasksForUser); // Example path, could be /api/tasks/my
+// Note: "My Tasks" route is implemented in myTaskRoutes.ts as /api/tasks/my
+// All project-specific task routes are implemented above
 
 export default router; 

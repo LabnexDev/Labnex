@@ -1,6 +1,6 @@
 {
   "name": "@labnex/cli",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Command-line interface for Labnex testing automation platform",
   "main": "dist/index.js",
   "bin": {
