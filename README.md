@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18+-61dafb)](https://reactjs.org/)
 
-[🚀 Live Demo](https://labnex.dev) • [📖 Documentation](https://docs.labnex.dev) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
+[🚀 Live Demo](https://labnexdev.github.io/Labnex/) • [📖 Documentation](https://labnexdev.github.io/Labnex/documentation) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
 
 </div>
 
