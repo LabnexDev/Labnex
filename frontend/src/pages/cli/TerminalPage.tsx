@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { testRunnerApi, aiApi } from '../../api/testRunner';
+import axiosInstance from '../../api/axios';
 
 interface TerminalCommand {
   id: string;
@@ -31,6 +32,20 @@ interface TestRunStatus {
   detailed?: boolean;
 }
 
+// Helper function to get WebSocket URL
+const getWebSocketUrl = () => {
+  const isProduction = import.meta.env.PROD;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  if (isProduction && !isLocalhost) {
+    // Production deployment - use secure WebSocket to Render backend
+    return 'wss://labnex-backend.onrender.com/ws';
+  } else {
+    // Development mode - use local WebSocket
+    return 'ws://localhost:5000/ws';
+  }
+};
+
 export function TerminalPage() {
   const { user } = useAuth();
   const [commands, setCommands] = useState<TerminalCommand[]>([]);
@@ -45,13 +60,8 @@ export function TerminalPage() {
   const { data: projects } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      const response = await fetch('/api/projects', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      return response.json();
+      const response = await axiosInstance.get('/projects');
+      return response.data;
     }
   });
 
@@ -73,47 +83,7 @@ export function TerminalPage() {
     'clear'
   ];
 
-  // Setup WebSocket connection for real-time updates with fallback
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Try to connect to WebSocket, but don't fail if it's not available
-      const wsUrl = `ws://localhost:5000/ws?token=${token}`;
-      const ws = new WebSocket(wsUrl);
-      
-      ws.onopen = () => {
-        console.log('✅ WebSocket connected for CLI terminal');
-        setWsConnection(ws);
-        toast.success('Real-time updates enabled');
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          handleWebSocketMessage(data);
-        } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
-        }
-      };
-
-      ws.onclose = () => {
-        console.log('WebSocket disconnected - using polling fallback');
-        setWsConnection(null);
-      };
-
-      ws.onerror = (error) => {
-        console.warn('WebSocket connection failed - will use polling for updates:', error);
-        setWsConnection(null);
-      };
-
-      // Cleanup on unmount
-      return () => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.close();
-        }
-      };
-    }
-  }, [user]);
+    // Setup WebSocket connection for real-time updates with fallback  useEffect(() => {    const token = localStorage.getItem('token');    if (token) {      // Try to connect to WebSocket, but don't fail if it's not available      const wsUrl = `${getWebSocketUrl()}?token=${token}`;      const ws = new WebSocket(wsUrl);            ws.onopen = () => {        console.log('✅ WebSocket connected for CLI terminal');        setWsConnection(ws);        toast.success('Real-time updates enabled');      };      ws.onmessage = (event: MessageEvent) => {        try {          const data = JSON.parse(event.data);          handleWebSocketMessage(data);        } catch (error) {          console.error('Failed to parse WebSocket message:', error);        }      };      ws.onclose = () => {        console.log('WebSocket disconnected - using polling fallback');        setWsConnection(null);      };      ws.onerror = (error: Event) => {        console.warn('WebSocket connection failed - will use polling for updates:', error);        setWsConnection(null);      };      // Cleanup on unmount      return () => {        if (ws.readyState === WebSocket.OPEN) {          ws.close();        }      };    }  }, [user]);
 
   // Polling fallback for when WebSocket is not available
   useEffect(() => {
@@ -500,41 +470,7 @@ export function TerminalPage() {
         updateOutput(statusOutput, 'completed');
         break;
 
-      case 'health':
-        updateOutput(['🤖 Check backend health...']);
-        try {
-          const response = await fetch('/api/health', {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          });
-          if (response.ok) {
-            updateOutput([
-              '',
-              '✅ Backend is healthy!',
-              ` Status: ${response.status}`,
-              `🤖 API Base: ${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}`,
-              `🤖 Connection: ${wsConnection ? 'WebSocket connected' : 'Using polling fallback'}`,
-              ''
-            ], 'completed');
-          } else {
-            updateOutput([
-              '',
-              '🤖 Backend responded but with issues',
-              `🤖 Status: ${response.status}`,
-              ''
-            ], 'completed');
-          }
-        } catch (error: any) {
-          updateOutput([
-            '',
-            '❌ Backend health check failed',
-            `🤖 Error: ${error.message}`,
-            '🤖 Make sure your backend is running on port 5000',
-            ''
-          ], 'error');
-        }
-        break;
+            case 'health':        updateOutput(['🤖 Check backend health...']);        try {          const response = await axiosInstance.get('/health');          updateOutput([            '',            '✅ Backend is healthy!',            `🤖 Status: ${response.status}`,            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,            `🤖 Connection: ${wsConnection ? 'WebSocket connected' : 'Using polling fallback'}`,            ''          ], 'completed');        } catch (error: any) {          updateOutput([            '',            '❌ Backend health check failed',            `🤖 Error: ${error.message}`,            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,            ''          ], 'error');        }        break;
 
       case 'run':
         await handleTestRun(commandId, args, updateOutput);
