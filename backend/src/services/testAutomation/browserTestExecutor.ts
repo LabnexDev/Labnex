@@ -24,8 +24,11 @@ export class BrowserTestExecutor {
 
   async initialize(): Promise<void> {
     try {
+      // Determine if we're in production (Render) or development
+      const isProduction = process.env.NODE_ENV === 'production';
+      
       this.browser = await puppeteer.launch({
-        headless: false,
+        headless: isProduction, // Use headless mode in production, visible in dev
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -33,9 +36,20 @@ export class BrowserTestExecutor {
           '--disable-accelerated-2d-canvas',
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--disable-extensions',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-features=TranslateUI',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
         ]
       });
+
+      if (!this.browser) {
+        throw new Error('Failed to launch browser');
+      }
 
       this.page = await this.browser.newPage();
       await this.page.setViewport({ width: 1366, height: 768 });
@@ -49,7 +63,7 @@ export class BrowserTestExecutor {
         this.logs.push(`Page Error: ${error.message}`);
       });
 
-      this.addLog('Browser initialized successfully - VISIBLE MODE!');
+      this.addLog(`Browser initialized successfully - ${isProduction ? 'HEADLESS MODE (Production)' : 'VISIBLE MODE (Development)'}`);
     } catch (error: any) {
       throw new Error(`Failed to initialize browser: ${error.message}`);
     }
