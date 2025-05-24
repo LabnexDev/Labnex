@@ -870,6 +870,56 @@ export function TerminalPage() {
             )}
           </div>
 
+          {/* Local CLI Notice */}
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-6 mb-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-blue-500 rounded-lg">
+                <CommandLineIcon className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-blue-400 mb-2">
+                  🚀 Get Full Performance with Local CLI
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  For the best experience with unlimited resources and faster test execution, install our local CLI package:
+                </p>
+                <div className="bg-gray-900/60 rounded-lg p-4 mb-4">
+                  <code className="text-green-400 font-mono">
+                    npm install -g @labnex/cli
+                  </code>
+                </div>
+                <p className="text-gray-400 text-sm mb-3">
+                  Then run the same commands locally with full system resources:
+                </p>
+                <div className="bg-gray-900/60 rounded-lg p-3">
+                  <code className="text-blue-400 font-mono text-sm">
+                    labnex run --project YOUR_PROJECT_ID --ai-optimize --detailed
+                  </code>
+                </div>
+                <div className="flex items-center gap-4 mt-4 text-sm">
+                  <span className="text-green-400">✅ Unlimited Memory</span>
+                  <span className="text-green-400">✅ Full CPU Power</span>
+                  <span className="text-green-400">✅ Real Browser Automation</span>
+                  <span className="text-green-400">✅ Faster Execution</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Demo Notice */}
+          <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-yellow-400 text-xl">⚠️</span>
+              <div>
+                <p className="text-yellow-200 font-medium">Web CLI Demo Mode</p>
+                <p className="text-yellow-300/80 text-sm">
+                  This web terminal runs in simulation mode due to server resource limits. 
+                  For real browser automation, please use the local CLI package above.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Quick Commands */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {quickCommands.map((cmd, index) => (

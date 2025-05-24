@@ -20,7 +20,11 @@
     "automation",
     "cli",
     "ai",
-    "labnex"
+    "labnex",
+    "browser-automation",
+    "test-automation",
+    "puppeteer",
+    "ai-testing"
   ],
   "author": "Labnex Team",
   "license": "MIT",
@@ -59,7 +63,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/labnex.git",
+    "url": "https://github.com/LabnexDev/Labnex.git",
     "directory": "packages/cli"
+  },
+  "homepage": "https://labnexdev.github.io/Labnex",
+  "bugs": {
+    "url": "https://github.com/LabnexDev/Labnex/issues"
   }
 } 
