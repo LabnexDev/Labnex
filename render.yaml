@@ -32,8 +32,8 @@ services:
         value: https://labnexdev.github.io/Labnex
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: false
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: /opt/render/project/.cache/puppeteer/chrome/linux-*/chrome-linux*/chrome
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/.cache/puppeteer
 
 databases:
   - name: labnex-mongodb

@@ -10,7 +10,7 @@
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "postinstall": "if [ \"$NODE_ENV\" = \"production\" ]; then npx puppeteer browsers install chrome; fi"
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "keywords": [],
   "author": "",

@@ -22,30 +22,58 @@ export class BrowserTestExecutor {
   private page: Page | null = null;
   private logs: string[] = [];
 
-  async initialize(): Promise<void> {
+    async initialize(): Promise<void> {
     try {
       // Determine if we're in production (Render) or development
       const isProduction = process.env.NODE_ENV === 'production';
       
-      this.browser = await puppeteer.launch({
-        headless: isProduction, // Use headless mode in production, visible in dev
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-features=TranslateUI',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor'
-        ]
-      });
+      // Enhanced Chrome args for Render deployment
+      const chromeArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-extensions',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-features=VizServiceDisplayCompositor',
+        '--disable-software-rasterizer',
+        '--disable-background-networking',
+        '--disable-default-apps',
+        '--disable-sync',
+        '--disable-translate',
+        '--hide-scrollbars',
+        '--metrics-recording-only',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--no-pings',
+        '--password-store=basic',
+        '--use-mock-keychain',
+        '--single-process'
+      ];
+
+      // Log the attempt
+      this.addLog(`Attempting to launch browser in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+      
+      const launchOptions: any = {
+        headless: isProduction,
+        args: chromeArgs
+      };
+
+      // Try to use custom executable path in production
+      if (isProduction && process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        this.addLog(`Using custom Chrome executable: ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
+      }
+
+      this.browser = await puppeteer.launch(launchOptions);
 
       if (!this.browser) {
         throw new Error('Failed to launch browser');
@@ -65,6 +93,7 @@ export class BrowserTestExecutor {
 
       this.addLog(`Browser initialized successfully - ${isProduction ? 'HEADLESS MODE (Production)' : 'VISIBLE MODE (Development)'}`);
     } catch (error: any) {
+      this.addLog(`Failed to initialize browser: ${error.message}`);
       throw new Error(`Failed to initialize browser: ${error.message}`);
     }
   }
