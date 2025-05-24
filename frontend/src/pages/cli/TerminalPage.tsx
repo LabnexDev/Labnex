@@ -83,7 +83,47 @@ export function TerminalPage() {
     'clear'
   ];
 
-    // Setup WebSocket connection for real-time updates with fallback  useEffect(() => {    const token = localStorage.getItem('token');    if (token) {      // Try to connect to WebSocket, but don't fail if it's not available      const wsUrl = `${getWebSocketUrl()}?token=${token}`;      const ws = new WebSocket(wsUrl);            ws.onopen = () => {        console.log('✅ WebSocket connected for CLI terminal');        setWsConnection(ws);        toast.success('Real-time updates enabled');      };      ws.onmessage = (event: MessageEvent) => {        try {          const data = JSON.parse(event.data);          handleWebSocketMessage(data);        } catch (error) {          console.error('Failed to parse WebSocket message:', error);        }      };      ws.onclose = () => {        console.log('WebSocket disconnected - using polling fallback');        setWsConnection(null);      };      ws.onerror = (error: Event) => {        console.warn('WebSocket connection failed - will use polling for updates:', error);        setWsConnection(null);      };      // Cleanup on unmount      return () => {        if (ws.readyState === WebSocket.OPEN) {          ws.close();        }      };    }  }, [user]);
+  // Setup WebSocket connection for real-time updates with fallback
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Try to connect to WebSocket, but don't fail if it's not available
+      const wsUrl = `${getWebSocketUrl()}?token=${token}`;
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected for CLI terminal');
+        setWsConnection(ws);
+        toast.success('Real-time updates enabled');
+      };
+
+      ws.onmessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleWebSocketMessage(data);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected - using polling fallback');
+        setWsConnection(null);
+      };
+
+      ws.onerror = (error: Event) => {
+        console.warn('WebSocket connection failed - will use polling for updates:', error);
+        setWsConnection(null);
+      };
+
+      // Cleanup on unmount
+      return () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
+      };
+    }
+  }, [user]);
 
   // Polling fallback for when WebSocket is not available
   useEffect(() => {
@@ -470,7 +510,28 @@ export function TerminalPage() {
         updateOutput(statusOutput, 'completed');
         break;
 
-            case 'health':        updateOutput(['🤖 Check backend health...']);        try {          const response = await axiosInstance.get('/health');          updateOutput([            '',            '✅ Backend is healthy!',            `🤖 Status: ${response.status}`,            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,            `🤖 Connection: ${wsConnection ? 'WebSocket connected' : 'Using polling fallback'}`,            ''          ], 'completed');        } catch (error: any) {          updateOutput([            '',            '❌ Backend health check failed',            `🤖 Error: ${error.message}`,            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,            ''          ], 'error');        }        break;
+      case 'health':
+        updateOutput(['🤖 Check backend health...']);
+        try {
+          const response = await axiosInstance.get('/health');
+          updateOutput([
+            '',
+            '✅ Backend is healthy!',
+            `🤖 Status: ${response.status}`,
+            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,
+            `🤖 Connection: ${wsConnection ? 'WebSocket connected' : 'Using polling fallback'}`,
+            ''
+          ], 'completed');
+        } catch (error: any) {
+          updateOutput([
+            '',
+            '❌ Backend health check failed',
+            `🤖 Error: ${error.message}`,
+            `🤖 API Base: ${axiosInstance.defaults.baseURL}`,
+            ''
+          ], 'error');
+        }
+        break;
 
       case 'run':
         await handleTestRun(commandId, args, updateOutput);

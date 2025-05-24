@@ -167,4 +167,23 @@ export const aiApi = {
   },
 };
 
-// WebSocket connection for real-time updatesexport const createTestRunWebSocket = (runId: string, token: string): WebSocket => {  // Determine the correct WebSocket URL based on environment  const isProduction = import.meta.env.PROD;  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';    let wsBaseUrl;  if (isProduction && !isLocalhost) {    // Production deployment - use secure WebSocket to Render backend    wsBaseUrl = 'wss://labnex-backend.onrender.com';  } else {    // Development mode - use local WebSocket    wsBaseUrl = 'ws://localhost:5000';  }    const wsUrl = `${wsBaseUrl}/test-runs/${runId}/stream`;  const ws = new WebSocket(`${wsUrl}?token=${token}`);    return ws;}; 
+// WebSocket connection for real-time updates
+export const createTestRunWebSocket = (runId: string, token: string): WebSocket => {
+  // Determine the correct WebSocket URL based on environment
+  const isProduction = import.meta.env.PROD;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  let wsBaseUrl;
+  if (isProduction && !isLocalhost) {
+    // Production deployment - use secure WebSocket to Render backend
+    wsBaseUrl = 'wss://labnex-backend.onrender.com';
+  } else {
+    // Development mode - use local WebSocket
+    wsBaseUrl = 'ws://localhost:5000';
+  }
+  
+  const wsUrl = `${wsBaseUrl}/test-runs/${runId}/stream`;
+  const ws = new WebSocket(`${wsUrl}?token=${token}`);
+  
+  return ws;
+}; 
