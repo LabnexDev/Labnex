@@ -1,0 +1,48 @@
+# Dependencies
+node_modules
+# package-lock.json # Commit this for reproducible builds
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist
+build
+
+# Cache directories
+.npm_cache
+.puppeteer_cache
+.temp
+.cache
+npm-cache
+yarn-cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage
+
+# System Files
+.DS_Store
+Thumbs.db 

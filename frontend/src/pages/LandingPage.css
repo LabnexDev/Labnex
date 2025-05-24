@@ -1,0 +1,409 @@
+@keyframes animatedGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-animated-bg {
+  background: linear-gradient(135deg, #0F172A, #1E3A8A, #3B0764, #0F172A); /* Dark blue, deeper blue, dark purple, back to dark blue */
+  background-size: 300% 300%;
+  animation: animatedGradient 35s ease infinite; /* Slowed down animation */
+}
+
+.glow-on-hover:hover {
+  box-shadow: 0 0 15px 5px rgba(59, 130, 246, 0.5); /* Blue glow, adjust color/spread as needed */
+}
+
+/* --- Styles for Labnex AI Works Section --- */
+.command-block {
+  margin-bottom: 1.25rem; /* Increased margin a bit */
+  overflow: hidden; 
+}
+
+.command-line {
+  display: flex; 
+  align-items: baseline;
+}
+
+.command-prompt-symbol {
+  color: #34D399; /* Tailwind green-400 */
+  margin-right: 0.5ch;
+  flex-shrink: 0; /* Prevent prompt from shrinking */
+}
+
+.typewriter-text {
+  color: #34D399; /* Tailwind green-400 for the command text */
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: .1em solid #FDBA74; /* Tailwind amber-300 for cursor */
+  animation-fill-mode: forwards; 
+  width: 0; 
+  /* General blink animation for cursor, will be part of combined animation rule */
+}
+
+/* Individual typing animations with blink - NOW SCOPED TO .section-visible */
+.section-visible .typewriter-text.cmd1 {
+  animation: typingCmd1 3s steps(38, end) 0.5s forwards, /* Start after 0.5s when section is visible */
+             blink-caret .75s step-end 0.5s infinite;
+}
+@keyframes typingCmd1 { 
+  from { width: 0 } 
+  to { width: 38ch; border-right-color: #FDBA74; } /* Increased ch from 33 */
+}
+
+.section-visible .typewriter-text.cmd2 {
+  animation: typingCmd2 4.5s steps(75, end) 4.0s forwards, /* Starts 0.5s (cmd1 delay) + 3s (cmd1 duration) + 0.5s buffer */
+             blink-caret .75s step-end 4.0s infinite;
+}
+@keyframes typingCmd2 { 
+  from { width: 0 } 
+  to { width: 75ch; border-right-color: #FDBA74; } /* Increased ch from 68 */
+}
+
+.section-visible .typewriter-text.cmd3 {
+  animation: typingCmd3 5.5s steps(90, end) 9.0s forwards, /* Starts 4.0s (cmd2 delay) + 4.5s (cmd2 duration) + 0.5s buffer */
+             blink-caret .75s step-end 9.0s infinite;
+}
+@keyframes typingCmd3 { 
+  from { width: 0 } 
+  to { width: 90ch; border-right-color: #FDBA74; } /* Increased ch from 83 */
+}
+
+.command-comment {
+  display: block; 
+  color: #9CA3AF; /* Tailwind gray-400 */
+  opacity: 0;
+  transform: translateY(8px); /* Slightly less Y translation */
+  animation-fill-mode: forwards;
+  padding-left: 1.2em; /* Indent comments slightly */
+}
+
+.section-visible .command-comment.cmt1 {
+  animation: fadeInComment 0.5s ease-out 3.5s forwards; /* After cmd1 typing (0.5s delay + 3s duration) */
+}
+.section-visible .command-comment.cmt2 {
+  animation: fadeInComment 0.5s ease-out 8.5s forwards; /* After cmd2 typing (4.0s delay + 4.5s duration) */
+}
+.section-visible .command-comment.cmt3 {
+  animation: fadeInComment 0.5s ease-out 14.5s forwards; /* After cmd3 typing (9.0s delay + 5.5s duration) */
+}
+
+@keyframes blink-caret {
+  from, to { border-right-color: transparent }
+  50% { border-right-color: #FDBA74; } /* Tailwind amber-300 */
+}
+
+@keyframes fadeInComment {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments for comments */
+@media (min-width: 640px) { /* sm breakpoint */
+  .command-comment {
+    display: inline; /* Display comment inline on larger screens */
+    margin-left: 0.5rem; 
+    padding-left: 0; /* Reset padding */
+  }
+} 
+
+/* --- Styles for "What is Labnex?" Transformation Visual --- */
+.workflow-transformation-container {
+  margin-top: 2.5rem; /* mt-10 */
+  padding: 1.5rem; /* p-6 */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+}
+
+.workflow-transformation-visual { /* This will be the main container for the new 3-step visual */
+  display: flex;
+  justify-content: space-around; /* Will space out Before, Core, After */
+  align-items: center;
+  min-height: 250px; /* Adjust as needed for new content */
+  padding: 20px;
+  /* background-color: rgba(17, 24, 39, 0.5); Removed debug background */
+  /* border: 2px dashed #FF0000; Removed debug border */
+  border-radius: 0.75rem; 
+  /* overflow: visible; Revert to hidden once content is in place if needed, or keep visible if animations go outside bounds slightly */
+  overflow: hidden;
+  position: relative; 
+}
+
+/* NEW styles for the 3-part visual will go here based on user's new design */
+/* Old .fragmented-state, .streamlined-state, etc. will be removed or heavily adapted */
+
+/* Remove or comment out old animation keyframes for this section if they are no longer relevant */
+/* @keyframes fragmentAppear { ... } */
+/* @keyframes fragmentMove1 { ... } */
+/* @keyframes fragmentMove2 { ... } */
+/* @keyframes fragmentMove3 { ... } */
+/* @keyframes streamlinedAppear { ... } */
+/* @keyframes arrowFadeIn { ... } */
+
+/* Styles for the NEW three-column layout */
+.chaos-column, .core-column, .clarity-column {
+  flex: 1; /* Equal width for now, can be adjusted */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  position: relative; /* For absolute positioned elements within like subtitles or glows */
+}
+
+.tool-icons-container {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem; 
+  margin-bottom: 1rem;
+  min-height: 80px; 
+}
+
+@keyframes fadeInAndPlace {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tool-icon-placeholder {
+  width: 32px; 
+  height: 32px; 
+  background-color: #4B5563; 
+  border-radius: 0.375rem; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  opacity: 0; /* Start hidden, fadeInAndPlace will make it visible */
+}
+
+/* Apply fadeInAndPlace animation when section is visible */
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder {
+  animation-name: fadeInAndPlace; 
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards; 
+  animation-iteration-count: 1;
+}
+
+/* Staggered animation delays for the fadeInAndPlace animation */
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(1) { animation-delay: 0.2s; }
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(2) { animation-delay: 0.3s; }
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(3) { animation-delay: 0.4s; }
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(4) { animation-delay: 0.5s; }
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(5) { animation-delay: 0.6s; }
+.what-is-labnex-visible .chaos-column .tool-icon-placeholder:nth-child(6) { animation-delay: 0.7s; }
+
+/* NOTE: The old driftInFromAbove keyframes can be removed or commented out if no longer used by anything else */
+/* @keyframes driftInFromAbove { ... } */
+
+.labnex-core-orb {
+  width: 80px; /* w-20 */
+  height: 80px; /* h-20 */
+  border-radius: 50%;
+  background: radial-gradient(circle, #7C3AED 0%, #4F46E5 100%); /* Purple to Indigo gradient */
+  margin-bottom: 1rem;
+  position: relative;
+  box-shadow: 0 0 20px 5px rgba(124, 58, 237, 0.5), 
+              0 0 30px 10px rgba(79, 70, 229, 0.3);
+  animation: pulseGlow 3s ease-in-out infinite alternate; /* Added pulse glow animation */
+}
+
+@keyframes pulseGlow {
+  from {
+    box-shadow: 0 0 20px 5px rgba(124, 58, 237, 0.5), 
+                0 0 30px 10px rgba(79, 70, 229, 0.3), 
+                0 0 0px 0px rgba(167, 139, 250, 0.3); /* Violet-300, extra inner glow */
+  }
+  to {
+    box-shadow: 0 0 30px 10px rgba(124, 58, 237, 0.7), /* Stronger outer */
+                0 0 45px 15px rgba(79, 70, 229, 0.4), /* Stronger inner */
+                0 0 15px 5px rgba(167, 139, 250, 0.5); /* Stronger extra inner glow */
+  }
+}
+
+.clarity-card-placeholder {
+  background-color: #374151; /* gray-700 */
+  padding: 1rem;
+  border-radius: 0.5rem; /* rounded-lg */
+  width: 80%;
+  max-width: 200px;
+  min-height: 100px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* For pseudo-elements or glow */
+  border: 1px solid transparent; /* Initial transparent border */
+  transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.clarity-card-placeholder:hover {
+  border-color: rgba(110, 231, 183, 0.5); /* emerald-300 with opacity */
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 
+              0 4px 6px -2px rgba(0,0,0,0.05), 
+              0 0 15px 2px rgba(110, 231, 183, 0.4); /* emerald-300 glow */
+}
+
+.section-label {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600; /* semibold */
+  margin-bottom: 0.25rem;
+}
+
+.section-subtitle {
+  font-size: 0.875rem; /* text-sm */
+  color: #9CA3AF; /* gray-400 */
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+/* Specific text colors */
+.chaos-text { color: #F87171; } /* Tailwind red-400 */
+.core-text { color: #A78BFA; } /* Tailwind violet-400 */
+.clarity-text { color: #6EE7B7; } /* Tailwind emerald-300 */
+
+/* Soft radial lighting for the section background, to be applied on the main section if desired */
+.radial-lighting-background {
+  /* This would be on the <section id="what-is-labnex"> */
+  /* background-image: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.15) 0%, transparent 60%); */
+  /* The existing gradient is: bg-gradient-to-b from-gray-800 to-slate-900 */
+  /* Combining them can be tricky, might be better to apply this radial to the .core-column or .labnex-core-orb itself */
+}
+
+/* --- Styles for "AI Superpowers" Section --- */
+.ai-superpower-card .sparkle-on-hover {
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+}
+
+.ai-superpower-card:hover .sparkle-on-hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 5px #FDE047); /* Tailwind yellow-300 for sparkle glow */
+}
+
+.ai-superpower-card-icon-container > div > .w-5.h-5.absolute.bottom-0.right-0 {
+    /* This targets the existing small SparklesIcon */
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.ai-superpower-card:hover .ai-superpower-card-icon-container > div > .w-5.h-5.absolute.bottom-0.right-0 {
+    transform: scale(1.4) translate(2px, -2px); /* Make sparkle slightly bigger and shift */
+    opacity: 1; /* Ensure it's fully visible */
+}
+
+/* --- Styles for Core Features Section (Feature Grid) --- */
+@keyframes floatUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feature-card {
+  opacity: 0; /* Initially hidden for animation */
+  transform: translateY(40px);
+  /* Existing styles for the card: bg-opacity, backdrop-blur, border, shadow, etc. are kept */
+  /* New: more pronounced, slightly diagonal shadow for depth */
+  box-shadow: 8px 8px 25px -5px rgba(0, 0, 0, 0.2), 4px 4px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Apply animation when section is visible */
+.feature-grid-visible .feature-card {
+  animation: floatUpFadeIn 0.6s ease-out forwards;
+}
+
+/* Staggered animation delays for feature cards */
+.feature-grid-visible .feature-card:nth-child(1) { animation-delay: 0.1s; }
+.feature-grid-visible .feature-card:nth-child(2) { animation-delay: 0.2s; }
+.feature-grid-visible .feature-card:nth-child(3) { animation-delay: 0.3s; }
+.feature-grid-visible .feature-card:nth-child(4) { animation-delay: 0.15s; } /* For second row start */
+.feature-grid-visible .feature-card:nth-child(5) { animation-delay: 0.25s; }
+.feature-grid-visible .feature-card:nth-child(6) { animation-delay: 0.35s; }
+
+/* Hover effects for feature cards */
+.feature-card:hover .feature-icon-container > svg {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.7)); /* Blue glow for icon */
+  transform: scale(1.1); /* Slight scale up for icon */
+  transition: filter 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.feature-card .feature-icon-container > svg {
+    transition: filter 0.3s ease-out, transform 0.3s ease-out; /* Smooth transition back */
+}
+
+.feature-card:hover .feature-title {
+  color: #60A5FA; /* Brighter blue on hover - Tailwind blue-400 */
+  transition: color 0.3s ease-in-out;
+}
+.feature-card .feature-title {
+    transition: color 0.3s ease-in-out; /* Smooth transition back */
+}
+
+.feature-card:hover {
+    /* Existing hover: hover:shadow-blue-500/50 hover:-translate-y-1.5 */
+    /* Let's ensure the diagonal shadow smoothly transitions to the hover shadow */
+    box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.5), /* Primary blue glow */
+                8px 8px 25px -5px rgba(0, 0, 0, 0.15); /* Keep a bit of the diagonal for depth */
+    transform: translateY(-6px); /* Existing -translate-y-1.5, approx 6px */
+}
+
+/* Hero Section Specific Styles */
+@keyframes pulse-slow {
+  0%, 100% { 
+    opacity: 0.5; 
+    transform: scale(0.95) translateX(-50%) translateY(-50%); /* Ensure transform is consistent with HeroSection */
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: scale(1.05) translateX(-50%) translateY(-50%); /* Ensure transform is consistent with HeroSection */
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s infinite ease-in-out;
+}
+
+/* Utility for Tailwind-like radial gradient */
+/* Ensure this is compatible with your Tailwind setup or define vars */
+.bg-gradient-radial {
+  background-image: radial-gradient(ellipse at center, var(--tw-gradient-from, #8B5CF6) 20%, var(--tw-gradient-to, transparent) 70%); 
+  /* Default to purple-500 if --tw-gradient-from is not set, adjust as needed */
+  /* The 'from-purple-600/25 via-blue-500/15' in HeroSection.tsx are applied directly through Tailwind classes */
+  /* This class is for the general structure if needed, HeroSection specific colors are inline */
+}
+
+/* ChaosClarity Section Specific Styles */
+@keyframes pulse-glow-strong {
+  0%, 100% { 
+    box-shadow: 0 0 15px 5px rgba(147, 51, 234, 0.4), /* purple-600 */
+                0 0 30px 10px rgba(59, 130, 246, 0.3), /* blue-500 */
+                0 0 45px 15px rgba(14, 165, 233, 0.2); /* sky-500 */
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 25px 10px rgba(147, 51, 234, 0.6), 
+                0 0 40px 15px rgba(59, 130, 246, 0.4),
+                0 0 55px 20px rgba(14, 165, 233, 0.3);
+    transform: scale(1.03);
+  }
+}
+
+.animate-pulse-glow-strong {
+  animation: pulse-glow-strong 4s infinite ease-in-out;
+}
+
+.animation-delay-4000 { /* Utility for Tailwind-like animation delay */
+    animation-delay: 4s;
+} 

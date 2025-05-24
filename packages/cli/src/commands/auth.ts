@@ -1,0 +1,124 @@
+import { Command } from 'commander';
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import ora from 'ora';
+import { apiClient } from '../api/client';
+import { updateConfig, clearConfig, loadConfig } from '../utils/config';
+
+export const authCommand = new Command('auth')
+  .description('Authentication commands')
+  .addCommand(
+    new Command('login')
+      .description('Login to Labnex')
+      .option('-e, --email <email>', 'Email address')
+      .option('-p, --password <password>', 'Password (not recommended for security)')
+      .action(async (options) => {
+        try {
+          let { email, password } = options;
+
+          // Prompt for email if not provided
+          if (!email) {
+            const emailPrompt = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'email',
+                message: 'Email:',
+                validate: (input) => {
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  return emailRegex.test(input) || 'Please enter a valid email address';
+                }
+              }
+            ]);
+            email = emailPrompt.email;
+          }
+
+          // Prompt for password if not provided
+          if (!password) {
+            const passwordPrompt = await inquirer.prompt([
+              {
+                type: 'password',
+                name: 'password',
+                message: 'Password:',
+                mask: '*',
+                validate: (input) => input.length > 0 || 'Password is required'
+              }
+            ]);
+            password = passwordPrompt.password;
+          }
+
+          const spinner = ora('Authenticating...').start();
+
+          try {
+            const response = await apiClient.login(email, password);
+            
+            if (response.success && response.data.token) {
+              // Save auth data to config
+              await updateConfig({
+                token: response.data.token,
+                email: email,
+                userId: response.data.user.id
+              });
+
+              spinner.succeed(chalk.green(`Successfully logged in as ${email}`));
+              console.log(chalk.gray(`Token saved to config file`));
+            } else {
+              spinner.fail(chalk.red('Login failed: ' + (response.error || 'Unknown error')));
+            }
+          } catch (error: any) {
+            spinner.fail(chalk.red('Login failed: ' + (error.response?.data?.message || error.message)));
+          }
+        } catch (error: any) {
+          console.error(chalk.red('Error:'), error.message);
+        }
+      })
+  )
+  .addCommand(
+    new Command('logout')
+      .description('Logout from Labnex')
+      .action(async () => {
+        try {
+          const spinner = ora('Logging out...').start();
+          
+          await clearConfig();
+          
+          spinner.succeed(chalk.green('Successfully logged out'));
+        } catch (error: any) {
+          console.error(chalk.red('Error:'), error.message);
+        }
+      })
+  )
+  .addCommand(
+    new Command('status')
+      .description('Check authentication status')
+      .action(async () => {
+        try {
+          const config = await loadConfig();
+          
+          if (!config.token) {
+            console.log(chalk.yellow('Not authenticated. Run: labnex auth login'));
+            return;
+          }
+
+          const spinner = ora('Checking authentication...').start();
+
+          try {
+            const response = await apiClient.me();
+            
+            if (response.success) {
+              spinner.succeed(chalk.green('Authenticated'));
+              console.log(chalk.gray(`Email: ${config.email}`));
+              console.log(chalk.gray(`API URL: ${config.apiUrl}`));
+            } else {
+              spinner.fail(chalk.red('Authentication invalid'));
+            }
+          } catch (error: any) {
+            spinner.fail(chalk.red('Authentication check failed'));
+            if (error.response?.status === 401) {
+              console.log(chalk.yellow('Please login again: labnex auth login'));
+            }
+          }
+        } catch (error: any) {
+          console.error(chalk.red('Error:'), error.message);
+        }
+      })
+  ); 

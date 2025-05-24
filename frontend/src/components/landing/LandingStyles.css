@@ -1,0 +1,382 @@
+@keyframes subtleGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px 2px rgba(128, 0, 128, 0.5), 0 0 5px 0px rgba(128, 0, 128, 0.5) inset;
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(100, 0, 150, 0.6), 0 0 7px 1px rgba(100, 0, 150, 0.6) inset;
+  }
+}
+
+.glowing-button:hover {
+  animation: subtleGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes subtleGlowSecondary {
+  0%, 100% {
+    box-shadow: 0 0 10px 1px rgba(200, 200, 255, 0.3), 0 0 3px 0px rgba(200, 200, 255, 0.2) inset;
+  }
+  50% {
+    box-shadow: 0 0 15px 2px rgba(220, 220, 255, 0.4), 0 0 5px 1px rgba(220, 220, 255, 0.3) inset;
+  }
+}
+
+.glowing-button-secondary:hover {
+  animation: subtleGlowSecondary 1.5s ease-in-out infinite;
+}
+
+/* Performance optimized animations */
+@keyframes pulse-glow-strong {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.3);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulse-slower {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08) rotate(2deg);
+  }
+}
+
+.animate-pulse-glow-strong {
+  animation: pulse-glow-strong 4s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+.animate-pulse-slower {
+  animation: pulse-slower 8s ease-in-out infinite;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Archivian-inspired Professional Landing Styles */
+
+/* Primary button styling - Clean and sophisticated */
+.archivian-primary-button {
+  @apply px-8 py-4 rounded-xl font-semibold text-white relative overflow-hidden;
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600;
+  @apply shadow-[0_8px_32px_rgba(99,102,241,0.25)];
+  @apply border border-white/10;
+  @apply backdrop-blur-sm;
+  @apply transform transition-all duration-300 ease-out;
+  @apply hover:scale-[1.02] hover:shadow-[0_12px_48px_rgba(99,102,241,0.4)];
+  @apply focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-transparent;
+  /* Performance optimization */
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+}
+
+/* Secondary button styling - Professional glassmorphism */
+.archivian-secondary-button {
+  @apply px-8 py-4 rounded-xl font-semibold text-slate-200 relative;
+  @apply bg-slate-800/40 backdrop-blur-xl;
+  @apply border border-slate-600/50;
+  @apply shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+  @apply transform transition-all duration-300 ease-out;
+  @apply hover:scale-[1.02] hover:bg-slate-700/50 hover:border-slate-500/70;
+  @apply hover:shadow-[0_12px_48px_rgba(0,0,0,0.4)];
+  @apply hover:text-white;
+  @apply focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:ring-offset-2 focus:ring-offset-transparent;
+  /* Performance optimization */
+  will-change: transform, background-color, border-color, color, box-shadow;
+  backface-visibility: hidden;
+}
+
+/* Professional glassmorphism cards */
+.archivian-glass-card {
+  @apply bg-slate-800/30 backdrop-blur-2xl;
+  @apply border border-slate-700/50;
+  @apply shadow-[0_16px_64px_rgba(0,0,0,0.4)];
+  @apply rounded-2xl;
+  @apply transition-all duration-500 ease-out;
+  /* Performance optimization */
+  will-change: transform, background-color, border-color, box-shadow;
+  backface-visibility: hidden;
+}
+
+.archivian-glass-card:hover {
+  @apply bg-slate-800/40 border-slate-600/70;
+  @apply shadow-[0_20px_80px_rgba(0,0,0,0.5)];
+  @apply transform scale-[1.02];
+}
+
+/* Sophisticated text effects - optimized */
+.archivian-title-glow {
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  /* Performance optimization */
+  will-change: text-shadow;
+}
+
+.archivian-subtitle-glow {
+  text-shadow: 0 0 15px rgba(148, 163, 184, 0.3);
+  /* Performance optimization */
+  will-change: text-shadow;
+}
+
+/* Gradient text effects - optimized */
+.archivian-gradient-text {
+  @apply bg-gradient-to-r from-slate-100 via-purple-200 to-blue-200 bg-clip-text text-transparent;
+  /* Performance optimization */
+  will-change: filter;
+}
+
+/* Professional card hover effects - optimized */
+.archivian-card-hover {
+  @apply transition-all duration-500 ease-out;
+  @apply hover:shadow-[0_25px_100px_rgba(139,92,246,0.15)];
+  @apply hover:-translate-y-2;
+  /* Performance optimization */
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+}
+
+/* Status badges - Archivian style */
+.archivian-status-badge {
+  @apply px-3 py-1 rounded-full text-xs font-medium;
+  @apply bg-gradient-to-r backdrop-blur-sm;
+  @apply border border-white/20;
+  @apply shadow-lg;
+}
+
+.archivian-status-success {
+  @apply from-emerald-500/80 to-green-500/80 text-emerald-100;
+  @apply shadow-[0_4px_16px_rgba(34,197,94,0.3)];
+}
+
+.archivian-status-warning {
+  @apply from-amber-500/80 to-yellow-500/80 text-amber-100;
+  @apply shadow-[0_4px_16px_rgba(245,158,11,0.3)];
+}
+
+.archivian-status-error {
+  @apply from-red-500/80 to-rose-500/80 text-red-100;
+  @apply shadow-[0_4px_16px_rgba(239,68,68,0.3)];
+}
+
+/* Professional input styling */
+.archivian-input {
+  @apply bg-slate-800/50 backdrop-blur-xl;
+  @apply border border-slate-600/50;
+  @apply rounded-xl px-4 py-3;
+  @apply text-slate-200 placeholder-slate-400;
+  @apply shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)];
+  @apply focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50;
+  @apply transition-all duration-300;
+  /* Performance optimization */
+  will-change: border-color, box-shadow;
+}
+
+/* Performance utilities */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.optimized-transition {
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Professional feature grid */
+.feature-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8;
+}
+
+.feature-card {
+  @apply bg-slate-800/30 backdrop-blur-xl border border-slate-700/50;
+  @apply rounded-2xl p-8 transition-all duration-300;
+  @apply hover:bg-slate-800/40 hover:border-slate-600/70;
+  @apply hover:shadow-[0_20px_80px_rgba(0,0,0,0.5)];
+  @apply hover:-translate-y-2;
+}
+
+.feature-icon {
+  @apply w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500;
+  @apply rounded-2xl flex items-center justify-center mb-6;
+  @apply shadow-[0_8px_32px_rgba(99,102,241,0.3)];
+}
+
+.feature-title {
+  @apply text-xl font-bold text-white mb-4;
+}
+
+.feature-description {
+  @apply text-slate-400 leading-relaxed;
+}
+
+/* Professional navigation styles */
+.nav-link {
+  @apply text-slate-300 hover:text-white transition-colors duration-300;
+  @apply relative py-2 px-4 rounded-lg;
+}
+
+.nav-link:hover {
+  @apply bg-slate-800/30 backdrop-blur-sm;
+}
+
+.nav-link.active {
+  @apply text-white bg-slate-800/40;
+}
+
+/* Hero section enhancements */
+.hero-badge {
+  @apply inline-flex items-center gap-3 px-6 py-3;
+  @apply bg-slate-800/40 backdrop-blur-xl rounded-full;
+  @apply border border-slate-600/30;
+}
+
+.hero-title {
+  @apply text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold;
+  @apply text-white tracking-tight leading-none;
+}
+
+.hero-subtitle {
+  @apply text-2xl sm:text-3xl md:text-4xl font-light;
+  @apply text-slate-300;
+}
+
+.hero-description {
+  @apply text-lg sm:text-xl text-slate-400;
+  @apply max-w-4xl mx-auto leading-relaxed;
+}
+
+/* Trust indicators */
+.trust-indicator {
+  @apply px-6 py-3 bg-slate-800/30 backdrop-blur-xl;
+  @apply rounded-xl border border-slate-600/30;
+  @apply hover:bg-slate-700/30 transition-colors duration-300;
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+  @apply w-6 h-10 border-2 border-slate-400/30 rounded-full;
+  @apply flex justify-center backdrop-blur-sm;
+}
+
+.scroll-dot {
+  @apply w-1 h-3 bg-gradient-to-b from-purple-400 to-blue-400;
+  @apply rounded-full mt-2;
+}
+
+/* Enhanced glassmorphism effects for cards */
+.glass-card {
+  background: rgba(30, 41, 55, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 55, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 100px rgba(0, 0, 0, 0.7);
+}
+
+/* Professional button hover effects */
+.button-primary {
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600;
+  @apply hover:from-indigo-500 hover:to-purple-500;
+  @apply shadow-[0_8px_32px_rgba(99,102,241,0.3)];
+  @apply hover:shadow-[0_12px_48px_rgba(99,102,241,0.4)];
+  @apply transition-all duration-300 hover:scale-[1.02];
+}
+
+.button-secondary {
+  @apply bg-slate-800/40 backdrop-blur-xl border border-slate-600/50;
+  @apply hover:bg-slate-700/50 hover:border-slate-500/70;
+  @apply shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+  @apply hover:shadow-[0_12px_48px_rgba(0,0,0,0.4)];
+  @apply transition-all duration-300 hover:scale-[1.02];
+}
+
+/* Stats display */
+.stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-6;
+}
+
+.stat-card {
+  @apply bg-slate-800/30 backdrop-blur-xl border border-slate-700/50;
+  @apply rounded-xl p-6 text-center;
+  @apply hover:bg-slate-800/40 transition-all duration-300;
+}
+
+.stat-number {
+  @apply text-3xl font-bold text-white mb-2;
+}
+
+.stat-label {
+  @apply text-slate-400 text-sm font-medium;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .hero-title {
+    @apply text-4xl sm:text-5xl;
+  }
+  
+  .hero-subtitle {
+    @apply text-xl sm:text-2xl;
+  }
+  
+  .hero-description {
+    @apply text-base;
+  }
+  
+  .glass-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Dark theme optimizations */
+@media (prefers-color-scheme: dark) {
+  .glass-card {
+    background: rgba(15, 23, 42, 0.6);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .archivian-card-hover:hover,
+  .button-primary:hover,
+  .button-secondary:hover {
+    transform: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+} 

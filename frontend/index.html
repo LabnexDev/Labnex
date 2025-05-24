@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='%233B82F6'%3EL%3C/text%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Labnex</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      (function(l) {
+        if (l.search) {
+          var q = {};
+          l.search.slice(1).split('&').forEach(function(v) {
+            var a = v.split('=');
+            q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
+          });
+          console.log('[index.html] Parsed query params (q):', JSON.parse(JSON.stringify(q)));
+
+          if (q.p !== undefined) {
+            console.log('[index.html] q.p detected:', q.p);
+            var pathname = l.pathname; 
+            console.log('[index.html] current l.pathname:', pathname);
+            var basePath = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+            console.log('[index.html] calculated basePath:', basePath);
+            
+            var pagePath = q.p.startsWith('/') ? q.p.substring(1) : q.p;
+            console.log('[index.html] calculated pagePath (from q.p):', pagePath);
+
+            var finalPath = basePath + pagePath;
+            var finalQuery = q.q ? ('?' + q.q) : '';
+            var finalHash = l.hash;
+            console.log('[index.html] Attempting history.replaceState with path:', finalPath, 'query:', finalQuery, 'hash:', finalHash);
+
+            window.history.replaceState(null, null,
+              finalPath +
+              finalQuery +
+              finalHash
+            );
+            console.log('[index.html] history.replaceState called. New location.href should be:', l.protocol + '//' + l.host + finalPath + finalQuery + finalHash);
+          } else {
+            console.log('[index.html] q.p was undefined. No redirect performed by this script.');
+          }
+        }
+      }(window.location))
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
