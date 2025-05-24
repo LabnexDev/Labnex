@@ -878,10 +878,10 @@ export function TerminalPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-blue-400 mb-2">
-                  🚀 Get Full Performance with Local CLI
+                  🚀 Get Full Performance with Local CLI - NOW AVAILABLE!
                 </h3>
                 <p className="text-gray-300 mb-4">
-                  For the best experience with unlimited resources and faster test execution, install our local CLI package:
+                  <span className="text-green-400 font-semibold">✅ Now Published!</span> Install our local CLI package for unlimited resources and real browser automation:
                 </p>
                 <div className="bg-gray-900/60 rounded-lg p-4 mb-4">
                   <code className="text-green-400 font-mono">
@@ -901,6 +901,16 @@ export function TerminalPage() {
                   <span className="text-green-400">✅ Full CPU Power</span>
                   <span className="text-green-400">✅ Real Browser Automation</span>
                   <span className="text-green-400">✅ Faster Execution</span>
+                </div>
+                <div className="mt-3 text-sm">
+                  <a 
+                    href="https://www.npmjs.com/package/@labnex/cli" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    📦 View on npm registry →
+                  </a>
                 </div>
               </div>
             </div>
