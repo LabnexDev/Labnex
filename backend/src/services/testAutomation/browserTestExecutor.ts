@@ -27,21 +27,20 @@ export class BrowserTestExecutor {
       // Determine if we're in production (Render) or development
       const isProduction = process.env.NODE_ENV === 'production';
       
-      // Enhanced Chrome args for Render deployment
+      // EXTREME memory optimization for Render free tier (512MB)
       const chromeArgs = [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
         '--disable-gpu',
         '--disable-extensions',
+        '--disable-web-security',
+        '--single-process',
+        '--no-zygote',
         '--disable-background-timer-throttling',
         '--disable-backgrounding-occluded-windows',
         '--disable-renderer-backgrounding',
         '--disable-features=TranslateUI',
-        '--disable-web-security',
         '--disable-features=VizDisplayCompositor',
         '--disable-features=VizServiceDisplayCompositor',
         '--disable-software-rasterizer',
@@ -49,22 +48,21 @@ export class BrowserTestExecutor {
         '--disable-default-apps',
         '--disable-sync',
         '--disable-translate',
-        '--hide-scrollbars',
-        '--metrics-recording-only',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--no-pings',
-        '--password-store=basic',
-        '--use-mock-keychain',
-        '--single-process'
+                '--disable-plugins',        '--disable-java',        '--disable-flash',
+        '--memory-pressure-off',
+        '--max_old_space_size=256',
+        '--aggressive-cache-discard',
+        '--no-first-run'
       ];
 
-      // Log the attempt
+      // Log the attempt with memory warning
+      this.addLog(`⚠️ RENDER FREE TIER: Only 512MB RAM available!`);
       this.addLog(`Attempting to launch browser in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
       
       const launchOptions: any = {
         headless: isProduction,
-        args: chromeArgs
+        args: chromeArgs,
+        timeout: 60000 // Increase timeout for slow CPU
       };
 
       // Try to use custom executable path in production
@@ -80,8 +78,10 @@ export class BrowserTestExecutor {
       }
 
       this.page = await this.browser.newPage();
-      await this.page.setViewport({ width: 1366, height: 768 });
-      await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      
+      // Reduce memory usage
+      await this.page.setViewport({ width: 800, height: 600 }); // Smaller viewport
+      await this.page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
       this.page.on('console', (msg) => {
         this.logs.push(`Console ${msg.type()}: ${msg.text()}`);
@@ -91,9 +91,11 @@ export class BrowserTestExecutor {
         this.logs.push(`Page Error: ${error.message}`);
       });
 
-      this.addLog(`Browser initialized successfully - ${isProduction ? 'HEADLESS MODE (Production)' : 'VISIBLE MODE (Development)'}`);
+      this.addLog(`✅ Browser initialized successfully - ${isProduction ? 'HEADLESS MODE (Production)' : 'VISIBLE MODE (Development)'}`);
+      this.addLog(`⚠️ Running on Render FREE TIER - Limited resources may cause timeouts`);
     } catch (error: any) {
-      this.addLog(`Failed to initialize browser: ${error.message}`);
+      this.addLog(`❌ Failed to initialize browser: ${error.message}`);
+      this.addLog(`💡 This is likely due to Render's 512MB memory limit`);
       throw new Error(`Failed to initialize browser: ${error.message}`);
     }
   }
