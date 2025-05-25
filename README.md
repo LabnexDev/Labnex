@@ -2,9 +2,9 @@
 
 <div align="center">
 
-![Labnex Logo](https://i.imgur.com/aPEVY5z.png "Labnex Logo")
+<img src="https://i.imgur.com/aPEVY5z.png" alt="Labnex Logo" title="Labnex Logo" width="180" style="margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
 
-**The Future of Test Case Management & Project Automation**
+<p style="color: #ccc; text-align: center;"><em>The Future of Test Case Management & Project Automation</em></p>
 
 [![NPM Version](https://img.shields.io/npm/v/@labnex/cli.svg)](https://www.npmjs.com/package/@labnex/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -12,34 +12,36 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18+-61dafb)](https://reactjs.org/)
 
-[🚀 Live Demo](https://labnexdev.github.io/Labnex/) • [📖 Documentation](https://labnexdev.github.io/Labnex/documentation) • [📦 CLI Package](https://www.npmjs.com/package/@labnex/cli) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
+[Live Demo](https://labnexdev.github.io/Labnex/) • [Documentation](https://labnexdev.github.io/Labnex/documentation) • [CLI Package](https://www.npmjs.com/package/@labnex/cli) • [Discord](https://discord.gg/Kx5HrvMB) • [Report Bug](https://github.com/LabnexDev/Labnex/issues)
 
 </div>
 
-### 🧪 Test Case Management Interface
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
+
+### Test Case Management Interface
 
 ![Labnex Test Case Screenshot](https://i.imgur.com/pLpz3aK.jpeg)
 
 Manage test steps, statuses, and expected results in a clean, intuitive UI.
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🌟 Overview
+## Overview
 
 Labnex is a cutting-edge, AI-powered testing automation platform that revolutionizes how development teams manage projects, execute tests, and collaborate. Built with modern technologies and enhanced by artificial intelligence, Labnex streamlines the entire testing lifecycle from test case creation to execution and reporting.
 
-### ✨ Key Features
+### Key Features
 
-- **🤖 AI-Powered Test Generation** - Generate comprehensive test cases using natural language descriptions
-- **🚀 Advanced CLI with Detailed Logging** - Professional command-line interface with real-time test execution monitoring
-- **📊 Real-time Test Execution** - Live progress tracking with detailed action logs and performance metrics
-- **🔗 Discord Integration** - Manage projects and tests directly from Discord with AI assistance
-- **📝 Intelligent Test Case Management** - Create, organize, and execute test cases with AI-powered insights
-- **👥 Team Collaboration** - Role-based access control and seamless team workflows
-- **📈 Performance Analytics** - Comprehensive reporting with actionable insights
-- **🔒 Enterprise Security** - JWT-based authentication with role-based permissions
+- **AI-Powered Test Generation** - Generate comprehensive test cases using natural language descriptions
+- **Advanced CLI with Detailed Logging** - Professional command-line interface with real-time test execution monitoring
+- **Real-time Test Execution** - Live progress tracking with detailed action logs and performance metrics
+- **Discord Integration** - Manage projects and tests directly from Discord with AI assistance
+- **Intelligent Test Case Management** - Create, organize, and execute test cases with AI-powered insights
+- **Team Collaboration** - Role-based access control and seamless team workflows
+- **Performance Analytics** - Comprehensive reporting with actionable insights
+- **Enterprise Security** - JWT-based authentication with role-based permissions
 
-### 🎯 What Makes Labnex Different
+### What Makes Labnex Different
 
 - **AI-First Approach**: Every feature is enhanced with AI to reduce manual work
 - **Developer Experience**: Built by developers, for developers with modern tooling
@@ -47,9 +49,9 @@ Labnex is a cutting-edge, AI-powered testing automation platform that revolution
 - **Comprehensive CLI**: Professional-grade command-line tools with detailed logging
 - **Modern Architecture**: Microservices, TypeScript, and cloud-native design
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🏗️ Architecture
+## Architecture
 
 Labnex follows a modern, scalable architecture:
 
@@ -75,9 +77,9 @@ Labnex follows a modern, scalable architecture:
                     └─────────────────┘
 ```
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -86,7 +88,7 @@ Labnex follows a modern, scalable architecture:
 - **MongoDB** (local or cloud)
 - **Git**
 
-### 🔧 Installation
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -134,9 +136,9 @@ Labnex follows a modern, scalable architecture:
    - Backend API: http://localhost:5000
    - CLI: `node dist/index.js --help`
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Frontend
 - **React 18** - Modern UI library with hooks
@@ -167,9 +169,9 @@ Labnex follows a modern, scalable architecture:
 - **Discord.js** - Discord bot integration
 - **WebSocket** - Real-time updates
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 📖 Documentation
+## Documentation
 
 ### User Guides
 - [Getting Started](./docs/getting-started.md)
@@ -189,9 +191,9 @@ Labnex follows a modern, scalable architecture:
 - [Security](./docs/security.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🎮 CLI Usage
+## CLI Usage
 
 Labnex includes a powerful CLI. Install it globally or use with `npx`:
 
@@ -228,9 +230,9 @@ With the `--detailed` flag, get comprehensive test execution logs:
 - Visual progress bars and completion statistics
 - Detailed error reporting and debugging information
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
@@ -248,19 +250,19 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 - Jest for testing
 - Conventional commits
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 📊 Performance & Metrics
+## Performance & Metrics
 
-- **⚡ Fast**: Sub-second page loads with optimized bundling
-- **📱 Responsive**: Mobile-first design with 100% responsive layouts
-- **🔒 Secure**: Enterprise-grade security with JWT and role-based access
-- **📈 Scalable**: Microservices architecture supporting thousands of users
-- **🌐 Global**: CDN-optimized for worldwide performance
+- **Fast**: Sub-second page loads with optimized bundling
+- **Responsive**: Mobile-first design with 100% responsive layouts
+- **Secure**: Enterprise-grade security with JWT and role-based access
+- **Scalable**: Microservices architecture supporting thousands of users
+- **Global**: CDN-optimized for worldwide performance
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🔒 Security
+## Security
 
 Labnex takes security seriously:
 - JWT-based authentication
@@ -270,36 +272,36 @@ Labnex takes security seriously:
 - Regular security audits
 - OWASP compliance
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- Built with ❤️ by the Labnex team
+- Built with love by the Labnex team
 - Powered by OpenAI for AI features
 - Icons by Heroicons
 - UI components inspired by modern design systems
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
-## 📞 Support
+## Support
 
 - **Documentation**: [Visit our Documentation](https://labnexdev.github.io/Labnex/documentation)
 - **Discord Community**: [Join our Discord](https://discord.gg/Kx5HrvMB)
 - **GitHub Issues**: [Report bugs or request features](https://github.com/LabnexDev/Labnex/issues)
 - **Email**: labnexcontact@gmail.com
 
----
+<hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
 <div align="center">
 
-**[⭐ Star us on GitHub](https://github.com/LabnexDev/Labnex)**
+**[Star us on GitHub](https://github.com/LabnexDev/Labnex)**
 
-Made with ❤️ for the developer community
+Made with love for the developer community
 
 </div>
