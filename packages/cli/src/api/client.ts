@@ -177,8 +177,20 @@ export class LabnexApiClient {
 
   // Test Cases
   async getTestCases(projectId: string): Promise<ApiResponse<TestCase[]>> {
-    const response = await this.api.get(`/projects/${projectId}/test-cases`);
-    return response.data;
+    try {
+      const response = await this.api.get(`/projects/${projectId}/test-cases`);
+      // Assuming response.data is the array of TestCase objects, wrap it
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.message || error.message
+      };
+    }
   }
 
   async createTestCase(projectId: string, testCase: {

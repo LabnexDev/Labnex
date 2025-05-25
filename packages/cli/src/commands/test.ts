@@ -466,7 +466,7 @@ function displayEnhancedTestResults(testRun: TestRun) {
   //   console.log(chalk.gray(`   • Average response time: ${(testRun.results as any).performance.avgResponseTime || 'N/A'}ms`));
   // }
 
-  console.log(chalk.cyan(`\n🔗 View detailed report: ${chalk.underline(`https://app.labnex.io/reports/${testRun._id}`)}`));
+  console.log(chalk.cyan(`\n🔗 View detailed report: ${chalk.underline(`https://labnexdev.github.io/Labnex/reports/${testRun._id}`)}`));
 }
 
 function displayTestRunStatus(testRun: TestRun) {

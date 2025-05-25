@@ -1,7 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { apiClient } from '../api/client';
+import { apiClient, TestCase } from '../api/client';
+import { LocalBrowserExecutor, TestCaseResult as LocalTestCaseResult } from '../localBrowserExecutor';
 
 // Create the command
 export const runCommand = new Command('run');
@@ -17,6 +18,7 @@ runCommand.option('--ai-optimize', 'Enable AI optimization');
 runCommand.option('--suite <suite>', 'Test suite to run');
 runCommand.option('--watch', 'Watch mode for continuous testing');
 runCommand.option('--detailed', 'Show detailed action logs and performance metrics');
+runCommand.option('--local', 'Run tests locally');
 
 // Set the action
 runCommand.action(async (options) => {
@@ -33,81 +35,153 @@ runCommand.action(async (options) => {
       environment: options.env,
       aiOptimization: !!options.aiOptimize,
       suite: options.suite,
-      detailed: !!options.detailed
+      detailed: !!options.detailed,
+      localExecution: options.local !== undefined ? options.local : true
     };
 
     console.log(chalk.cyan(`🚀 Initializing test run...`));
     console.log(chalk.gray(`📝 Project ID: ${projectIdentifier}`));
+    console.log(chalk.gray(`💻 Execution Mode: ${config.localExecution ? 'Local Machine' : 'Labnex Cloud'}`));
     console.log(chalk.gray(`🌍 Environment: ${config.environment}`));
-    console.log(chalk.gray(`⚡ Parallel workers: ${config.parallel}`));
-    console.log(chalk.gray(`🖱 AI Optimization: ${config.aiOptimization ? 'enabled' : 'disabled'}`));
     if (config.detailed) {
       console.log(chalk.gray(`🔍 Detailed logging: enabled`));
     }
     console.log('');
-    console.log('Connecting to Labnex API...');
-
-    const spinner = ora('Creating test run...').start();
-
+    
+    const projectsSpinner = ora('Fetching project details...').start();
+    let project: any = null;
     try {
-      // First get all projects to find the right one
-      const projects = await apiClient.getProjects();
-      let project = null;
-      
-      if (projects.success && projects.data) {
-        // Try to find by project code first
-        project = projects.data.find((p: any) => p.projectCode === projectIdentifier);
-        
-        // If not found by code, try by ID
-        if (!project) {
-          project = projects.data.find((p: any) => p._id === projectIdentifier);
+      const projectsResponse = await apiClient.getProjects();
+      console.log('\n[DEBUG] apiClient.getProjects() response:', JSON.stringify(projectsResponse, null, 2));
+      if (projectsResponse.success && projectsResponse.data) {
+        project = projectsResponse.data.find((p: any) => p.projectCode === projectIdentifier || p._id === projectIdentifier);
+        if (project) {
+          console.log('[DEBUG] Found project:', JSON.stringify(project, null, 2));
+        } else {
+          console.log(`[DEBUG] Project with identifier '${projectIdentifier}' not found in the received list.`);
+          console.log('[DEBUG] Available project codes:', projectsResponse.data.map((p:any) => p.projectCode).join(', '));
+          console.log('[DEBUG] Available project IDs:', projectsResponse.data.map((p:any) => p._id).join(', '));
         }
       }
-
-      if (!project) {
-        spinner.fail(chalk.red(`❌ Failed to create test run: Project not found`));
-        console.log('Please check the project ID and try again.');
-        return;
-      }
-
-      // Create test run using project ID
-      const testRunResponse = await apiClient.createTestRun(project._id, config);
-      
-      if (!testRunResponse.success) {
-        spinner.fail(chalk.red(`❌ Failed to create test run: ${testRunResponse.error || 'Unknown error'}`));
-        console.log('Please check the project ID and try again.');
-        return;
-      }
-
-      const testRun = testRunResponse.data;
-      spinner.succeed(chalk.green(`✅ Test run created successfully!`));
-      console.log(chalk.gray(`🆔 Test Run ID: ${testRun._id}`));
-      
-      if (config.detailed) {
-        console.log(chalk.gray(`🔗 Real-time updates: Enhanced polling every 2 seconds`));
-        console.log(chalk.gray(`⏳ Starting detailed test execution monitoring...`));
-        console.log('');
-        
-        // Enhanced polling with detailed action logging
-        await pollForTestCompletionDetailed(testRun._id, true); // Force true for detailed
+      if (project) {
+        projectsSpinner.succeed(chalk.green(`✅ Project found: ${project.name} (${project._id})`));
       } else {
-        console.log(chalk.gray(`🡸 Update method: Polling for updates every 3 seconds`));
-        console.log(chalk.gray(`⏳ Starting test execution...`));
-        console.log('Updates will appear below (polling every 3s):');
-        
-        // Simple polling for backward compatibility
-        await pollForTestCompletion(testRun._id);
+        projectsSpinner.fail(chalk.red(`❌ Failed to find project: ${projectIdentifier}`));
+        return;
       }
-
     } catch (error: any) {
-      if (error.response?.status === 400) {
-        spinner.fail(chalk.red(`❌ Failed to create test run: Request failed with status code 400`));
-      } else if (error.response?.status === 500) {
-        spinner.fail(chalk.red(`❌ Failed to create test run: Request failed with status code 500`));
-      } else {
-        spinner.fail(chalk.red(`❌ Failed to create test run: ${error.message}`));
+      projectsSpinner.fail(chalk.red(`❌ Error fetching project: ${error.message}`));
+      return;
+    }
+
+    if (config.localExecution) {
+      // --- Local Execution Path ---
+      const testCasesSpinner = ora('Fetching test cases for local execution...').start();
+      let testCases: TestCase[] = [];
+      try {
+        const testCasesResponse = await apiClient.getTestCases(project._id);
+        console.log('\n[DEBUG] apiClient.getTestCases() response:', JSON.stringify(testCasesResponse, null, 2));
+        if (testCasesResponse.success && testCasesResponse.data) {
+          testCases = testCasesResponse.data;
+          testCasesSpinner.succeed(chalk.green(`✅ Found ${testCases.length} test cases for project ${project.name}.`));
+        } else {
+          testCasesSpinner.fail(chalk.red(`❌ Failed to fetch test cases: ${testCasesResponse.error || 'Unknown error'}`));
+          return;
+        }
+      } catch (error: any) {
+        testCasesSpinner.fail(chalk.red(`❌ Error fetching test cases: ${error.message}`));
+        return;
       }
-      console.log('Please check the project ID and try again.');
+
+      if (testCases.length === 0) {
+        console.log(chalk.yellow('🤔 No test cases found for this project. Nothing to run locally.'));
+        return;
+      }
+
+      console.log(chalk.cyan('\n🔧 Starting local browser test execution...'));
+      const executor = new LocalBrowserExecutor({ headless: !config.detailed });
+      let allLocalResults: LocalTestCaseResult[] = [];
+      let overallPassed = 0;
+      let overallFailed = 0;
+      const totalExecutionStartTime = Date.now();
+
+      try {
+        await executor.initialize();
+
+        for (let i = 0; i < testCases.length; i++) {
+          const tc = testCases[i];
+          console.log(chalk.blue(`\n--- Running Test Case ${i + 1}/${testCases.length}: ${tc.title} (${tc._id}) ---`));
+          const result = await executor.executeTestCase(tc._id, tc.steps, tc.expectedResult, project.baseUrl || '');
+          allLocalResults.push(result);
+          if (result.status === 'passed') {
+            overallPassed++;
+            console.log(chalk.green(`✔️ Test Case ${tc.title} PASSED (${(result.duration / 1000).toFixed(2)}s)`));
+          } else {
+            overallFailed++;
+            console.log(chalk.red(`❌ Test Case ${tc.title} FAILED (${(result.duration / 1000).toFixed(2)}s)`));
+            if (result.steps.length > 0) {
+                const lastStep = result.steps[result.steps.length -1];
+                console.log(chalk.red(`   Failed at step ${lastStep.stepNumber}: ${lastStep.stepDescription}`));
+                if(lastStep.message) console.log(chalk.red(`   Reason: ${lastStep.message}`));
+            }
+          }
+          if (config.detailed && result.steps) {
+            result.steps.forEach(stepRes => {
+              const icon = stepRes.status === 'passed' ? '✅' : '❌';
+              console.log(chalk.gray(`     ${icon} Step ${stepRes.stepNumber}: ${stepRes.stepDescription} (${(stepRes.duration / 1000).toFixed(2)}s) ${stepRes.message ? `- ${stepRes.message}` : ''}`));
+            });
+          }
+        }
+      } finally {
+        await executor.cleanup();
+      }
+      
+      const totalExecutionDuration = (Date.now() - totalExecutionStartTime) / 1000;
+      console.log(chalk.cyan('\n--- Local Execution Summary ---'));
+      console.log(chalk.white(`Total Test Cases: ${testCases.length}`));
+      console.log(chalk.green(`Passed: ${overallPassed}`));
+      console.log(chalk.red(`Failed: ${overallFailed}`));
+      console.log(chalk.white(`Total Duration: ${totalExecutionDuration.toFixed(2)}s`));
+
+    } else {
+      // --- Backend Execution Path (existing logic) ---
+      console.log('Connecting to Labnex API for cloud execution...');
+      const spinner = ora('Creating test run...').start();
+      try {
+        // Create test run using project ID
+        const testRunResponse = await apiClient.createTestRun(project._id, config);
+        
+        if (!testRunResponse.success) {
+          spinner.fail(chalk.red(`❌ Failed to create test run: ${testRunResponse.error || 'Unknown error'}`));
+          console.log('Please check the project ID and try again.');
+          return;
+        }
+
+        const testRun = testRunResponse.data;
+        spinner.succeed(chalk.green(`✅ Test run created successfully!`));
+        console.log(chalk.gray(`🆔 Test Run ID: ${testRun._id}`));
+        
+        if (config.detailed) {
+          console.log(chalk.gray(`🔗 Real-time updates: Enhanced polling every 2 seconds`));
+          console.log(chalk.gray(`⏳ Starting detailed test execution monitoring...`));
+          console.log('');
+          await pollForTestCompletionDetailed(testRun._id, true);
+        } else {
+          console.log(chalk.gray(`🡸 Update method: Polling for updates every 3 seconds`));
+          console.log(chalk.gray(`⏳ Starting test execution...`));
+          console.log('Updates will appear below (polling every 3s):');
+          await pollForTestCompletion(testRun._id);
+        }
+      } catch (error: any) {
+        if (error.response?.status === 400) {
+          spinner.fail(chalk.red(`❌ Failed to create test run: Request failed with status code 400`));
+        } else if (error.response?.status === 500) {
+          spinner.fail(chalk.red(`❌ Failed to create test run: Request failed with status code 500`));
+        } else {
+          spinner.fail(chalk.red(`❌ Failed to create test run: ${error.message}`));
+        }
+        console.log('Please check the project ID and try again.');
+      }
     }
   } catch (error: any) {
     console.error(chalk.red('Error:'), error.message);
@@ -415,6 +489,7 @@ function generateProgressBar(percentage: number, length: number = 20): string {
 
 // Helper function to display enhanced final results
 function displayEnhancedFinalResults(testRun: any, elapsed: string) {
+  // Box drawing for final results
   console.log(chalk.cyan('┌─────────────────────────────────────────────┐'));
   console.log(chalk.cyan('│                 Final Results                │'));
   console.log(chalk.cyan('├─────────────────────────────────────────────┤'));
@@ -422,21 +497,22 @@ function displayEnhancedFinalResults(testRun: any, elapsed: string) {
   console.log(chalk.green(`│ ✅ Passed:             ${String(testRun.results.passed || 0).padStart(15)} │`));
   console.log(chalk.red(`│ ❌ Failed:             ${String(testRun.results.failed || 0).padStart(15)} │`));
   console.log(chalk.white(`│ ⏱️  Duration:           ${String(elapsed + 's').padStart(15)} │`));
-  
-  const successRate = testRun.results.total > 0 ? 
+
+  const successRate = testRun.results.total > 0 ?
     Math.round((testRun.results.passed / testRun.results.total) * 100) : 0;
   console.log(chalk.cyan(`│ 📈 Success Rate:       ${String(successRate + '%').padStart(15)} │`));
   console.log(chalk.cyan('└─────────────────────────────────────────────┘'));
-  
   console.log('');
+
+  // Performance Summary (using original Math.random placeholders)
   console.log(chalk.yellow('⚡ Performance Summary:'));
   console.log(chalk.gray(`   • Average page load: ${Math.random() * 200 + 500 | 0}ms`));
   console.log(chalk.gray(`   • Total actions performed: ${Math.random() * 50 + 25 | 0}`));
   console.log(chalk.gray(`   • Network requests: ${Math.random() * 80 + 40 | 0}`));
   console.log(chalk.gray(`   • Screenshots captured: ${Math.random() * 8 + 3 | 0}`));
-  
   console.log('');
-  console.log(chalk.cyan(`🔗 View detailed report: ${chalk.underline(`https://app.labnex.io/reports/${testRun._id}`)}`));
+
+  console.log(chalk.cyan(`🔗 View detailed report: ${chalk.underline(`https://labnexdev.github.io/Labnex/reports/${testRun._id}`)}`));
 }
 
 // Helper function to poll for test completion (original simple version)
