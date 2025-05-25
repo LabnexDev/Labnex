@@ -28,26 +28,23 @@ Manage test steps, statuses, and expected results in a clean, intuitive UI.
 
 ## Overview
 
-Labnex is a cutting-edge, AI-powered testing automation platform that revolutionizes how development teams manage projects, execute tests, and collaborate. Built with modern technologies and enhanced by artificial intelligence, Labnex streamlines the entire testing lifecycle from test case creation to execution and reporting.
+Labnex is a platform aimed at improving testing and project management workflows for developers and testers. Its core components include a command-line interface (CLI) for automated local test execution, AI-driven features for test generation and analysis, and Discord integration for AI assistance. Project and test case data are managed via a central backend service.
 
 ### Key Features
 
-- **AI-Powered Test Generation** - Generate comprehensive test cases using natural language descriptions
-- **Advanced CLI with Detailed Logging** - Professional command-line interface with real-time test execution monitoring
-- **Real-time Test Execution** - Live progress tracking with detailed action logs and performance metrics
-- **Discord Integration** - Manage projects and tests directly from Discord with AI assistance
-- **Intelligent Test Case Management** - Create, organize, and execute test cases with AI-powered insights
-- **Team Collaboration** - Role-based access control and seamless team workflows
-- **Performance Analytics** - Comprehensive reporting with actionable insights
-- **Enterprise Security** - JWT-based authentication with role-based permissions
+- **AI-Assisted Test Generation**: Helps create test steps from natural language.
+- **CLI for Local Browser Testing**: Executes automated browser tests on your machine.
+- **Detailed Console Logging**: Shows real-time test progress and actions in the terminal.
+- **Backend for Test Case Storage**: Manages test case data through an API.
+- **Discord Bot for AI Help**: Provides AI-driven assistance via Discord.
+- **JWT-Based Authentication**: Secures access using JSON Web Tokens.
 
 ### What Makes Labnex Different
 
-- **AI-First Approach**: Every feature is enhanced with AI to reduce manual work
-- **Developer Experience**: Built by developers, for developers with modern tooling
-- **Real-time Everything**: Live updates, real-time collaboration, instant feedback
-- **Comprehensive CLI**: Professional-grade command-line tools with detailed logging
-- **Modern Architecture**: Microservices, TypeScript, and cloud-native design
+- **Focus on AI in Testing**: Aims to use AI to simplify aspects of the testing process.
+- **Local-First Test Execution**: Prioritizes running tests directly on the developer's environment via CLI.
+- **Developer-Oriented Tools**: Provides tools like the CLI designed for developer workflows.
+- **Modular Components**: Built with separate frontend, backend, and CLI components.
 
 <hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 
