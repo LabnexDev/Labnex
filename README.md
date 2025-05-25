@@ -2,18 +2,25 @@
 
 <div align="center">
 
-![Labnex Logo](https://via.placeholder.com/200x80/6366f1/ffffff?text=Labnex)
+![Labnex Logo](https://i.imgur.com/aPEVY5z.png "Labnex Logo")
 
 **The Future of Test Case Management & Project Automation**
 
+[![NPM Version](https://img.shields.io/npm/v/@labnex/cli.svg)](https://www.npmjs.com/package/@labnex/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18+-61dafb)](https://reactjs.org/)
 
-[🚀 Live Demo](https://labnexdev.github.io/Labnex/) • [📖 Documentation](https://labnexdev.github.io/Labnex/documentation) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
+[🚀 Live Demo](https://labnexdev.github.io/Labnex/) • [📖 Documentation](https://labnexdev.github.io/Labnex/documentation) • [📦 CLI Package](https://www.npmjs.com/package/@labnex/cli) • [💬 Discord](https://discord.gg/Kx5HrvMB) • [🐛 Report Bug](https://github.com/LabnexDev/Labnex/issues)
 
 </div>
+
+### 🧪 Test Case Management Interface
+
+![Labnex Test Case Screenshot](https://i.imgur.com/pLpz3aK.jpeg)
+
+Manage test steps, statuses, and expected results in a clean, intuitive UI.
 
 ---
 
@@ -186,7 +193,15 @@ Labnex follows a modern, scalable architecture:
 
 ## 🎮 CLI Usage
 
-Labnex includes a powerful CLI with enhanced logging capabilities:
+Labnex includes a powerful CLI. Install it globally or use with `npx`:
+
+```bash
+npm install -g @labnex/cli
+# or
+npx @labnex/cli <command>
+```
+
+Find the package on [npm: @labnex/cli](https://www.npmjs.com/package/@labnex/cli).
 
 ### Basic Commands
 ```bash
@@ -274,7 +289,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.labnex.dev](https://docs.labnex.dev)
+- **Documentation**: [Visit our Documentation](https://labnexdev.github.io/Labnex/documentation)
 - **Discord Community**: [Join our Discord](https://discord.gg/Kx5HrvMB)
 - **GitHub Issues**: [Report bugs or request features](https://github.com/LabnexDev/Labnex/issues)
 - **Email**: labnexcontact@gmail.com
