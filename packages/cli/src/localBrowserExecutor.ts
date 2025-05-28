@@ -338,7 +338,13 @@ export class LocalBrowserExecutor {
 
           // 1. Handle the primary target selector using actionNeedsPrimaryTarget
           if (aiData.suggestedSelector && aiData.suggestedStrategy && actionNeedsPrimaryTarget(currentStepObject.action)) {
-              aiSuggestedStepString += ` "(${aiData.suggestedStrategy}: ${aiData.suggestedSelector})"`;
+              let cleanSelector = aiData.suggestedSelector;
+              const strategyPrefix = aiData.suggestedStrategy + ':';
+              // Case-insensitive check for the prefix
+              if (cleanSelector.toLowerCase().startsWith(strategyPrefix.toLowerCase())) {
+                  cleanSelector = cleanSelector.substring(strategyPrefix.length);
+              }
+              aiSuggestedStepString += ` "(${aiData.suggestedStrategy}: ${cleanSelector})"`;
           } else if (currentStepObject.target && actionNeedsPrimaryTarget(currentStepObject.action)) {
               aiSuggestedStepString += ` "${currentStepObject.target}"`;
           }
@@ -567,23 +573,14 @@ export class LocalBrowserExecutor {
           retryCount++;
           if (retryCount === maxRetries) {
             this.addLog(`[AI] Rate limit for ${callDescription}. Max retries (${maxRetries}) reached.`);
-            return response;
+            throw new Error(`[AI] Max retries reached for ${callDescription}.`);
           }
-          const delay = baseDelayMs * Math.pow(2, retryCount - 1);
-          this.addLog(`[AI] Rate limit for ${callDescription}. Retry (${retryCount}/${maxRetries}) after ${delay}ms.`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        } else {
-          return response;
+          await this.retryApiCall(apiCall, maxRetries, baseDelayMs, callDescription);
         }
+        return response;
       } catch (error: any) {
-        retryCount++;
-        if (retryCount === maxRetries) {
-          this.addLog(`[AI] Error in ${callDescription}. Max retries (${maxRetries}) reached: ${error.message.substring(0, 50)}...`);
-          throw error;
-        }
-        const delay = baseDelayMs * Math.pow(2, retryCount - 1);
-        this.addLog(`[AI] Error in ${callDescription}. Retry (${retryCount}/${maxRetries}) after ${delay}ms: ${error.message.substring(0, 50)}...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        this.addLog(`[AI] Error during retry attempt: ${error.message.substring(0,150)}`);
+        await this.retryApiCall(apiCall, maxRetries, baseDelayMs, callDescription);
       }
     }
     throw new Error(`[AI] Max retries reached for ${callDescription}.`);
@@ -609,21 +606,16 @@ export class LocalBrowserExecutor {
   }
 }
 
-// Define actionNeedsPrimaryTarget outside or move it as static inside the class
-// For this edit, placing it here. If moved, update calls accordingly.
 function actionNeedsPrimaryTarget(action: string): boolean {
     switch (action) {
         case 'wait':
         case 'custom':
         case 'storeUrl':
         case 'storeTitle':
-        // Add any other actions that genuinely don't operate on a primary web element selector
             return false;
-        case 'dragAndDrop': // dragAndDrop needs a primary (source) target, destination is separate
+        case 'dragAndDrop':
             return true;
         default:
-            // Includes click, type, assert, select, hover, scroll, upload
-            // Includes storeText, storeValue, storeAttribute
             return true;
     }
 }
