@@ -177,8 +177,8 @@ export class LocalBrowserExecutor {
       this.addLog(`[Step] Result for "${currentStepObject.action}" (Attempt ${attempt}): ${result.status}, Message: ${result.message?.substring(0,100)}`);
 
     } catch (error: any) {
-      result = { status: 'failed', message: error.message, duration: Date.now() - stepStartTime };
       this.addLog(`[Step] Error executing step ${stepNumber} ("${currentStepObject.action}") (Attempt ${attempt}): ${error.message.substring(0,150)}`);
+      result = { status: 'failed', message: error.message, duration: Date.now() - stepStartTime };
     }
 
     // If step failed, and AI optimization is on, and we haven't exceeded AI attempts for this step
@@ -194,8 +194,9 @@ export class LocalBrowserExecutor {
       let detailedPageContext = 'DOM snapshot unavailable';
       try {
         this.addLog('[AI] Capturing DOM context for suggestion...');
-        // Ensure this.page is not null before calling evaluate
-        detailedPageContext = await this.page.evaluate(() => {
+        const failedSelectorForContext = typeof currentStepObject.target === 'string' ? currentStepObject.target : null;
+
+        detailedPageContext = await this.page.evaluate((passedFailedSelector) => {
           const MAX_ELEMENTS_CTX = 50; 
           const MAX_ATTR_LENGTH_CTX = 30;
           const MAX_TEXT_LENGTH_CTX = 50;
@@ -205,7 +206,9 @@ export class LocalBrowserExecutor {
             if (!str) return '';
             return str.length > len ? str.substring(0, len - 3) + "..." : str;
           }
-          let elementCount = 0;
+          
+          let elementCount = 0; // This must be reset or managed if evaluate is called multiple times with this function
+          
           function elementToStringCtx(el: Element | null): string {
             if (!el || elementCount >= MAX_ELEMENTS_CTX) return '';
             elementCount++;
@@ -214,7 +217,7 @@ export class LocalBrowserExecutor {
             for (let i = 0; i < el.attributes.length; i++) {
               const attr = el.attributes[i];
               if (attr.name === 'style' || attr.name.startsWith('on') || attr.name === 'd' || attr.name === 'stroke-width' || (attr.name.startsWith('aria-') && attr.value.length > 70)) continue;
-              attrs += ` ${attr.name}=\"${truncateCtx(attr.value, MAX_ATTR_LENGTH_CTX)}\"`;
+              attrs += ` ${attr.name}="${truncateCtx(attr.value, MAX_ATTR_LENGTH_CTX)}"`;
             }
             let childrenString = '';
             if (el.children.length > 0) {
@@ -240,13 +243,46 @@ export class LocalBrowserExecutor {
             }
             return `<${tagName}${attrs}>${textContent}${childrenString}</${tagName}>`;
           }
-          const rootElement = document.querySelector('main') || document.body;
+
+          let rootElement: Element | null = null;
+          
+          if (passedFailedSelector && typeof passedFailedSelector === 'string' && passedFailedSelector.toLowerCase().startsWith('(css:')) {
+            let cssSelector = passedFailedSelector.substring(5, passedFailedSelector.length - 1).trim();
+            if (cssSelector) {
+              const parts = cssSelector.split(/\\s+/); // Simple split by whitespace, handles most basic cases
+              for (let i = parts.length - 1; i > 0; i--) {
+                let candidateSelector = parts.slice(0, i).join(' ');
+                // Avoid trying to select just a combinator if it got isolated
+                if (candidateSelector.trim() === '>' || candidateSelector.trim() === '+' || candidateSelector.trim() === '~' || candidateSelector.trim() === '') {
+                    continue;
+                }
+                try {
+                  const el = document.querySelector(candidateSelector);
+                  if (el) {
+                    // console.log(`[DOM Capture] Using smart parent context: "${candidateSelector}"`);
+                    rootElement = el;
+                    break;
+                  }
+                } catch (e) { /* ignore invalid intermediate selector */ }
+              }
+            }
+          }
+
+          if (!rootElement) {
+            rootElement = document.querySelector('main');
+          }
+          if (!rootElement) {
+            rootElement = document.body;
+          }
+          
+          elementCount = 0; // Reset count for this capture
           let fullHtml = elementToStringCtx(rootElement);
+
           if (fullHtml.length > MAX_TOTAL_STRING_LENGTH) {
             let lastClosingTag = fullHtml.lastIndexOf('</', MAX_TOTAL_STRING_LENGTH);
             if (lastClosingTag !== -1) {
                 let endOfTag = fullHtml.indexOf('>', lastClosingTag);
-                if (endOfTag !== -1 && endOfTag <= MAX_TOTAL_STRING_LENGTH + 30) { // Allow some leeway
+                if (endOfTag !== -1 && endOfTag <= MAX_TOTAL_STRING_LENGTH + 30) { 
                     fullHtml = fullHtml.substring(0, endOfTag + 1);
                 } else {
                     fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
@@ -257,7 +293,8 @@ export class LocalBrowserExecutor {
             fullHtml += '<!-- DOM structure truncated -->';
           }
           return fullHtml;
-        });
+        }, failedSelectorForContext); // Pass the failed selector string into evaluate
+
         this.addLog(`[AI] Captured DOM context (length: ${detailedPageContext.length}). Preview: ${detailedPageContext.substring(0,100)}...`);
       } catch (contextError: any) {
         this.addLog(`[AI] Failed to capture DOM context: ${(contextError as Error).message.substring(0,100)}...`);
@@ -296,54 +333,50 @@ export class LocalBrowserExecutor {
           const confidence = (aiData as any).confidence;
           const reasoning = (aiData as any).reasoning;
           this.addLog(`[AI] Received selector suggestion: "${aiData.suggestedSelector}" (Strategy: ${aiData.suggestedStrategy || 'N/A'}, Confidence: ${confidence || 'N/A'}, Reasoning: ${reasoning || 'N/A'})`);
-
-          // Simplify AI step string reconstruction
+          
           let aiSuggestedStepString = `${currentStepObject.action}`;
 
-          // Add target if the action typically requires one (most do, except e.g. wait, storeUrl, storeTitle)
-          if (currentStepObject.action !== 'wait' && 
-              currentStepObject.action !== 'custom' /* && Add other non-target actions if any */ ) {
-             // For storeUrl, storeTitle, they are handled by variableName block later if no target needed initially
-             if(!( (currentStepObject.action as string).startsWith('store') && !currentStepObject.target)) {
-                aiSuggestedStepString += ` "${aiData.suggestedSelector}"`;
-             }
+          // 1. Handle the primary target selector using actionNeedsPrimaryTarget
+          if (aiData.suggestedSelector && aiData.suggestedStrategy && actionNeedsPrimaryTarget(currentStepObject.action)) {
+              aiSuggestedStepString += ` "(${aiData.suggestedStrategy}: ${aiData.suggestedSelector})"`;
+          } else if (currentStepObject.target && actionNeedsPrimaryTarget(currentStepObject.action)) {
+              aiSuggestedStepString += ` "${currentStepObject.target}"`;
           }
 
-          if (currentStepObject.value) {
-            aiSuggestedStepString += ` with value "${currentStepObject.value}"`;
-          }
-          
-          if (currentStepObject.action === 'assert') { 
-             if(currentStepObject.assertionType) {
-                aiSuggestedStepString += ` ${currentStepObject.assertionType}`;
-             }
-             // For assertions, expectedText is the primary value compared against.
-             if (currentStepObject.expectedText !== undefined) { 
-                aiSuggestedStepString += ` "${currentStepObject.expectedText}"`;
-             }
+          // 2. Handle specific action structures AFTER the primary target
+          if (currentStepObject.action === 'dragAndDrop') {
+              if ((currentStepObject as ParsedTestStep).destinationTarget) {
+                  aiSuggestedStepString += ` to "${(currentStepObject as ParsedTestStep).destinationTarget}"`;
+              } else {
+                  this.addLog(`[AI] Warning: DragAndDrop step missing destinationTarget during AI reconstruction for step: ${aiSuggestedStepString}`);
+              }
           }
 
-          // Handle variableName for store-like actions
-          if ((currentStepObject as ParsedTestStep).variableName) { 
-             // If it's a store action that didn't get a selector target above (e.g. storeUrl, storeTitle)
-             // ensure the action itself is present before "as"
-             if(aiSuggestedStepString === currentStepObject.action && !(aiSuggestedStepString as string).includes('"')) {
-                // Nothing to add before "as" other than action itself
-             } else if (!aiSuggestedStepString.includes(`"${aiData.suggestedSelector}"`) && currentStepObject.target) {
-                // If original step had a target but it wasn't added with AI selector (e.g. storeUrl from a target)
-                // This case is complex; for now, we assume selectorized store actions got the AI selector.
-                // For non-selector store actions, just action + as variable.
-                if (!((currentStepObject.action as string).startsWith('store') && !currentStepObject.target)) {
-                    aiSuggestedStepString += ` "${currentStepObject.target}"`; // Fallback to original target if AI selector not used
-                }
-             }
-             aiSuggestedStepString += ` as "${(currentStepObject as ParsedTestStep).variableName}"`;
+          // 3. Handle value for actions like 'type', 'select'
+          if (currentStepObject.value) { 
+              aiSuggestedStepString += ` with value "${currentStepObject.value}"`;
           }
           
-          if (currentStepObject.action === 'wait' && currentStepObject.timeout) { 
-            aiSuggestedStepString = `${currentStepObject.action} for ${currentStepObject.timeout} milliseconds`;
+          // 4. Handle variableName for store-like actions (appends 'as "varName"')
+          if ((currentStepObject as ParsedTestStep).variableName) {
+              aiSuggestedStepString += ` as "${(currentStepObject as ParsedTestStep).variableName}"`;
           }
-           // TODO: Add more specific reconstruction for other complex actions if needed, e.g., dragAndDrop with destinationTarget
+
+          // 5. Handle assertion details (type and expectedText)
+          if (currentStepObject.action === 'assert') {
+              if (currentStepObject.assertionType) {
+                  aiSuggestedStepString += ` ${currentStepObject.assertionType}`;
+              }
+              if (currentStepObject.expectedText !== undefined) {
+                  aiSuggestedStepString += ` "${currentStepObject.expectedText}"`;
+              }
+          }
+
+          // 6. Handle wait timeout (replaces the whole string if it's a wait action)
+          if (currentStepObject.action === 'wait' && currentStepObject.timeout) {
+              aiSuggestedStepString = `${currentStepObject.action} for ${currentStepObject.timeout} milliseconds`;
+          }
+          // TODO: Consider filePath for 'upload' if it could change via AI (unlikely for now)
 
           this.addLog(`[AI] Constructed AI step for retry (Attempt ${attempt + 1}): "${aiSuggestedStepString}"`);
           return await this._processSingleStep(aiSuggestedStepString, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
@@ -513,6 +546,9 @@ export class LocalBrowserExecutor {
         await this.initialize();
         this.addLog(`[Recovery] Browser restarted during action.`);
         throw new Error(`Browser restarted due to detachment. Retry.`);
+      } else {
+        // Re-throw other errors to be caught by executeStep
+        throw error;
       }
     }
   }
@@ -552,4 +588,42 @@ export class LocalBrowserExecutor {
     }
     throw new Error(`[AI] Max retries reached for ${callDescription}.`);
   }
+
+  public async cleanup(): Promise<void> {
+    this.addLog('Cleaning up browser...');
+    if (this.browser) {
+      try {
+        await this.browser.close();
+        this.addLog('Browser closed successfully.');
+      } catch (error: any) {
+        this.addLog('Error closing browser during cleanup:', error);
+      } finally {
+        this.browser = null;
+        this.page = null;
+        this.currentFrame = null;
+      }
+    } else {
+      this.addLog('Browser was not initialized or already closed. No cleanup needed.');
+    }
+    this.logs = []; 
+  }
+}
+
+// Define actionNeedsPrimaryTarget outside or move it as static inside the class
+// For this edit, placing it here. If moved, update calls accordingly.
+function actionNeedsPrimaryTarget(action: string): boolean {
+    switch (action) {
+        case 'wait':
+        case 'custom':
+        case 'storeUrl':
+        case 'storeTitle':
+        // Add any other actions that genuinely don't operate on a primary web element selector
+            return false;
+        case 'dragAndDrop': // dragAndDrop needs a primary (source) target, destination is separate
+            return true;
+        default:
+            // Includes click, type, assert, select, hover, scroll, upload
+            // Includes storeText, storeValue, storeAttribute
+            return true;
+    }
 }
