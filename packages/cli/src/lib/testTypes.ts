@@ -29,20 +29,25 @@ export interface AssertionDetails {
 }
 
 export interface ParsedTestStep {
-  action: 'navigate' | 'click' | 'type' | 'wait' | 
-          'select' | 'scroll' | 'hover' | 'upload' | 'dragAndDrop' |
-          'switchToIframe' | 'switchToMainContent' |
-          'assert' | 'executeScript';
+  action: 'navigate' | 'click' | 'type' | 'wait' | 'assert' | 'select' | 'hover' | 'scroll' | 'upload' | 'dragAndDrop' | 'switchToIframe' | 'switchToMainContent' | 'executeScript' | 'custom';
   target?: string;
   value?: string;
   timeout?: number;
-  filePath?: string; 
-  destinationTarget?: string; 
-  originalStep: string;
+  filePath?: string;
+  originalStep?: string;
+  expectedText?: string;
+  assertionType?: 'visible' | 'present' | 'text' | 'enabled' | 'disabled';
   expectsDialog?: {
-    type: 'alert' | 'confirm' | 'prompt';
-    action: 'accept' | 'dismiss';
-    promptText?: string; 
+    message?: string;
+    title?: string;
+    type?: 'alert' | 'confirm' | 'prompt';
+    response?: string | boolean;
   };
-  assertion?: AssertionDetails;
+  assertion?: {
+    selector?: string;
+    expectedText?: string;
+    condition?: 'equals' | 'contains' | 'isVisible';
+    type?: 'url' | 'elementText' | 'elementVisible' | 'pageText' | 'elementValue';
+  };
+  destinationTarget?: string;
 } 

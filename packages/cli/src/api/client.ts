@@ -255,25 +255,23 @@ export class LabnexApiClient {
   // New AI methods for step interpretation and suggestion
   async interpretTestStep(step: string): Promise<ApiResponse<string>> { // Assuming AI returns a string
     try {
-      const response = await this.api.post('/api/ai/interpret', { step });
-      // The backend's aiController wraps the actual AI response in a { success: true, data: aiResponse.data } structure.
-      // We need to align with how other methods in this client handle responses.
-      // If response.data from axios already contains our { success, data } structure, we use it directly.
-      // Otherwise, we might need to access response.data.data if the AI service itself returns a simple string.
+      const response = await this.api.post('/ai/interpret', { 
+        step,
+        instruction: 'Provide only one actionable step in a clear format that a test automation CLI can parse and execute, such as "Click on element \"(xpath: //button[text()=\'Open Modal\'])\"" or "Navigate to \"https://example.com\"". Avoid multiple options or alternatives.' 
+      });
+      console.log(`[DEBUG] interpretTestStep response status: ${response.status}, data:`, response.data);
       if (response.data && typeof response.data.data === 'string') { // Check if backend returned data as expected
         return { success: true, data: response.data.data };
       }
-      // Fallback or if AI directly returns a string and backend forwards it without wrapping
       if (typeof response.data === 'string') { 
         return { success: true, data: response.data };
       } 
-      // If the structure is unexpected, or aiController itself returns { success: false, error: ...}
       if (response.data && response.data.success === false) {
         return { success: false, data: null as any, error: response.data.error || 'AI interpretation failed with unspecified error' };
       }
-      // Default error if response structure is completely off
       return { success: false, data: null as any, error: 'AI interpretation failed or returned unexpected format' };
     } catch (error: any) {
+      console.log(`[DEBUG] interpretTestStep error:`, error.response?.status, error.response?.data, error.message);
       return {
         success: false,
         data: null as any,
@@ -282,24 +280,52 @@ export class LabnexApiClient {
     }
   }
 
-  async suggestAlternative(step: string): Promise<ApiResponse<string>> { // Assuming AI returns a string
+  async suggestAlternative(step: string, pageContext: string = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
     try {
-      const response = await this.api.post('/api/ai/suggest', { step });
-      if (response.data && typeof response.data.data === 'string') { // Check if backend returned data as expected
-        return { success: true, data: response.data.data };
+      const response = await this.api.post('/ai/suggest-alternative', { 
+        step, 
+        pageContext,
+        instruction: 'Suggest only one actionable step in a clear format that a test automation CLI can parse and execute, such as "Click on element \"(xpath: //button[text()=\'Open Modal\'])\"" or "Navigate to \"https://example.com\"". Avoid multiple options or alternatives and ensure the suggestion matches the context of the page if provided.' 
+      });
+      return {
+        success: response.data.success,
+        data: response.data.data,
+        error: response.data.error
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: '',
+        error: error.response?.data?.message || error.message
+      };
+    }
+  }
+
+  async getDynamicSelectorSuggestion(context: {
+    failedSelector: string;
+    descriptiveTerm: string;
+    pageUrl: string;
+    domSnippet: string;
+    originalStep: string;
+  }): Promise<ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string }>> {
+    try {
+      const response = await this.api.post('/ai/suggest-selector', context);
+      // Assuming the backend returns { success: true, data: { suggestedSelector: "...", suggestedStrategy: "..." } }
+      // or { success: false, error: "..." }
+      if (response.data && typeof response.data.success === 'boolean') {
+        return response.data;
       }
-      if (typeof response.data === 'string') { 
-        return { success: true, data: response.data };
-      } 
-      if (response.data && response.data.success === false) {
-        return { success: false, data: null as any, error: response.data.error || 'AI suggestion failed with unspecified error' };
-      }
-      return { success: false, data: null as any, error: 'AI suggestion failed or returned unexpected format' };
+      // Fallback for unexpected structure, treat as failure
+      return {
+        success: false,
+        data: null as any,
+        error: 'AI selector suggestion failed or returned unexpected format'
+      };
     } catch (error: any) {
       return {
         success: false,
         data: null as any,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during suggestion request'
+        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during dynamic selector suggestion'
       };
     }
   }

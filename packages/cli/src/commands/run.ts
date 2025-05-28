@@ -102,7 +102,7 @@ runCommand.action(async (options) => {
       console.log(chalk.cyan('\n🔧 Starting local browser test execution...'));
       const executor = new LocalBrowserExecutor({
         headless: !config.detailed,
-        aiOptimizationEnabled: config.aiOptimization
+        aiOptimizationEnabled: true
       });
       let allLocalResults: LocalTestCaseResult[] = [];
       let overallPassed = 0;
@@ -137,7 +137,12 @@ runCommand.action(async (options) => {
           }
         }
       } finally {
-        await executor.cleanup();
+        // Check if cleanup method exists before calling
+        if (typeof (executor as any).cleanup === 'function') {
+          await (executor as any).cleanup();
+        } else {
+          console.log(chalk.yellow('⚠️ Cleanup method not found on executor. Skipping cleanup.'));
+        }
       }
       
       const totalExecutionDuration = (Date.now() - totalExecutionStartTime) / 1000;

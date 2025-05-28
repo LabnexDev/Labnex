@@ -14,10 +14,10 @@ export function extractDialogExpectation(step: string): { expectation?: ParsedTe
 
       const expectation: ParsedTestStep['expectsDialog'] = {
           type: dialogType as 'alert' | 'confirm' | 'prompt',
-          action: dialogAction,
+          response: dialogAction === 'accept' ? true : false,
       };
       if (dialogType === 'prompt' && dialogAction === 'accept' && promptText !== undefined) {
-          expectation.promptText = promptText;
+          expectation.response = promptText;
       }
       
       const remainingStep = step.substring(0, step.length - dialogMatch[0].length).trim();

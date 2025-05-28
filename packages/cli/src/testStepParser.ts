@@ -337,9 +337,11 @@ export class TestStepParser {
             (action === 'accept' || action === 'dismiss')) {
           dialogExpectation = {
             type: type as 'alert' | 'confirm' | 'prompt',
-            action: action as 'accept' | 'dismiss',
-            promptText: matchedPromptText || undefined
+            response: action === 'accept' ? true : false,
           };
+          if (type === 'prompt' && action === 'accept' && matchedPromptText) {
+            dialogExpectation.response = matchedPromptText;
+          }
           addLog(`[ExecuteScript] Directly parsed dialog expectation: ${JSON.stringify(dialogExpectation)}`);
         } else {
           addLog(`[ExecuteScript] Parsed dialog type/action ("${type}", "${action}") are not valid.`);

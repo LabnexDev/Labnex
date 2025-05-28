@@ -1,9 +1,15 @@
 import { Page, Frame, ElementHandle, JSHandle } from 'puppeteer';
 import { extractHintedSelector } from './parserHelpers/extractHintedSelector';
 import { finalizeSelector } from './parserHelpers/finalizeSelector';
-import { apiClient } from '../api/client'; // Assuming apiClient can be imported
+import { apiClient, ApiResponse } from '../api/client'; // Assuming apiClient can be imported
 
 export type AddLogFunction = (message: string, data?: any) => void;
+export type RetryApiCallFunction = <T>(
+  apiCall: () => Promise<ApiResponse<T>>,
+  maxRetries: number,
+  baseDelayMs: number,
+  callDescription: string
+) => Promise<ApiResponse<T>>;
 
 // Fallback strategies will be attempted if the direct selector fails.
 export async function findElementWithFallbacks(
@@ -13,7 +19,8 @@ export async function findElementWithFallbacks(
   rawSelectorOrText: string,
   descriptiveTerm?: string,
   originalStep?: string, // Added for AI context
-  aiAttempted: boolean = false // To prevent infinite AI loops
+  aiAttempted: boolean = false, // To prevent infinite AI loops
+  retryApiCallFn?: RetryApiCallFunction // Added for retrying AI calls
 ): Promise<ElementHandle> {
   if (!page || !currentFrame) throw new Error('Page or currentFrame not available for finding element');
 
@@ -79,126 +86,82 @@ export async function findElementWithFallbacks(
   const executionContext = currentFrame;
   const timeout = 15000; // Overall timeout for finding element with one strategy
   let element: ElementHandle | null = null;
-  const attempts: { strategy: string, selector: string }[] = [];
 
-  // Build attempts based on primarySelectorType and primarySelector
+  // Simplified initial attempt logic
+  let attemptSelector = primarySelector;
+  let attemptStrategy = 'Direct'; // Generic strategy name
+
   if (primarySelectorType === 'xpath') {
-    attempts.push({ strategy: 'Direct XPath', selector: primarySelector });
+    attemptStrategy = 'Direct XPath';
+    attemptSelector = primarySelector.startsWith('xpath:') ? primarySelector : `xpath:${primarySelector}`;
   } else if (primarySelectorType === 'css') {
-    attempts.push({ strategy: 'Direct CSS', selector: primarySelector });
+    attemptStrategy = 'Direct CSS';
+    attemptSelector = primarySelector.startsWith('css:') ? primarySelector.substring(4) : primarySelector;
+  } else if (primarySelector.includes(' >> ')) {
+    attemptStrategy = 'Shadow DOM Path';
+    // Selector remains as is for shadow DOM
+  } else if (primarySelector.match(/^([#.]|\[)/) || primarySelector.includes('>') || primarySelector.includes('+') || primarySelector.includes('~') || (!primarySelector.includes('/') && !primarySelector.includes('(') && !primarySelector.includes(')'))) {
+     // Basic check if it might be a CSS selector if no other type is identified
+    attemptStrategy = 'Assumed CSS';
+    attemptSelector = primarySelector; // Use raw selector
   } else {
-    // Fallback if no explicit type, or if it's an unknown prefixed type
-    addLog(`[findElementWithFallbacks] No specific primarySelectorType or unknown type. Defaulting to broader strategies.`);
-    // Original logic for when no hint was found
-    if (primarySelector.startsWith('xpath:')) { // This case should ideally be caught by the prefix check now
-        attempts.push({ strategy: 'Direct XPath', selector: primarySelector.substring(6) });
-    } else if (primarySelector.includes(' >> ')) { // Shadow DOM
-        attempts.push({ strategy: 'Shadow DOM Path', selector: primarySelector });
-    } else if (primarySelector.match(/^([#.]|\[)/) || primarySelector.includes('>') || primarySelector.includes('+') || primarySelector.includes('~')) {
-        attempts.push({ strategy: 'Direct CSS', selector: primarySelector });
-    }
-  }
-
-  // Add text-based fallbacks, these are always good to have
-  const textForXPathFallbacks = textSearchTerm.replace(/"/g, '\"');
-  const termForCssFallbacks = textSearchTerm;
-  
-  attempts.push({
-      strategy: 'Text in button/link/input (XPath)',
-      selector: `xpath:.//button[contains(normalize-space(.), "${textForXPathFallbacks}")] | .//a[contains(normalize-space(.), "${textForXPathFallbacks}")] | .//input[@type='submit' and @value="${textForXPathFallbacks}"] | .//input[@type='button' and @value="${textForXPathFallbacks}"]`,
-  });
-
-  attempts.push({ strategy: 'ARIA Label (CSS)', selector: `[aria-label="${termForCssFallbacks}"]` });
-  attempts.push({ strategy: 'ARIA Label contains (CSS)', selector: `[aria-label*="${termForCssFallbacks}"]` });
-  attempts.push({ strategy: 'Placeholder (CSS)', selector: `input[placeholder="${termForCssFallbacks}"]` });
-  attempts.push({ strategy: 'Placeholder contains (CSS)', selector: `input[placeholder*="${termForCssFallbacks}"]` });
-  
-  const normalizedTermForCssFallbacks = termForCssFallbacks.replace(/[^a-zA-Z0-9-_]/g, '');
-  if (normalizedTermForCssFallbacks) {
-      attempts.push({ strategy: 'ID (CSS)', selector: `#${normalizedTermForCssFallbacks}` });
-      attempts.push({ strategy: 'Name (CSS)', selector: `[name="${normalizedTermForCssFallbacks}"]` });
-      attempts.push({ strategy: 'Class (CSS)', selector: `.${normalizedTermForCssFallbacks}` });
-  }
-
-  // Ensure "Raw as CSS" is added if no CSS type was explicitly determined but it doesn't look like an XPath
-  if (primarySelectorType !== 'css' && primarySelectorType !== 'xpath' && !primarySelector.includes(' >> ')) {
-      if (!attempts.some(a => a.selector === primarySelector && (a.strategy === 'Direct CSS' || a.strategy === 'Raw as CSS'))) {
-          attempts.push({ strategy: 'Raw as CSS', selector: primarySelector });
-      }
+    // If no clear type, and not obviously CSS, default to trying it as XPath as a last resort for direct types
+    attemptStrategy = 'Assumed XPath';
+    attemptSelector = primarySelector.startsWith('xpath:') ? primarySelector : `xpath:${primarySelector}`;
+    addLog(`[findElementWithFallbacks] No specific selector type, assuming XPath for: "${primarySelector}"`);
   }
   
-  const uniqueAttempts = attempts.filter((attempt, index, self) => 
-      index === self.findIndex(a => a.selector === attempt.selector && a.strategy === attempt.strategy)
-  );
-  
-  addLog(`[findElementWithFallbacks] Number of unique strategies to try: ${uniqueAttempts.length}. Raw selector was: "${rawSelectorOrText}"`);
-  if (uniqueAttempts.length === 0 && primarySelector) {
-    addLog(`[findElementWithFallbacks] No strategies generated, but primarySelector exists. Adding it as a 'Raw as CSS' attempt.`);
-    uniqueAttempts.push({ strategy: 'Raw as CSS', selector: primarySelector });
-  }
+  addLog(`[findElementWithFallbacks] Initial attempt strategy: ${attemptStrategy}, Selector: "${attemptSelector}"`);
 
-  for (const attempt of uniqueAttempts) {
-    addLog(`Trying strategy: ${attempt.strategy}, Selector: ${attempt.selector}`);
-    try {
-      if (attempt.strategy === 'Direct XPath') {
-          const presenceTimeout = timeout * 2 / 3; // 10s
-          const visibilityTimeout = timeout / 3;   // 5s
-          // Ensure selector for Puppeteer starts with 'xpath:' but not 'xpath:xpath:'
-          const finalXPathSelector = attempt.selector.startsWith('xpath:') 
-                                   ? attempt.selector 
-                                   : `xpath:${attempt.selector}`;
-          addLog(`Trying strategy: ${attempt.strategy}, Puppeteer Selector: ${finalXPathSelector}`);
-          element = await executionContext.waitForSelector(finalXPathSelector, { timeout: presenceTimeout }); 
-          if (element) {
-              addLog(`Direct XPath: Element found in DOM. Now checking for visibility (timeout: ${visibilityTimeout}ms)`);
-              try {
-                await executionContext.waitForSelector(finalXPathSelector, { visible: true, timeout: visibilityTimeout });
-                addLog('Direct XPath: Element is present AND confirmed visible.');
-              } catch (visibilityError) {
-                addLog(`Direct XPath: Element found in DOM but NOT VISIBLE within ${visibilityTimeout}ms. Error: ${(visibilityError as Error).message.split('\n')[0]}. Proceeding with the handle, interaction might fail.`);
-              }
-               return element; 
-          } else {
-              addLog(`Direct XPath: Element not even found in DOM with initial check (no visibility constraint) within ${presenceTimeout}ms.`);
-          }
-      } else if (attempt.strategy === 'Direct CSS') {
-          const presenceTimeout = timeout * 2 / 3; // 10s
-          const visibilityTimeout = timeout / 3;   // 5s
-          // Ensure selector for Puppeteer does not start with 'css:' if it was already clean
-          const finalCssSelector = attempt.selector.startsWith('css:') && !attempt.selector.startsWith('css:css:')
-                                 ? attempt.selector.substring(4) 
-                                 : attempt.selector;
-          addLog(`Trying strategy: ${attempt.strategy}, Puppeteer Selector: ${finalCssSelector}`);
-          element = await executionContext.waitForSelector(finalCssSelector, { timeout: presenceTimeout });
-          if (element) {
-              addLog(`Direct CSS: Element found in DOM. Now checking for visibility (timeout: ${visibilityTimeout}ms)`);
-              try {
-                  await executionContext.waitForSelector(finalCssSelector, { visible: true, timeout: visibilityTimeout });
-                  addLog('Direct CSS: Element is present AND confirmed visible.');
-              } catch (visibilityError) {
-                  addLog(`Direct CSS: Element found in DOM but NOT VISIBLE within ${visibilityTimeout}ms. Error: ${(visibilityError as Error).message.split('\n')[0]}. Proceeding with the handle, interaction might fail.`);
-              }
-              return element; 
-          } else {
-              addLog(`Direct CSS: Element not found in DOM within ${presenceTimeout}ms.`);
-          }
-      } else if (attempt.strategy === 'Shadow DOM Path') {
-        const parts = attempt.selector.split(' >> ');
-        const hostSelector = parts[0];
-        const innerSelector = parts.slice(1).join(' >> ');
-
-        if (!hostSelector || !innerSelector) {
-          addLog('Malformed Shadow DOM selector, skipping.');
-          continue;
+  try {
+    if (attemptStrategy === 'Direct XPath' || attemptStrategy === 'Assumed XPath') {
+        const presenceTimeout = timeout * 2 / 3; 
+        const visibilityTimeout = timeout / 3;  
+        addLog(`Trying strategy: ${attemptStrategy}, Puppeteer Selector: ${attemptSelector}`);
+        element = await executionContext.waitForSelector(attemptSelector, { timeout: presenceTimeout }); 
+        if (element) {
+            addLog(`${attemptStrategy}: Element found in DOM. Checking visibility (timeout: ${visibilityTimeout}ms)`);
+            try {
+              await executionContext.waitForSelector(attemptSelector, { visible: true, timeout: visibilityTimeout });
+              addLog(`${attemptStrategy}: Element is present AND confirmed visible.`);
+            } catch (visibilityError) {
+              addLog(`${attemptStrategy}: Element found in DOM but NOT VISIBLE within ${visibilityTimeout}ms. Error: ${(visibilityError as Error).message.split('\n')[0]}. Proceeding.`);
+            }
+             return element; 
+        } else {
+            addLog(`${attemptStrategy}: Element not found in DOM (presence timeout: ${presenceTimeout}ms).`);
         }
+    } else if (attemptStrategy === 'Direct CSS' || attemptStrategy === 'Assumed CSS') {
+        const presenceTimeout = timeout * 2 / 3; 
+        const visibilityTimeout = timeout / 3;  
+        addLog(`Trying strategy: ${attemptStrategy}, Puppeteer Selector: ${attemptSelector}`);
+        element = await executionContext.waitForSelector(attemptSelector, { timeout: presenceTimeout });
+        if (element) {
+            addLog(`${attemptStrategy}: Element found in DOM. Checking visibility (timeout: ${visibilityTimeout}ms)`);
+            try {
+                await executionContext.waitForSelector(attemptSelector, { visible: true, timeout: visibilityTimeout });
+                addLog(`${attemptStrategy}: Element is present AND confirmed visible.`);
+            } catch (visibilityError) {
+                addLog(`${attemptStrategy}: Element found in DOM but NOT VISIBLE within ${visibilityTimeout}ms. Error: ${(visibilityError as Error).message.split('\n')[0]}. Proceeding.`);
+            }
+            return element; 
+        } else {
+            addLog(`${attemptStrategy}: Element not found in DOM (presence timeout: ${presenceTimeout}ms).`);
+        }
+    } else if (attemptStrategy === 'Shadow DOM Path') {
+      const parts = attemptSelector.split(' >> ');
+      const hostSelector = parts[0];
+      const innerSelector = parts.slice(1).join(' >> ');
 
+      if (!hostSelector || !innerSelector) {
+        addLog('Malformed Shadow DOM selector, skipping initial attempt.');
+      } else {
         addLog(`Shadow DOM: Locating host "${hostSelector}"`);
         let hostElement: ElementHandle | null = null;
         try {
           hostElement = await executionContext.waitForSelector(hostSelector, { visible: true, timeout: timeout / 2 }); 
         } catch (hostError) {
           addLog(`Shadow DOM: Host element "${hostSelector}" not found. Error: ${(hostError as Error).message.split('\n')[0]}`);
-          continue; 
         }
 
         if (hostElement) {
@@ -217,104 +180,139 @@ export async function findElementWithFallbacks(
 
           if (tempElementHandle) {
             element = tempElementHandle as ElementHandle<Element>; 
+            addLog('Shadow DOM: Element found and confirmed visible (implicit from querySelector).');
           } else {
             addLog(`Shadow DOM: Inner element "${innerSelector}" not found as an Element in host "${hostSelector}".`);
-            await foundInShadowJSHandle.dispose(); 
-            if (hostElement) await hostElement.dispose();
-            continue; 
+            await foundInShadowJSHandle.dispose();
           }
-
           if (hostElement && element !== hostElement) { 
               await hostElement.dispose();
           }
+          if (element) return element;
         } else {
           addLog(`Shadow DOM: Host "${hostSelector}" could not be resolved.`);
-          continue;
         }
-      } else {
-        element = await executionContext.waitForSelector(attempt.selector, { visible: true, timeout });
-      }
-
-      if (element) {
-        addLog(`Element found with strategy: ${attempt.strategy}`);
-        try {
-          const isVisible = await element.isIntersectingViewport();
-          if (isVisible) {
-             addLog('Element is visible and intersecting viewport.');
-             return element; 
-          }
-          addLog('Element found but not visible in viewport, trying next strategy.');
-        } catch (intersectError) {
-          // If isIntersectingViewport itself errors (e.g., times out like in the logs)
-          addLog(`Warning: Checking isIntersectingViewport for strategy ${attempt.strategy} (selector: "${attempt.selector}") failed: ${(intersectError as Error).message.split('\n')[0]}. Proceeding with element found by prior visibility check.`);
-          return element; // Return the element found by waitForSelector({visible:true}) or shadow DOM query
-        }
-        // If isVisible was false (and no error during check)
-        await element.dispose(); 
-        element = null;
-      } else {
-          addLog(`Strategy ${attempt.strategy} with selector ${attempt.selector} did not yield an element.`);
-      }
-    } catch (error) {
-      if (!(attempt.strategy === 'Shadow DOM Path' && (error as Error).message.includes('Host element'))) {
-          addLog(`Strategy ${attempt.strategy} failed: ${(error as Error).message.split('\n')[0]}`);
       }
     }
+    // If element is found and visible by any initial strategy, it's returned above.
+    // If we reach here, the initial attempt(s) failed or element wasn't visible.
+  } catch (error) {
+    addLog(`Initial attempt with strategy ${attemptStrategy} for selector "${attemptSelector}" failed: ${(error as Error).message.split('\n')[0]}`);
   }
-
-  // If element is still not found after all strategies, log the page content.
-  if (!element && !aiAttempted && originalStep) { // Only attempt AI if originalStep is provided and not already an AI attempt
-    addLog(`[findElementWithFallbacks] Element not found with standard strategies. Attempting AI suggestion...`);
+  
+  // If element is still not found after initial optimized strategies, try AI.
+  // The aiAttempted flag prevents infinite loops if AI also fails.
+  // originalStep is crucial for AI context.
+  if (!element && !aiAttempted && originalStep) { 
+    addLog(`[findElementWithFallbacks] Initial selector "${rawSelectorOrText}" failed. Attempting AI suggestion...`);
     try {
-      // const currentDomSnapshot = await executionContext.evaluate(() => document.body.outerHTML).catch(() => 'DOM snapshot unavailable');
+      const currentDomSnapshot = await executionContext.evaluate(() => {
+        // Limit DOM snapshot complexity and size
+        const MAX_ELEMENTS = 100;
+        const MAX_ATTR_LENGTH = 50;
+        const MAX_TEXT_LENGTH = 80;
+
+        function truncate(str: string, len: number) {
+            return str.length > len ? str.substring(0, len - 3) + "..." : str;
+        }
+
+        let count = 0;
+        function elementToString(el: Element): string {
+            if (count >= MAX_ELEMENTS) return '';
+            count++;
+            const tagName = el.tagName.toLowerCase();
+            let attrs = '';
+            for (let i = 0; i < el.attributes.length; i++) {
+                const attr = el.attributes[i];
+                if (attr.name === 'style' || attr.name.startsWith('on')) continue; // Skip style and event handlers
+                attrs += ` ${attr.name}="${truncate(attr.value, MAX_ATTR_LENGTH)}"`;
+            }
+            let children = '';
+            if (el.children.length > 0) {
+                for (let i = 0; i < el.children.length; i++) {
+                    children += elementToString(el.children[i] as Element);
+                    if (count >= MAX_ELEMENTS) break;
+                }
+            }
+            let text = '';
+            if (el.childNodes.length > 0) {
+                for (let i = 0; i < el.childNodes.length; i++) {
+                    const childNode = el.childNodes[i];
+                    if (childNode.nodeType === Node.TEXT_NODE && childNode.textContent?.trim()) {
+                        text += truncate(childNode.textContent.trim(), MAX_TEXT_LENGTH);
+                        break; // Take first significant text node
+                    }
+                }
+            }
+            return `<${tagName}${attrs}>${text}${children}</${tagName}>`;
+        }
+        // Try to get a more focused part of the DOM if possible, e.g., main content area
+        const mainContent = document.querySelector('main') || document.body;
+        return elementToString(mainContent);
+      }).catch(() => 'DOM snapshot unavailable');
       
-      // // Prepare context for the AI. This might need to be more structured.
-      // const aiContext = {
-      //   failedSelector: rawSelectorOrText,
-      //   descriptiveTerm: effectiveDescriptiveTerm,
-      //   pageUrl: page.url(),
-      //   domSnippet: currentDomSnapshot.substring(0, 5000), // Send a snippet to avoid huge payloads
-      //   originalStep: originalStep,
-      //   // You might add more context like previous successful steps, or error messages from failed attempts
-      // };
+      const aiContext = {
+        failedSelector: rawSelectorOrText,
+        descriptiveTerm: effectiveDescriptiveTerm,
+        pageUrl: page.url(),
+        // Limit DOM snippet length again, just in case elementToString produced something huge
+        domSnippet: currentDomSnapshot.substring(0, 8000), 
+        originalStep: originalStep,
+        // TODO: Consider adding viewport dimensions, or info about focused element if any
+      };
 
-      // addLog('[findElementWithFallbacks] Calling AI for selector suggestion with context:', aiContext);
-      // // This is a hypothetical endpoint. You'll need to define its actual signature and response structure.
-      // const aiResponse = await apiClient.getDynamicSelectorSuggestion(aiContext); 
+      addLog('[findElementWithFallbacks] Calling AI for selector suggestion. Context length (DOM snippet): ' + aiContext.domSnippet.length);
+      
+      let aiResponse: ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string; }> | undefined;
 
-      // if (aiResponse && aiResponse.success && aiResponse.data && aiResponse.data.suggestedSelector) {
-      //   const { suggestedSelector, suggestedStrategy } = aiResponse.data;
-      //   addLog(`[findElementWithFallbacks] AI suggested new selector: "${suggestedSelector}" (Strategy: ${suggestedStrategy || 'default behavior'})`);
+      if (retryApiCallFn) {
+        aiResponse = await retryApiCallFn(
+          () => apiClient.getDynamicSelectorSuggestion(aiContext),
+          3, // maxRetries
+          1000, // baseDelayMs
+          'getDynamicSelectorSuggestion'
+        );
+      } else {
+        // Fallback if retryApiCallFn is not provided (e.g. direct tests not via LocalBrowserExecutor)
+        addLog('[findElementWithFallbacks] Warning: retryApiCallFn not provided. Calling AI directly.');
+        aiResponse = await apiClient.getDynamicSelectorSuggestion(aiContext);
+      }
+
+      if (aiResponse && aiResponse.success && aiResponse.data && aiResponse.data.suggestedSelector) {
+        const { suggestedSelector, suggestedStrategy } = aiResponse.data;
+        addLog(`[findElementWithFallbacks] AI suggested new selector: "${suggestedSelector}" (Strategy: ${suggestedStrategy || 'default behavior'})`);
         
-      //   // Re-attempt findElementWithFallbacks with the AI's suggestion.
-      //   // Pass a flag to prevent further AI attempts in this recursive call.
-      //   // The suggestedStrategy would need to be handled, perhaps by prefixing suggestedSelector (e.g., "css:...", "xpath:...")
-      //   // For simplicity, assuming suggestedSelector is ready to be used or is prefixed by the AI.
-      //   // If suggestedStrategy is important, the logic here would need to adapt.
-      //   let selectorForRetry = suggestedSelector;
-      //   if (suggestedStrategy && !suggestedSelector.startsWith(suggestedStrategy + ':')) {
-      //       selectorForRetry = `${suggestedStrategy}:${suggestedSelector}`;
-      //   }
-
-
-      //   return findElementWithFallbacks(page, currentFrame, addLog, selectorForRetry, `AI-suggested: ${descriptiveTerm || rawSelectorOrText}`, originalStep, true);
-      // } else {
-      //   addLog('[findElementWithFallbacks] AI did not provide a usable suggestion or AI call failed.');
-      //   if (aiResponse && aiResponse.error) {
-      //       addLog(`[findElementWithFallbacks] AI Error: ${aiResponse.error}`);
-      //   }
-      // }
-      addLog('[findElementWithFallbacks] AI suggestion block is temporarily commented out pending backend API implementation.');
+        let selectorForRetry = suggestedSelector;
+        // Ensure the AI suggested selector is prefixed correctly if a strategy is given
+        if (suggestedStrategy && (suggestedStrategy.toLowerCase() === 'xpath' || suggestedStrategy.toLowerCase() === 'css')) {
+            if (!selectorForRetry.toLowerCase().startsWith(suggestedStrategy.toLowerCase() + ':')) {
+                 selectorForRetry = `${suggestedStrategy.toLowerCase()}:${selectorForRetry}`;
+            }
+        } else if (suggestedStrategy) {
+            addLog(`[findElementWithFallbacks] AI suggested unknown strategy: "${suggestedStrategy}". Will attempt selector as is, then with common prefixes.`);
+            // If AI provides a strategy not css/xpath, we might try it directly or prepend css/xpath if it fails.
+            // For now, we'll pass it to the recursive call, which will try to infer type.
+        }
+        
+        // Re-attempt findElementWithFallbacks with the AI's suggestion.
+        return findElementWithFallbacks(page, currentFrame, addLog, selectorForRetry, `AI-suggested: ${descriptiveTerm || rawSelectorOrText}`, originalStep, true, retryApiCallFn);
+      } else {
+        addLog('[findElementWithFallbacks] AI did not provide a usable suggestion or AI call failed.');
+        if (aiResponse && aiResponse.error) {
+            addLog(`[findElementWithFallbacks] AI Error: ${aiResponse.error}`);
+        }
+      }
     } catch (aiError: any) {
-      addLog(`[findElementWithFallbacks] Error during AI suggestion attempt (block is commented out): ${aiError.message}`);
+      addLog(`[findElementWithFallbacks] Error during AI suggestion attempt: ${aiError.message}`);
     }
-  } else if (element) { // Element was found by standard strategies
+  } else if (element) { // Element was found by an initial strategy
+      // Visibility should have been checked by the strategy that found it.
       return element;
   }
 
-  // If element still not found (either standard attempt failed and AI didn't help, or AI was not attempted)
+  // If element still not found (either initial attempt failed and AI didn't help/wasn't attempted, or AI attempt also failed)
   if (!element) {
-    addLog(`[findElementWithFallbacks] Element still not found after all strategies (and potential AI attempt). Dumping current frame content...`);
+    addLog(`[findElementWithFallbacks] Element still not found for "${rawSelectorOrText}" (descriptive: "${effectiveDescriptiveTerm}") after all attempts including AI. Dumping current frame content...`);
     try {
       const frameContent = await executionContext.evaluate(() => document.body.outerHTML);
       addLog(`[findElementWithFallbacks] Current frame body outerHTML: ${frameContent}`);

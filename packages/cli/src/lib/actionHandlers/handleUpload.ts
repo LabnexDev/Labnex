@@ -1,5 +1,7 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinder'; // Adjust path as necessary
+import * as path from 'path';
+import * as fs from 'fs';
 
 export async function handleUpload(
   page: Page | null,
@@ -7,37 +9,29 @@ export async function handleUpload(
   addLog: AddLogFunction,
   selector: string | undefined,
   filePath: string | undefined,
-  originalStep: string
+  originalStep: string,
+  retryApiCallFn?: RetryApiCallFunction // Added
 ): Promise<void> {
-  if (!page) throw new Error('Page not available for upload'); // Ensure page context for consistency, even if element finding uses currentFrame
-  if (!selector) throw new Error('Upload selector (for file input) not provided');
-  if (!filePath) throw new Error('File path for upload not provided');
+  if (!currentFrame) throw new Error('Current frame not available for upload');
+  if (!selector) throw new Error('Upload selector not provided');
+  if (!filePath) throw new Error('File path not provided for upload');
 
-  addLog(`Attempting to upload file "${filePath}" to element identified by "${selector}"`);
-
-  const element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep);
-  let inputElementHandle: ElementHandle<HTMLInputElement> | null = null;
-
-  try {
-    const tagName = await element.evaluate(el => el.tagName.toLowerCase());
-    if (tagName !== 'input') {
-      throw new Error(`Element for upload selector "${selector}" is not an input element, but a <${tagName}>.`);
-    }
-    
-    inputElementHandle = element as ElementHandle<HTMLInputElement>;
-    
-    const inputType = await inputElementHandle.evaluate(el => el.type.toLowerCase());
-    if (inputType !== 'file') {
-      addLog(`Warning: Element for upload selector "${selector}" is an <input> but not type="file" (it's type="${inputType}"). Attempting upload anyway.`);
-    }
-
-    await inputElementHandle.uploadFile(filePath);
-    addLog(`Successfully uploaded file "${filePath}" to element "${selector}" (type: ${inputType})`);
-  } finally {
-    if (inputElementHandle && inputElementHandle !== element) { 
-      await inputElementHandle.dispose();
-    } else if (element) {
-      await element.dispose();
-    }
+  const absoluteFilePath = path.resolve(filePath);
+  if (!fs.existsSync(absoluteFilePath)) {
+    throw new Error(`File not found at path: ${absoluteFilePath}`);
   }
+
+  addLog(`Attempting to upload file "${absoluteFilePath}" to element identified by "${selector}"`);
+  const element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
+  
+  // Ensure the element is an input type=file
+  const isFileInput = await element.evaluate(el => el.tagName === 'INPUT' && (el as HTMLInputElement).type === 'file');
+  if (!isFileInput) {
+    await element.dispose();
+    throw new Error(`Element identified by "${selector}" is not a file input element.`);
+  }
+
+  await (element as ElementHandle<HTMLInputElement>).uploadFile(absoluteFilePath);
+  await element.dispose();
+  addLog(`Successfully uploaded file "${absoluteFilePath}" to element "${selector}"`);
 } 

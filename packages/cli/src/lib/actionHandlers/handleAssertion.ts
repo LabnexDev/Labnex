@@ -1,150 +1,137 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks } from '../elementFinder'; // Adjust path as necessary
-import { ParsedTestStep } from '../../lib/testTypes'; // Corrected import path
+import { findElementWithFallbacks, AddLogFunction, RetryApiCallFunction } from '../elementFinder';
+import { ParsedTestStep } from '../testTypes';
 
 export async function handleAssertion(
-  page: Page | null, // For URL assertions and passed to findElement
+  page: Page | null,
   currentFrame: Page | Frame | null,
   addLog: AddLogFunction,
   parsedStep: ParsedTestStep,
-  overallTestCaseExpectedResult?: string
+  overallTestCaseExpectedResult?: string, // Kept for potential future use with a more complex assertion
+  retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
-  if (!currentFrame) throw new Error('Current frame not available for assertion');
-  const executionContext = currentFrame;
-
-  if (!parsedStep.assertion) {
-      addLog('No structured assertion details found, falling back to legacy assertion logic with target: ' + parsedStep.target);
-      if (!parsedStep.target) throw new Error('Legacy assertion target not provided');
-      
-      const pageContentForLegacy = await executionContext.content();
-      if (pageContentForLegacy.includes(parsedStep.target)) {
-          addLog(`Legacy assertion: Literal string "${parsedStep.target}" found on page. Assertion passed.`);
-          return;
-      }
-      if (overallTestCaseExpectedResult && pageContentForLegacy.includes(overallTestCaseExpectedResult)) {
-          addLog(`Legacy assertion: Overall expected text "${overallTestCaseExpectedResult}" found on page. Assertion passed.`);
-          return;
-      }
-      throw new Error(`Legacy assertion failed: Could not find "${parsedStep.target}" ${overallTestCaseExpectedResult ? `or "${overallTestCaseExpectedResult}"` : ''} as literal text on the page.`);
+  if (!page || !currentFrame) {
+    throw new Error('Page or frame not initialized for assertion.');
   }
 
-  const assertion = parsedStep.assertion;
-  addLog(`Executing structured assertion: ${assertion.type} - ${assertion.condition}`);
+  const assertionType = parsedStep.assertion?.type || parsedStep.assertionType; // Prefer new assertion structure
+  const selector = parsedStep.assertion?.selector || parsedStep.target;
+  const expectedText = parsedStep.assertion?.expectedText || parsedStep.expectedText; // Prefer new
+  const condition = parsedStep.assertion?.condition; // From new structure
 
-  switch (assertion.type) {
-    case 'url':
-      if (!page) throw new Error('Page context not available for URL assertion.');
-      if (!assertion.expectedText) throw new Error('Expected URL text not provided for URL assertion.');
-      const currentUrl = page.url();
-      addLog(`Current URL: ${currentUrl}, Expected: ${assertion.expectedText}, Condition: ${assertion.condition}`);
-      if (assertion.condition === 'equals') {
-        if (currentUrl !== assertion.expectedText) {
-          throw new Error(`URL assertion failed: Expected "${assertion.expectedText}" but got "${currentUrl}"`);
+  if (!assertionType) {
+    throw new Error('Assertion type not provided in parsed step.');
+  }
+
+  addLog(`Starting assertion: Type="${assertionType}", Selector="${selector || 'N/A'}", Expected="${expectedText || 'N/A'}", Condition="${condition || 'N/A'}"`);
+
+  let element: ElementHandle | null = null;
+
+  try {
+    if (assertionType === 'url') {
+      const actualUrl = page.url();
+      if (condition === 'contains') {
+        if (!actualUrl.includes(expectedText || '')) {
+          throw new Error(`Assertion Failed: URL "${actualUrl}" does not contain "${expectedText}".`);
         }
-      } else if (assertion.condition === 'contains') {
-        if (!currentUrl.includes(assertion.expectedText)) {
-          throw new Error(`URL assertion failed: Expected URL to contain "${assertion.expectedText}" but got "${currentUrl}"`);
+      } else { // Default to equals for URL
+        if (actualUrl !== (expectedText || '')) {
+          throw new Error(`Assertion Failed: URL is "${actualUrl}", expected "${expectedText}".`);
         }
-      } else {
-        throw new Error(`Unsupported condition "${assertion.condition}" for URL assertion.`);
       }
-      addLog('URL assertion passed.');
-      break;
+      addLog(`Assertion Passed: URL is "${actualUrl}".`);
+      return;
+    }
 
-    case 'elementText':
-      if (!assertion.selector) throw new Error('Selector not provided for element text assertion.');
-      if (assertion.expectedText === undefined) throw new Error('Expected text not provided for element text assertion.');
-      
-      addLog(`Asserting text for selector "${assertion.selector}". Expected: "${assertion.expectedText}", Condition: ${assertion.condition}`);
-      const elementForText = await findElementWithFallbacks(page, currentFrame, addLog, assertion.selector, `element for text assertion (${assertion.selector})`, parsedStep.originalStep);
-      const actualText = await elementForText.evaluate(el => el.textContent);
-      await elementForText.dispose();
-      addLog(`Actual text for "${assertion.selector}": "${actualText}"`);
+    // For all other assertion types that require an element
+    if (!selector) {
+      throw new Error(`Selector not provided for assertion type: ${assertionType}`);
+    }
+    element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, parsedStep.originalStep || '', false, retryApiCallFn);
 
-      if (actualText === null || actualText === undefined) throw new Error(`Element "${assertion.selector}" found, but it has no text content.`);
+    if (assertionType === 'elementText') {
+      const actualText = await element.evaluate(el => el.textContent);
+      const normalizedActual = (actualText || '').trim().toLowerCase();
+      const normalizedExpected = (expectedText || '').trim().toLowerCase();
 
-      if (assertion.condition === 'equals') {
-        if (actualText.trim() !== assertion.expectedText) {
-          throw new Error(`Element text assertion failed for "${assertion.selector}": Expected "${assertion.expectedText}" but got "${actualText.trim()}"`);
+      if (condition === 'contains') {
+        if (!normalizedActual.includes(normalizedExpected)) {
+          throw new Error(`Assertion Failed: Element text "${actualText}" does not contain "${expectedText}".`);
         }
-      } else if (assertion.condition === 'contains') {
-        if (!actualText.includes(assertion.expectedText)) {
-          throw new Error(`Element text assertion failed for "${assertion.selector}": Expected text to contain "${assertion.expectedText}" but got "${actualText}"`);
+      } else { // Default to equals for elementText
+        if (normalizedActual !== normalizedExpected) {
+          throw new Error(`Assertion Failed: Element text is "${actualText}", expected "${expectedText}".`);
         }
-      } else {
-        throw new Error(`Unsupported condition "${assertion.condition}" for element text assertion.`);
       }
-      addLog('Element text assertion passed.');
-      break;
-
-    case 'elementVisible':
-      if (!assertion.selector) throw new Error('Selector not provided for element visibility assertion.');
-      addLog(`Asserting visibility for selector "${assertion.selector}". Condition: ${assertion.condition}`);
-      
-      try {
-          const elementForVisibility = await findElementWithFallbacks(page, currentFrame, addLog, assertion.selector, `element for visibility (${assertion.selector})`, parsedStep.originalStep);
-          if (assertion.condition === 'isVisible') {
-               addLog(`Element "${assertion.selector}" is visible as expected. Assertion passed.`);
-               await elementForVisibility.dispose();
-          } else {
-              await elementForVisibility.dispose(); 
-              throw new Error(`Unsupported visibility condition "${assertion.condition}". Only 'isVisible' is currently directly supported by this check.`);
+      addLog(`Assertion Passed: Element text is "${actualText}".`);
+    } else if (assertionType === 'elementVisible' || parsedStep.assertionType === 'visible' || parsedStep.assertionType === 'present') {
+      // 'present' is covered by findElementWithFallbacks not throwing an error.
+      // For 'visible', we check isIntersectingViewport.
+      const isVisible = await element.isIntersectingViewport();
+      if (condition === 'isVisible') { // From new assertion structure
+         if (!isVisible && (expectedText?.toLowerCase() === 'true' || expectedText === undefined)){ // visible === true by default
+            throw new Error(`Assertion Failed: Element "${selector}" is not visible as expected.`);
+         }
+         if (isVisible && expectedText?.toLowerCase() === 'false'){
+            throw new Error(`Assertion Failed: Element "${selector}" is visible, but expected to be hidden.`);
+         }
+      } else { // Fallback to old logic if condition is not 'isVisible'
+          if (!isVisible && (parsedStep.assertionType === 'visible' || expectedText?.toLowerCase() !== 'false')) { // visible === true by default
+            throw new Error(`Assertion Failed: Element "${selector}" is not visible.`);
           }
-      } catch (error) {
-          if (assertion.condition === 'isVisible') {
-              addLog(`Element "${assertion.selector}" not found or not visible. Error: ${(error as Error).message}`);
-              throw new Error(`Element visibility assertion failed for "${assertion.selector}": Expected to be visible, but was not found/visible. Original error: ${(error as Error).message}`);
-          } else {
-              throw error;
-          }
+           if (isVisible && expectedText?.toLowerCase() === 'false'){ // explicit assertion for not visible
+            throw new Error(`Assertion Failed: Element "${selector}" is visible, but expected to be hidden.`);
+         }
       }
-      break;
-
-    case 'pageText':
-      if (assertion.expectedText === undefined) throw new Error('Expected text not provided for page text assertion.');
-      addLog(`Asserting page content within current context. Expected to contain: "${assertion.expectedText}", Condition: ${assertion.condition}`);
-      const frameContent = await executionContext.content();
-      if (assertion.condition === 'contains') {
-        if (!frameContent.includes(assertion.expectedText)) {
-          throw new Error(`Page text assertion failed: Expected current context to contain "${assertion.expectedText}" but it was not found.`);
+      addLog(`Assertion Passed: Element "${selector}" visibility/presence is as expected.`);
+    } else if (assertionType === 'elementValue') {
+        const actualValue = await element.evaluate((el: any) => el.value);
+        const normalizedActual = (actualValue || '').trim().toLowerCase();
+        const normalizedExpected = (expectedText || '').trim().toLowerCase();
+         if (condition === 'contains') {
+            if (!normalizedActual.includes(normalizedExpected)) {
+              throw new Error(`Assertion Failed: Element value "${actualValue}" does not contain "${expectedText}".`);
+            }
+        } else { // Default to equals for elementValue
+            if (normalizedActual !== normalizedExpected) {
+              throw new Error(`Assertion Failed: Element value is "${actualValue}", expected "${expectedText}".`);
+            }
         }
-      } else {
-        throw new Error(`Unsupported condition "${assertion.condition}" for page text assertion. Only 'contains' is supported.`);
+        addLog(`Assertion Passed: Element value is "${actualValue}".`);
+    } else if (parsedStep.assertionType === 'enabled') { // Old types
+      const isDisabled = await element.evaluate(el => (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled);
+      if (isDisabled) {
+        throw new Error(`Assertion Failed: Element "${selector}" is not enabled.`);
       }
-      addLog('Page text assertion passed.');
-      break;
-
-    case 'elementValue':
-      if (!assertion.selector) throw new Error('Selector not provided for element value assertion.');
-      if (assertion.expectedText === undefined) throw new Error('Expected value not provided for element value assertion.');
-      
-      addLog(`Asserting value for selector "${assertion.selector}". Expected: "${assertion.expectedText}", Condition: ${assertion.condition}`);
-      const elementForValue = await findElementWithFallbacks(page, currentFrame, addLog, assertion.selector, `element for value assertion (${assertion.selector})`, parsedStep.originalStep);
-      
-      const actualValue = await elementForValue.evaluate(el => (el as HTMLInputElement).value);
-      await elementForValue.dispose();
-      addLog(`Actual value for "${assertion.selector}": "${actualValue}"`);
-
-      if (actualValue === null || actualValue === undefined) {
-        throw new Error(`Element "${assertion.selector}" found, but it has no value property or it is null/undefined.`);
+      addLog(`Assertion Passed: Element "${selector}" is enabled.`);
+    } else if (parsedStep.assertionType === 'disabled') { // Old types
+      const isDisabled = await element.evaluate(el => (el as HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement).disabled);
+      if (!isDisabled) {
+        throw new Error(`Assertion Failed: Element "${selector}" is not disabled.`);
       }
-
-      if (assertion.condition === 'equals') {
-        if (actualValue !== assertion.expectedText) {
-          throw new Error(`Element value assertion failed for "${assertion.selector}": Expected "${assertion.expectedText}" but got "${actualValue}"`);
+      addLog(`Assertion Passed: Element "${selector}" is disabled.`);
+    } else if (assertionType === 'pageText') { // Check if expected text is in the whole page
+        const bodyText = await page.evaluate(() => document.body.innerText);
+        if (!bodyText.toLowerCase().includes((expectedText || '').toLowerCase())) {
+          throw new Error(`Assertion Failed: Did not find text "${expectedText}" in page content.`);
         }
-      } else if (assertion.condition === 'contains') {
-        if (!actualValue.includes(assertion.expectedText)) {
-          throw new Error(`Element value assertion failed for "${assertion.selector}": Expected value to contain "${assertion.expectedText}" but got "${actualValue}"`);
+        addLog(`Assertion Passed: Found text "${expectedText}" in page content.`);
+    } else {
+      // Check for overall test case expectation as a fallback if no other assertion matched
+      if (overallTestCaseExpectedResult) {
+        const bodyText = await page.evaluate(() => document.body.innerText);
+        if (bodyText.toLowerCase().includes(overallTestCaseExpectedResult.toLowerCase())) {
+          addLog(`Assertion Passed (Overall): Found overall expected result "${overallTestCaseExpectedResult}" in page content.`);
+          return;
+        } else {
+          throw new Error(`Assertion Failed (Overall): Did not find overall expected result "${overallTestCaseExpectedResult}" in page content. Also, specific assertion type "${assertionType}" was not handled.`);
         }
-      } else {
-        throw new Error(`Unsupported condition "${assertion.condition}" for element value assertion. Only 'equals' and 'contains' are supported.`);
       }
-      addLog('Element value assertion passed.');
-      break;
-
-    default:
-      const unknownType = (assertion as any).type;
-      throw new Error(`Unsupported assertion type: "${unknownType}"`);
+      throw new Error(`Unsupported or incomplete assertion type: ${assertionType} for step: ${parsedStep.originalStep}`);
+    }
+  } finally {
+    if (element) {
+      await element.dispose();
+    }
   }
 } 

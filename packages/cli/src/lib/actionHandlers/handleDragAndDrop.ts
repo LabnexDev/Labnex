@@ -1,5 +1,5 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinder'; // Adjust path as necessary
 
 export async function handleDragAndDrop(
   page: Page | null,
@@ -7,7 +7,8 @@ export async function handleDragAndDrop(
   addLog: AddLogFunction,
   sourceSelectorOrText: string,
   destinationSelectorOrText: string | undefined,
-  originalStep: string
+  originalStep: string,
+  retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
   if (!currentFrame) throw new Error('Current frame not available for drag and drop');
   if (!page) throw new Error('Page context not available for drag and drop');
@@ -24,15 +25,18 @@ export async function handleDragAndDrop(
     addLog('[handleDragAndDrop] Not in an iframe. Proceeding directly.');
   }
 
-  addLog('[handleDragAndDrop] Processing drag and drop action. Finding source element...');
-  const sourceElement = await findElementWithFallbacks(page, currentFrame, addLog, sourceSelectorOrText, `source element (${sourceSelectorOrText})`, originalStep);
-  addLog('[handleDragAndDrop] Source element found. Finding destination element...');
-  
-  if (!destinationSelectorOrText) {
-    throw new Error('Destination selector not provided for drag and drop');
-  }
-  const destinationElement = await findElementWithFallbacks(page, currentFrame, addLog, destinationSelectorOrText, `destination element (${destinationSelectorOrText})`, originalStep);
-  addLog('[handleDragAndDrop] Destination element found.');
+  addLog(`Attempting to find source element: "${sourceSelectorOrText}"`);
+  const sourceElement = await findElementWithFallbacks(
+    page, currentFrame, addLog, sourceSelectorOrText, 
+    `source element (${sourceSelectorOrText})`, 
+    originalStep, false, retryApiCallFn
+  );
+  addLog(`Attempting to find destination element: "${destinationSelectorOrText}"`);
+  const destinationElement = await findElementWithFallbacks(
+    page, currentFrame, addLog, destinationSelectorOrText, 
+    `destination element (${destinationSelectorOrText})`, 
+    originalStep, false, retryApiCallFn
+  );
 
   // ... rest of the drag and drop logic (Puppeteer's dragAndDrop, fallback, etc.)
   addLog(`Attempting drag from source to destination using Puppeteer's built-in dragAndDrop.`);
@@ -58,7 +62,7 @@ export async function handleDragAndDrop(
 
   addLog('Performing drag and drop using simulated mouse events.');
   // Determine the correct mouse controller
-  const mouseController = isInIframe && currentFrame && 'mouse' in currentFrame ? currentFrame.mouse : page.mouse;
+  const mouseController = isInIframe && currentFrame && 'mouse' in currentFrame ? currentFrame.mouse : (page as Page).mouse;
 
   await mouseController.move(sourceBox.x + sourceBox.width / 2, sourceBox.y + sourceBox.height / 2);
   await mouseController.down();
