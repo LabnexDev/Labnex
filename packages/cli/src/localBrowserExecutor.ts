@@ -27,7 +27,7 @@ export class LocalBrowserExecutor {
   }
 
   async initialize(): Promise<void> {
-    this.logs = [];
+    this.logs = []; // Assuming logs should be cleared on initialize
     this.addLog('Initializing browser...');
     try {
       this.browser = await puppeteer.launch({
@@ -35,10 +35,12 @@ export class LocalBrowserExecutor {
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
+          '--disable-dev-shm-usage', 
+          '--window-size=1920,1080', // Example window size, adjust if needed
           '--start-maximized'
         ],
-        defaultViewport: null
+        defaultViewport: null,
+        protocolTimeout: 90000, // Increased protocol timeout
       });
       this.page = await this.browser.newPage();
       this.currentFrame = this.page;
@@ -115,404 +117,252 @@ export class LocalBrowserExecutor {
   ): Promise<TestResult> {
     const stepStartTime = Date.now();
     let result: TestResult = { status: 'failed', message: 'Not executed yet', duration: 0 };
-    let stepDuration = 0;
-    const MAX_AI_ATTEMPTS = 3; // Increased to allow more follow-up suggestions
-    const MAX_RETRY_ATTEMPTS = 5; // Max retries for rate limit errors
-    const BASE_RETRY_DELAY_MS = 2000; // Increased base delay to 2 seconds for retries
+    const MAX_AI_SUGGESTION_ATTEMPTS = 2; // Max attempts to get an AI selector suggestion for a single step failure
+    const MAX_RETRY_ATTEMPTS = 3; // Max retries for API calls (e.g. rate limit)
+    const BASE_RETRY_DELAY_MS = 1500;
 
     let stepDescriptionToParse = stepDescription;
+    let initialStepObject: ParsedTestStep | null = null;
 
-    if (this.aiOptimizationEnabled && attempt === 0) { // Only interpret on the original attempt
-      this.addLog(`[AI] Interpreting step ${stepNumber}: ${stepDescription.substring(0, 30)}...`);
+    // Initial parsing and interpretation (only on the first attempt for this step string)
+    if (attempt === 0) {
+      this.addLog(`[AI] Parsing/Interpreting original step ${stepNumber}: "${stepDescription.substring(0, 70)}..."`);
       try {
-        const aiResponse = await this.retryApiCall(() => apiClient.interpretTestStep(stepDescription), MAX_RETRY_ATTEMPTS, BASE_RETRY_DELAY_MS, `interpret step ${stepNumber}`);
-        if (aiResponse.success && aiResponse.data) {
-          // Extract only the first actionable step, ignoring alternatives with 'or'
-          const firstStep = aiResponse.data.split(/\s+or\s+/i)[0].trim();
-          this.addLog(`[AI] Interpreted step ${stepNumber} as: ${firstStep.substring(0, 50)}...`);
-          // Extract selector from within quotes if it's an element action
-          const selectorMatch = firstStep.match(/"([^"]+)"/);
-          if (selectorMatch && selectorMatch[1]) {
-            const extractedSelector = selectorMatch[1];
-            this.addLog(`[AI] Extracted selector: ${extractedSelector.substring(0, 50)}...`);
-            let stepObject = {} as ParsedTestStep;
-            if (firstStep.toLowerCase().includes('click')) {
-              stepObject = {
-                action: 'click',
-                target: extractedSelector,
-                originalStep: stepDescription
-              };
-              this.addLog(`[AI] Parsed as click action with selector: ${extractedSelector.substring(0, 30)}...`);
-            } else if (firstStep.toLowerCase().includes('navigate') || firstStep.toLowerCase().includes('url')) {
-              stepObject = {
-                action: 'navigate',
-                target: extractedSelector,
-                originalStep: stepDescription
-              };
-              this.addLog(`[AI] Parsed as navigate action to: ${extractedSelector.substring(0, 30)}...`);
-            } else if (firstStep.toLowerCase().includes('wait') || firstStep.toLowerCase().includes('pause')) {
-              const timeoutMatch = firstStep.match(/\d+/);
-              const timeout = timeoutMatch ? parseInt(timeoutMatch[0], 10) : 3000;
-              stepObject = {
-                action: 'wait',
-                timeout: timeout,
-                originalStep: stepDescription
-              };
-              this.addLog(`[AI] Parsed as wait action for ${timeout}ms.`);
-            } else {
-              stepDescriptionToParse = firstStep;
-            }
+        initialStepObject = TestStepParser.parseStep(stepDescription);
+        if (!initialStepObject.action && this.aiOptimizationEnabled) {
+          this.addLog(`[AI] Initial parsing failed to identify action for step ${stepNumber}. Attempting AI interpretation.`);
+          const interpretResponse = await this.retryApiCall(
+            () => apiClient.interpretTestStep(stepDescription),
+            MAX_RETRY_ATTEMPTS, BASE_RETRY_DELAY_MS, `interpret step ${stepNumber}`
+          );
+          if (interpretResponse.success && interpretResponse.data) {
+            const interpretedStepString = interpretResponse.data.split(/\s+or\s+/i)[0].trim();
+            this.addLog(`[AI] Interpreted step ${stepNumber} as: "${interpretedStepString.substring(0, 70)}..."`);
+            stepDescriptionToParse = interpretedStepString; // Use AI interpreted string for parsing
+            initialStepObject = TestStepParser.parseStep(stepDescriptionToParse);
           } else {
-            stepDescriptionToParse = firstStep;
-          }
-        } else {
-          this.addLog(`[AI] Interpretation failed for step ${stepNumber}. Error: ${aiResponse.error || 'Unknown'}`);
-        }
-      } catch (error: any) {
-        this.addLog(`[AI] Error interpreting step ${stepNumber}: ${error.message.substring(0, 50)}...`);
-      }
-    }
-
-    // Custom parsing for navigation steps from AI response
-    let stepObject = TestStepParser.parseStep(stepDescriptionToParse);
-    // Check if the parsed step action is not recognized or needs fallback
-    if (!stepObject.action && this.aiOptimizationEnabled) {
-      this.addLog(`[AI] Step ${stepNumber} not parsed. Requesting AI interpretation.`);
-      try {
-        // Capture page context for AI to interpret undefined actions
-        let detailedPageContext = 'DOM snapshot unavailable';
-        if (this.page) {
-          try {
-            // Wait for page to stabilize before capturing context. Adjusted timeout and condition.
-            await this.page.waitForNavigation({ timeout: 1500, waitUntil: 'networkidle0' }).catch(() => this.addLog(`[AI] No significant navigation or network activity, proceeding with current content for context.`));
-            
-            detailedPageContext = await this.page.evaluate(() => {
-              const MAX_ELEMENTS_CTX = 75; 
-              const MAX_ATTR_LENGTH_CTX = 40;
-              const MAX_TEXT_LENGTH_CTX = 60;
-              const MAX_TOTAL_STRING_LENGTH = 7000; // Target for the final string
-
-              function truncateCtx(str: string, len: number): string {
-                if (!str) return '';
-                return str.length > len ? str.substring(0, len - 3) + "..." : str;
-              }
-
-              let elementCount = 0;
-              function elementToStringCtx(el: Element | null): string {
-                if (!el || elementCount >= MAX_ELEMENTS_CTX) return '';
-                elementCount++;
-                
-                const tagName = el.tagName.toLowerCase();
-                let attrs = '';
-                for (let i = 0; i < el.attributes.length; i++) {
-                  const attr = el.attributes[i];
-                  if (attr.name === 'style' || attr.name.startsWith('on') || attr.name === 'd' || attr.name === 'stroke-width' || attr.name.startsWith('aria-') && attr.value.length > 100) continue;
-                  const attrValue = truncateCtx(attr.value, MAX_ATTR_LENGTH_CTX);
-                  attrs += ` ${attr.name}="${attrValue}"`;
-                }
-
-                let childrenString = '';
-                if (el.children.length > 0) {
-                  for (let i = 0; i < el.children.length; i++) {
-                    if (elementCount >= MAX_ELEMENTS_CTX) break;
-                    childrenString += elementToStringCtx(el.children[i] as Element);
-                  }
-                }
-                
-                let textContent = '';
-                if ((!el.children.length || childrenString.length === 0) && el.childNodes.length > 0) {
-                  let directText = '';
-                  for (let i = 0; i < el.childNodes.length; i++) {
-                    const childNode = el.childNodes[i];
-                    if (childNode.nodeType === Node.TEXT_NODE && childNode.textContent?.trim()) {
-                      directText += childNode.textContent.trim() + " ";
-                    }
-                  }
-                  if(directText.trim()){
-                    textContent = truncateCtx(directText.trim(), MAX_TEXT_LENGTH_CTX);
-                  }
-                }
-                
-                if (!childrenString && ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'button', 'label', 'td', 'th'].includes(tagName)) {
-                    const ownText = (el as HTMLElement).innerText?.trim();
-                    if (ownText) {
-                        textContent = truncateCtx(ownText, MAX_TEXT_LENGTH_CTX * 2);
-                    }
-                }
-                return `<${tagName}${attrs}>${textContent}${childrenString}</${tagName}>`;
-              }
-              const rootElement = document.querySelector('main') || document.body;
-              let fullHtml = elementToStringCtx(rootElement);
-              
-              if (fullHtml.length > MAX_TOTAL_STRING_LENGTH) {
-                let lastClosingTag = fullHtml.lastIndexOf('</', MAX_TOTAL_STRING_LENGTH);
-                if (lastClosingTag !== -1) {
-                    let endOfTag = fullHtml.indexOf('>', lastClosingTag);
-                    if (endOfTag !== -1 && endOfTag <= MAX_TOTAL_STRING_LENGTH + 30) { // Allow some leeway for tag closure
-                        fullHtml = fullHtml.substring(0, endOfTag + 1);
-                    } else {
-                        fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
-                    }
-                } else {
-                    fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
-                }
-                fullHtml += '<!-- DOM structure truncated -->';
-              }
-              return fullHtml;
-            });
-            
-            this.addLog(`[AI] Captured detailed DOM context for step ${stepNumber} suggestion (length: ${detailedPageContext.length}). Preview: ${detailedPageContext.substring(0,100)}...`);
-          } catch (contextError: any) {
-            this.addLog(`[AI] Failed to capture detailed DOM context for step suggestion: ${(contextError as Error).message.substring(0, 100)}...`);
-            // Fallback to simpler context if detailed capture fails
-            detailedPageContext = `Simple page context: URL - ${this.page?.url()}`;
+            this.addLog(`[AI] Interpretation failed for step ${stepNumber}. Error: ${interpretResponse.error || 'Unknown'}. Proceeding with original.`);
+            // initialStepObject will remain as is from the first TestStepParser.parseStep
           }
         }
-        // Add a delay to ensure AI has time to respond and avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Delay based on attempt number
-        const aiSuggestion = await this.retryApiCall(() => apiClient.suggestAlternative(stepDescription, detailedPageContext), MAX_RETRY_ATTEMPTS, BASE_RETRY_DELAY_MS, `suggest alternative for step ${stepNumber}`);
-        if (aiSuggestion.success && aiSuggestion.data) {
-          // Extract only the first actionable step, ignoring alternatives with 'or'
-          const firstStep = aiSuggestion.data.split(/\s+or\s+/i)[0].trim();
-          this.addLog(`[AI] Suggested alternative for step ${stepNumber}: ${firstStep.substring(0, 50)}...`);
-          // Extract selector from within quotes if it's an element action
-          const selectorMatch = firstStep.match(/"([^"]+)"/);
-          if (selectorMatch && selectorMatch[1]) {
-            const extractedSelector = selectorMatch[1];
-            this.addLog(`[AI] Extracted selector for retry: ${extractedSelector.substring(0, 50)}...`);
-            if (firstStep.toLowerCase().includes('click')) {
-              return await this._processSingleStep(`Click on element "${extractedSelector}"`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-            } else if (firstStep.toLowerCase().includes('navigate') || firstStep.toLowerCase().includes('url')) {
-              return await this._processSingleStep(`Navigate to "${extractedSelector}"`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-            } else if (firstStep.toLowerCase().includes('wait') || firstStep.toLowerCase().includes('pause')) {
-              const timeoutMatch = firstStep.match(/\d+/);
-              const timeout = timeoutMatch ? parseInt(timeoutMatch[0], 10) : 3000;
-              return await this._processSingleStep(`Wait for ${timeout} milliseconds`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-            }
-          }
-          this.addLog(`[AI] Retrying step ${stepNumber} with suggestion...`);
-          return await this._processSingleStep(firstStep, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-        } else {
-          this.addLog(`[AI] Suggestion failed for step ${stepNumber}. Error: ${aiSuggestion.error || 'Unknown'}`);
-          this.addLog(`[AI] Detailed response: ${JSON.stringify(aiSuggestion, null, 2).substring(0, 200)}...`);
-          stepDuration = Date.now() - stepStartTime;
-          return {
-            status: 'failed',
-            message: result.message || 'Step failed; AI suggestion unavailable. Check logs.',
-            duration: stepDuration,
-            screenshot: result.screenshot
-          };
-        }
-      } catch (error: any) {
-        this.addLog(`[AI] Error in AI interpretation for step ${stepNumber}: ${error.message.substring(0, 50)}...`);
-        stepObject = TestStepParser.parseStep(stepDescription);
+      } catch (parseError: any) {
+        this.addLog(`[Error] Parsing step "${stepDescriptionToParse}" failed: ${parseError.message}`);
+        result = { status: 'failed', message: `Failed to parse step: ${parseError.message}`, duration: Date.now() - stepStartTime };
+        return result;
       }
-    }
-    // Custom parsing for AI-suggested navigation steps
-    if (!stepObject.action && stepDescriptionToParse.toLowerCase().includes('navigate') || stepDescriptionToParse.toLowerCase().includes('load') || stepDescriptionToParse.toLowerCase().includes('url')) {
-      const urlMatch = stepDescriptionToParse.match(/['"](https?:\/\/[^'"]+)['"]/);
-      if (urlMatch && urlMatch[1]) {
-        stepObject = {
-          action: 'navigate',
-          target: urlMatch[1],
-          originalStep: stepDescriptionToParse
-        };
-        this.addLog(`[Parse] Detected navigation to: ${urlMatch[1].substring(0, 30)}...`);
-      }
-    }
-    // Custom parsing for AI-suggested click actions
-    if (!stepObject.action && stepDescriptionToParse.toLowerCase().includes('click') && stepDescriptionToParse.toLowerCase().includes('open modal')) {
-      stepObject = {
-        action: 'click',
-        target: "xpath://button[contains(text(), 'Open Modal')]",
-        originalStep: stepDescriptionToParse
-      };
-      this.addLog(`[Parse] Detected click for 'Open Modal'.`);
+    } else {
+      // This is an AI retry, stepDescriptionToParse should already be the AI suggested step string
+      this.addLog(`[AI] Attempt ${attempt}: Retrying with AI suggested step: "${stepDescriptionToParse.substring(0,70)}..."`);
+      initialStepObject = TestStepParser.parseStep(stepDescriptionToParse);
     }
 
-    if (stepObject.action === 'navigate' && stepObject.target && !stepObject.target.startsWith('http')) {
-      stepObject.target = new URL(stepObject.target, baseUrl).toString();
-      this.addLog(`Resolved navigation to: ${stepObject.target.substring(0, 30)}...`);
-    }
-
-    // Fix for selector parsing: Ensure the exact selector from the step is used
-    if (stepObject.target && typeof stepObject.target === 'string' && stepObject.target.includes('xpath:')) {
-      const xpathMatch = stepObject.target.match(/xpath:([^)]+)/);
-      if (xpathMatch && xpathMatch[1]) {
-        stepObject.target = `xpath:${xpathMatch[1]}`;
-        this.addLog(`[Parse] Using exact XPath selector: ${stepObject.target.substring(0, 30)}...`);
-      }
-    }
-
-    this.addLog(`[Step] Action: ${stepObject.action}, Target: ${stepObject.target?.substring(0, 30) || 'N/A'}...`);
-    try {
-      result = await this.executeStep(stepObject, overallExpectedResult);
-    } catch (error: any) {
-      this.addLog(`[Step] Error executing step ${stepNumber}: ${error.message.substring(0, 50)}...`);
-      if (error.message.includes('detached Frame') || error.name === 'TargetCloseError') {
-        this.addLog(`[Recovery] Browser frame detached. Restarting...`);
-        if (this.browser) {
-          await this.browser.close().catch(e => this.addLog(`[Recovery] Error closing browser: ${e.message.substring(0, 50)}...`));
-          this.browser = null;
-          this.page = null;
-          this.currentFrame = null;
-        }
-        await this.initialize();
-        this.addLog(`[Recovery] Browser restarted.`);
-        throw new Error(`Browser restarted due to detachment. Retry the step.`);
-      }
-      throw error;
+    if (!initialStepObject || !initialStepObject.action) {
+      const message = `Step ${stepNumber} could not be parsed or action not identified: "${stepDescriptionToParse}"`;
+      this.addLog(`[Error] ${message}`);
+      result = { status: 'failed', message, duration: Date.now() - stepStartTime };
+      return result;
     }
     
+    // Use a new variable for the step object to be executed in this attempt
+    const currentStepObject = initialStepObject; 
 
-    if (result.status === 'failed' && this.aiOptimizationEnabled && attempt < MAX_AI_ATTEMPTS) {
-      this.addLog(`[AI] Step ${stepNumber} failed. Attempting suggestion (${attempt + 1}/${MAX_AI_ATTEMPTS}).`);
+    try {
+      let actionDescription = currentStepObject.action;
+      if (currentStepObject.target) actionDescription += ` on "${String(currentStepObject.target).substring(0,50)}"`;
+      if (currentStepObject.value) actionDescription += ` with value "${String(currentStepObject.value).substring(0,30)}"`;
+      this.addLog(`[Step] Executing (Attempt ${attempt}): ${actionDescription}`);
+      
+      result = await this.executeStep(currentStepObject, overallExpectedResult, attempt > 0); 
+      result.duration = Date.now() - stepStartTime;
+      this.addLog(`[Step] Result for "${currentStepObject.action}" (Attempt ${attempt}): ${result.status}, Message: ${result.message?.substring(0,100)}`);
+
+    } catch (error: any) {
+      result = { status: 'failed', message: error.message, duration: Date.now() - stepStartTime };
+      this.addLog(`[Step] Error executing step ${stepNumber} ("${currentStepObject.action}") (Attempt ${attempt}): ${error.message.substring(0,150)}`);
+    }
+
+    // If step failed, and AI optimization is on, and we haven't exceeded AI attempts for this step
+    if (result.status === 'failed' && this.aiOptimizationEnabled && attempt < MAX_AI_SUGGESTION_ATTEMPTS) {
+      this.addLog(`[AI] Step ${stepNumber} failed (Action: "${currentStepObject.action}", Target: "${currentStepObject.target || 'N/A'}"). Attempting AI selector suggestion (${attempt + 1}/${MAX_AI_SUGGESTION_ATTEMPTS}).`);
+      
+      // Ensure page is available for context capture
+      if (!this.page) {
+        this.addLog('[AI] Page not available for capturing DOM context. Skipping AI suggestion.');
+        return result; // Return original failure
+      }
+
+      let detailedPageContext = 'DOM snapshot unavailable';
       try {
-        // Capture page context to send to AI for better suggestions
-        let detailedPageContext = 'DOM snapshot unavailable';
-        if (this.page) {
-          try {
-            // Wait for page to stabilize before capturing context. Adjusted timeout and condition.
-            await this.page.waitForNavigation({ timeout: 1500, waitUntil: 'networkidle0' }).catch(() => this.addLog(`[AI] No significant navigation or network activity, proceeding with current content for context.`));
-            
-            detailedPageContext = await this.page.evaluate(() => {
-              const MAX_ELEMENTS_CTX = 75; 
-              const MAX_ATTR_LENGTH_CTX = 40;
-              const MAX_TEXT_LENGTH_CTX = 60;
-              const MAX_TOTAL_STRING_LENGTH = 7000; // Target for the final string
+        this.addLog('[AI] Capturing DOM context for suggestion...');
+        // Ensure this.page is not null before calling evaluate
+        detailedPageContext = await this.page.evaluate(() => {
+          const MAX_ELEMENTS_CTX = 50; 
+          const MAX_ATTR_LENGTH_CTX = 30;
+          const MAX_TEXT_LENGTH_CTX = 50;
+          const MAX_TOTAL_STRING_LENGTH = 5000;
 
-              function truncateCtx(str: string, len: number): string {
-                if (!str) return '';
-                return str.length > len ? str.substring(0, len - 3) + "..." : str;
+          function truncateCtx(str: string | null | undefined, len: number): string {
+            if (!str) return '';
+            return str.length > len ? str.substring(0, len - 3) + "..." : str;
+          }
+          let elementCount = 0;
+          function elementToStringCtx(el: Element | null): string {
+            if (!el || elementCount >= MAX_ELEMENTS_CTX) return '';
+            elementCount++;
+            const tagName = el.tagName.toLowerCase();
+            let attrs = '';
+            for (let i = 0; i < el.attributes.length; i++) {
+              const attr = el.attributes[i];
+              if (attr.name === 'style' || attr.name.startsWith('on') || attr.name === 'd' || attr.name === 'stroke-width' || (attr.name.startsWith('aria-') && attr.value.length > 70)) continue;
+              attrs += ` ${attr.name}=\"${truncateCtx(attr.value, MAX_ATTR_LENGTH_CTX)}\"`;
+            }
+            let childrenString = '';
+            if (el.children.length > 0) {
+              for (let i = 0; i < el.children.length; i++) {
+                if (elementCount >= MAX_ELEMENTS_CTX) break;
+                childrenString += elementToStringCtx(el.children[i] as Element);
               }
-
-              let elementCount = 0;
-              function elementToStringCtx(el: Element | null): string {
-                if (!el || elementCount >= MAX_ELEMENTS_CTX) return '';
-                elementCount++;
-                
-                const tagName = el.tagName.toLowerCase();
-                let attrs = '';
-                for (let i = 0; i < el.attributes.length; i++) {
-                  const attr = el.attributes[i];
-                  if (attr.name === 'style' || attr.name.startsWith('on') || attr.name === 'd' || attr.name === 'stroke-width' || attr.name.startsWith('aria-') && attr.value.length > 100) continue;
-                  const attrValue = truncateCtx(attr.value, MAX_ATTR_LENGTH_CTX);
-                  attrs += ` ${attr.name}="${attrValue}"`;
+            }
+            let textContent = '';
+            if ((!el.children.length || childrenString.length === 0) && el.childNodes.length > 0) {
+              let directText = '';
+              for (let i = 0; i < el.childNodes.length; i++) {
+                const childNode = el.childNodes[i];
+                if (childNode.nodeType === Node.TEXT_NODE && childNode.textContent?.trim()) {
+                  directText += childNode.textContent.trim() + " ";
                 }
-
-                let childrenString = '';
-                if (el.children.length > 0) {
-                  for (let i = 0; i < el.children.length; i++) {
-                    if (elementCount >= MAX_ELEMENTS_CTX) break;
-                    childrenString += elementToStringCtx(el.children[i] as Element);
-                  }
-                }
-                
-                let textContent = '';
-                if ((!el.children.length || childrenString.length === 0) && el.childNodes.length > 0) {
-                  let directText = '';
-                  for (let i = 0; i < el.childNodes.length; i++) {
-                    const childNode = el.childNodes[i];
-                    if (childNode.nodeType === Node.TEXT_NODE && childNode.textContent?.trim()) {
-                      directText += childNode.textContent.trim() + " ";
-                    }
-                  }
-                  if(directText.trim()){
-                    textContent = truncateCtx(directText.trim(), MAX_TEXT_LENGTH_CTX);
-                  }
-                }
-                
-                if (!childrenString && ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'button', 'label', 'td', 'th'].includes(tagName)) {
-                    const ownText = (el as HTMLElement).innerText?.trim();
-                    if (ownText) {
-                        textContent = truncateCtx(ownText, MAX_TEXT_LENGTH_CTX * 2);
-                    }
-                }
-                return `<${tagName}${attrs}>${textContent}${childrenString}</${tagName}>`;
               }
-              const rootElement = document.querySelector('main') || document.body;
-              let fullHtml = elementToStringCtx(rootElement);
-              
-              if (fullHtml.length > MAX_TOTAL_STRING_LENGTH) {
-                let lastClosingTag = fullHtml.lastIndexOf('</', MAX_TOTAL_STRING_LENGTH);
-                if (lastClosingTag !== -1) {
-                    let endOfTag = fullHtml.indexOf('>', lastClosingTag);
-                    if (endOfTag !== -1 && endOfTag <= MAX_TOTAL_STRING_LENGTH + 30) { // Allow some leeway for tag closure
-                        fullHtml = fullHtml.substring(0, endOfTag + 1);
-                    } else {
-                        fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
-                    }
+              if(directText.trim()){ textContent = truncateCtx(directText.trim(), MAX_TEXT_LENGTH_CTX); }
+            }
+            if (!childrenString && !textContent && ['p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'button', 'label', 'td', 'th', 'li'].includes(tagName)) {
+                const ownText = (el as HTMLElement).innerText?.trim();
+                if (ownText) { textContent = truncateCtx(ownText, MAX_TEXT_LENGTH_CTX * 2); }
+            }
+            return `<${tagName}${attrs}>${textContent}${childrenString}</${tagName}>`;
+          }
+          const rootElement = document.querySelector('main') || document.body;
+          let fullHtml = elementToStringCtx(rootElement);
+          if (fullHtml.length > MAX_TOTAL_STRING_LENGTH) {
+            let lastClosingTag = fullHtml.lastIndexOf('</', MAX_TOTAL_STRING_LENGTH);
+            if (lastClosingTag !== -1) {
+                let endOfTag = fullHtml.indexOf('>', lastClosingTag);
+                if (endOfTag !== -1 && endOfTag <= MAX_TOTAL_STRING_LENGTH + 30) { // Allow some leeway
+                    fullHtml = fullHtml.substring(0, endOfTag + 1);
                 } else {
                     fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
                 }
-                fullHtml += '<!-- DOM structure truncated -->';
-              }
-              return fullHtml;
-            });
-            
-            this.addLog(`[AI] Captured detailed DOM context for step ${stepNumber} suggestion (length: ${detailedPageContext.length}). Preview: ${detailedPageContext.substring(0,100)}...`);
-          } catch (contextError: any) {
-            this.addLog(`[AI] Failed to capture detailed DOM context for step suggestion: ${(contextError as Error).message.substring(0, 100)}...`);
-            // Fallback to simpler context if detailed capture fails
-            detailedPageContext = `Simple page context: URL - ${this.page?.url()}`;
-          }
-        }
-        // Add a delay to ensure AI has time to respond and avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Delay based on attempt number
-        const aiSuggestion = await this.retryApiCall(() => apiClient.suggestAlternative(stepDescription, detailedPageContext), MAX_RETRY_ATTEMPTS, BASE_RETRY_DELAY_MS, `suggest alternative for step ${stepNumber}`);
-        if (aiSuggestion.success && aiSuggestion.data) {
-          // Extract only the first actionable step, ignoring alternatives with 'or'
-          const firstStep = aiSuggestion.data.split(/\s+or\s+/i)[0].trim();
-          this.addLog(`[AI] Suggested alternative for step ${stepNumber}: ${firstStep.substring(0, 50)}...`);
-          // Extract selector from within quotes if it's an element action
-          const selectorMatch = firstStep.match(/"([^"]+)"/);
-          if (selectorMatch && selectorMatch[1]) {
-            const extractedSelector = selectorMatch[1];
-            this.addLog(`[AI] Extracted selector for retry: ${extractedSelector.substring(0, 50)}...`);
-            if (firstStep.toLowerCase().includes('click')) {
-              return await this._processSingleStep(`Click on element "${extractedSelector}"`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-            } else if (firstStep.toLowerCase().includes('navigate') || firstStep.toLowerCase().includes('url')) {
-              return await this._processSingleStep(`Navigate to "${extractedSelector}"`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-            } else if (firstStep.toLowerCase().includes('wait') || firstStep.toLowerCase().includes('pause')) {
-              const timeoutMatch = firstStep.match(/\d+/);
-              const timeout = timeoutMatch ? parseInt(timeoutMatch[0], 10) : 3000;
-              return await this._processSingleStep(`Wait for ${timeout} milliseconds`, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
+            } else {
+                fullHtml = fullHtml.substring(0, MAX_TOTAL_STRING_LENGTH);
             }
+            fullHtml += '<!-- DOM structure truncated -->';
           }
-          this.addLog(`[AI] Retrying step ${stepNumber} with suggestion...`);
-          return await this._processSingleStep(firstStep, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
-        } else {
-          this.addLog(`[AI] Suggestion failed for step ${stepNumber}. Error: ${aiSuggestion.error || 'Unknown'}`);
-          this.addLog(`[AI] Detailed response: ${JSON.stringify(aiSuggestion, null, 2).substring(0, 200)}...`);
-          stepDuration = Date.now() - stepStartTime;
-          return {
-            status: 'failed',
-            message: result.message || 'Step failed; AI suggestion unavailable. Check logs.',
-            duration: stepDuration,
-            screenshot: result.screenshot
-          };
+          return fullHtml;
+        });
+        this.addLog(`[AI] Captured DOM context (length: ${detailedPageContext.length}). Preview: ${detailedPageContext.substring(0,100)}...`);
+      } catch (contextError: any) {
+        this.addLog(`[AI] Failed to capture DOM context: ${(contextError as Error).message.substring(0,100)}...`);
+        // Proceed with 'DOM snapshot unavailable' or basic context
+        detailedPageContext = `Page URL: ${this.page?.url() || 'unknown'}`; 
+      }
+
+      try {
+        // Correctly determine the descriptive term for AI.
+        const descriptiveTermForSuggestion = (typeof currentStepObject.target === 'string' ? currentStepObject.target : '') || 
+                                           stepDescription; // original stepDescription as ultimate fallback
+
+        this.addLog(`[AI] Requesting selector suggestion for target: "${currentStepObject.target || 'N/A'}", descriptive: "${descriptiveTermForSuggestion.substring(0,70)}"`);
+        
+        const selectorParam = typeof currentStepObject.target === 'string' ? currentStepObject.target : '';
+        if (!selectorParam && currentStepObject.action !== 'navigate' && currentStepObject.action !== 'wait') { // Only warn if a selector was expected
+            this.addLog(`[AI] Warning: Failed step target is not a string or is empty ('${selectorParam}'). AI suggestion might be less effective.`);
         }
-      } catch (error: any) {
-        this.addLog(`[AI] Error getting suggestion for step ${stepNumber}: ${error.message.substring(0, 50)}...`);
-        stepDuration = Date.now() - stepStartTime;
-        return {
-          status: 'failed',
-          message: result.message || 'Step failed; AI suggestion retrieval error.',
-          duration: stepDuration,
-          screenshot: result.screenshot
-        };
+        
+        const selectorSuggestionResponse = await this.retryApiCall(
+          () => apiClient.getDynamicSelectorSuggestion({
+            failedSelector: selectorParam,
+            descriptiveTerm: descriptiveTermForSuggestion,
+            pageUrl: this.page?.url() || '',
+            domSnippet: detailedPageContext,
+            originalStep: stepDescription // The original human-readable step for context
+          }),
+          MAX_RETRY_ATTEMPTS,
+          BASE_RETRY_DELAY_MS,
+          `get dynamic selector for step ${stepNumber}, attempt ${attempt + 1}`
+        );
+
+        if (selectorSuggestionResponse.success && selectorSuggestionResponse.data && selectorSuggestionResponse.data.suggestedSelector) {
+          const aiData = selectorSuggestionResponse.data;
+          // Access confidence and reasoning dynamically as they are not strictly typed on the client side
+          const confidence = (aiData as any).confidence;
+          const reasoning = (aiData as any).reasoning;
+          this.addLog(`[AI] Received selector suggestion: "${aiData.suggestedSelector}" (Strategy: ${aiData.suggestedStrategy || 'N/A'}, Confidence: ${confidence || 'N/A'}, Reasoning: ${reasoning || 'N/A'})`);
+
+          // Simplify AI step string reconstruction
+          let aiSuggestedStepString = `${currentStepObject.action}`;
+
+          // Add target if the action typically requires one (most do, except e.g. wait, storeUrl, storeTitle)
+          if (currentStepObject.action !== 'wait' && 
+              currentStepObject.action !== 'custom' /* && Add other non-target actions if any */ ) {
+             // For storeUrl, storeTitle, they are handled by variableName block later if no target needed initially
+             if(!( (currentStepObject.action as string).startsWith('store') && !currentStepObject.target)) {
+                aiSuggestedStepString += ` "${aiData.suggestedSelector}"`;
+             }
+          }
+
+          if (currentStepObject.value) {
+            aiSuggestedStepString += ` with value "${currentStepObject.value}"`;
+          }
+          
+          if (currentStepObject.action === 'assert') { 
+             if(currentStepObject.assertionType) {
+                aiSuggestedStepString += ` ${currentStepObject.assertionType}`;
+             }
+             // For assertions, expectedText is the primary value compared against.
+             if (currentStepObject.expectedText !== undefined) { 
+                aiSuggestedStepString += ` "${currentStepObject.expectedText}"`;
+             }
+          }
+
+          // Handle variableName for store-like actions
+          if ((currentStepObject as ParsedTestStep).variableName) { 
+             // If it's a store action that didn't get a selector target above (e.g. storeUrl, storeTitle)
+             // ensure the action itself is present before "as"
+             if(aiSuggestedStepString === currentStepObject.action && !(aiSuggestedStepString as string).includes('"')) {
+                // Nothing to add before "as" other than action itself
+             } else if (!aiSuggestedStepString.includes(`"${aiData.suggestedSelector}"`) && currentStepObject.target) {
+                // If original step had a target but it wasn't added with AI selector (e.g. storeUrl from a target)
+                // This case is complex; for now, we assume selectorized store actions got the AI selector.
+                // For non-selector store actions, just action + as variable.
+                if (!((currentStepObject.action as string).startsWith('store') && !currentStepObject.target)) {
+                    aiSuggestedStepString += ` "${currentStepObject.target}"`; // Fallback to original target if AI selector not used
+                }
+             }
+             aiSuggestedStepString += ` as "${(currentStepObject as ParsedTestStep).variableName}"`;
+          }
+          
+          if (currentStepObject.action === 'wait' && currentStepObject.timeout) { 
+            aiSuggestedStepString = `${currentStepObject.action} for ${currentStepObject.timeout} milliseconds`;
+          }
+           // TODO: Add more specific reconstruction for other complex actions if needed, e.g., dragAndDrop with destinationTarget
+
+          this.addLog(`[AI] Constructed AI step for retry (Attempt ${attempt + 1}): "${aiSuggestedStepString}"`);
+          return await this._processSingleStep(aiSuggestedStepString, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
+        
+        } else {
+          this.addLog(`[AI] Selector suggestion failed or no selector provided. Error: ${selectorSuggestionResponse.error || 'No selector in response'}. Raw: ${JSON.stringify(selectorSuggestionResponse).substring(0,100)}`);
+          // Fall through to return the original failure if AI doesn't provide a good suggestion
+        }
+      } catch (aiError: any) {
+        this.addLog(`[AI] Error during selector suggestion attempt: ${aiError.message.substring(0,150)}`);
+        // Fall through to return the original failure
       }
     }
-   
-    return {
-      status: result.status,
-      message: result.message,
-      duration: stepDuration,
-      screenshot: result.screenshot
-    };
+    
+    // If AI was not attempted or failed to provide a retryable suggestion, return the current result
+    return result;
   }
 
-  private async executeStep(parsedStep: ParsedTestStep, overallTestCaseExpectedResult?: string): Promise<TestResult> {
+  private async executeStep(parsedStep: ParsedTestStep, overallTestCaseExpectedResult?: string, disableFallbacksForAiRetry: boolean = false): Promise<TestResult> {
     if (!this.page || !this.currentFrame) throw new Error('Page or currentFrame not initialized');
     const stepStartTime = Date.now();
     let status: 'passed' | 'failed' = 'failed';
@@ -555,8 +405,29 @@ export class LocalBrowserExecutor {
   }
 
   private async _dispatchStepAction(parsedStep: ParsedTestStep, overallTestCaseExpectedResult?: string, disableFallbacks: boolean = false): Promise<void> {
+    if (!this.page || !this.currentFrame) {
+      throw new Error('Page or frame not initialized for dispatching action.');
+    }
+    // Destructure carefully based on ParsedTestStep definition
+    const { action, target, value, timeout, assertionType, assertion } = parsedStep;
+    const variableName = (parsedStep as ParsedTestStep).variableName; // Explicitly cast for variableName
+    const condition = assertion?.condition; // Correctly get condition from the assertion object
+
+    this.addLog(`Dispatching action: ${action}, Target: ${target ? target.toString().substring(0,50) : 'N/A'}, Value: ${value ? value.substring(0,50) : 'N/A'}`);
+
+    const commonParams = {
+      page: this.page,
+      frame: this.currentFrame,
+      addLog: this.addLog,
+      parsedStep,
+      overallTestCaseExpectedResult,
+      baseUrl: '', // Base URL might be needed by some handlers, pass if available or handle in specific actions
+      disableFallbacksForAiRetry: disableFallbacks, // Pass this through
+      retryApiCall: this.retryApiCall.bind(this), // Pass retryApiCall
+      apiClient: apiClient // Pass apiClient instance
+    };
+
     let newFrameContext: Frame | Page | null;
-    const retryApiCallBound = this.retryApiCall.bind(this);
     try {
       switch (parsedStep.action) {
         case 'navigate':
@@ -571,10 +442,10 @@ export class LocalBrowserExecutor {
           if (newFrameContext) this.currentFrame = newFrameContext;
           break;
         case 'click':
-          await actionHandlers.handleClick(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleClick(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'type':
-          await actionHandlers.handleType(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.value || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleType(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.value || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'wait':
           await actionHandlers.handleWait(this.page, this.addLog, parsedStep.timeout);
@@ -586,16 +457,16 @@ export class LocalBrowserExecutor {
           if (!this.currentFrame) {
             throw new Error('Current frame not initialized for assertion');
           }
-          await actionHandlers.handleAssertion(this.page, this.currentFrame, this.addLog, parsedStep, overallTestCaseExpectedResult, retryApiCallBound);
+          await actionHandlers.handleAssertion(this.page, this.currentFrame, this.addLog, parsedStep, overallTestCaseExpectedResult, commonParams.retryApiCall);
           break;
         case 'select':
-          await actionHandlers.handleSelect(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.value || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleSelect(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.value || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'hover':
-          await actionHandlers.handleHover(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleHover(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'scroll':
-          await actionHandlers.handleScroll(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleScroll(this.page, this.currentFrame, this.addLog, parsedStep.target || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'upload':
           let uploadSelector = parsedStep.target || ''; // Default to empty string if undefined
@@ -620,13 +491,13 @@ export class LocalBrowserExecutor {
               }
             }
           }
-          await actionHandlers.handleUpload(this.page, this.currentFrame, this.addLog, uploadSelector, parsedStep.filePath || '', parsedStep.originalStep || '', retryApiCallBound);
+          await actionHandlers.handleUpload(this.page, this.currentFrame, this.addLog, uploadSelector, parsedStep.filePath || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'dragAndDrop':
             if (!parsedStep.target || !parsedStep.destinationTarget) {
                 throw new Error('Source or destination target not provided for drag and drop.');
             }
-            await actionHandlers.handleDragAndDrop(this.page, this.currentFrame, this.addLog, parsedStep.target, parsedStep.destinationTarget, parsedStep.originalStep || '', retryApiCallBound);
+            await actionHandlers.handleDragAndDrop(this.page, this.currentFrame, this.addLog, parsedStep.target, parsedStep.destinationTarget, parsedStep.originalStep || '', commonParams.retryApiCall);
             break;
       }
     } catch (error: any) {
@@ -643,7 +514,6 @@ export class LocalBrowserExecutor {
         this.addLog(`[Recovery] Browser restarted during action.`);
         throw new Error(`Browser restarted due to detachment. Retry.`);
       }
-      throw error;
     }
   }
 

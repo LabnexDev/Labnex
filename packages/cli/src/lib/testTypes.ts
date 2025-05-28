@@ -50,4 +50,5 @@ export interface ParsedTestStep {
     type?: 'url' | 'elementText' | 'elementVisible' | 'pageText' | 'elementValue';
   };
   destinationTarget?: string;
+  variableName?: string; // Added for store-like actions
 } 
