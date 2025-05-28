@@ -450,6 +450,127 @@ If you cannot suggest a clear alternative, you can respond with the original ste
   }
 };
 
+// New function placeholder
+export const getDynamicSelectorSuggestion = async (req: AuthRequest, res: Response) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser?._id) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const { failedSelector, descriptiveTerm, pageUrl, domSnippet, originalStep } = req.body;
+
+    // Validate required fields
+    if (!descriptiveTerm || !domSnippet || !originalStep) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: descriptiveTerm, domSnippet, or originalStep are required.' 
+      });
+    }
+
+    console.log('[AIController] Received getDynamicSelectorSuggestion request:');
+    console.log('  Failed Selector:', failedSelector);
+    console.log('  Descriptive Term:', descriptiveTerm);
+    console.log('  Page URL:', pageUrl);
+    console.log('  Original Step:', originalStep);
+    // Log only a portion of the DOM snippet to avoid flooding logs
+    console.log('  DOM Snippet (first 200 chars):', domSnippet?.substring(0, 200));
+
+
+    const prompt = `You are an expert web automation assistant specializing in creating robust selectors.
+Given the following context from a web page, suggest a robust Puppeteer selector (XPath or CSS) to find an element.
+
+Page URL: ${pageUrl || 'Not provided'}
+Original User Step: "${originalStep}"
+Intended Target Element (Descriptive Term): "${descriptiveTerm}"
+Previous Selector that Failed (if any): "${failedSelector || 'None'}"
+
+Relevant DOM Snippet where the element might be found:
+\`\`\`html
+${domSnippet}
+\`\`\`
+
+Please respond with a JSON object containing:
+- suggestedSelector: The new selector string (e.g., "xpath://button[@id='submit']" or "css:.my-class > a"). It MUST start with "xpath://" or "css:".
+- suggestedStrategy: Explicitly "xpath" or "css". This should match the prefix of suggestedSelector.
+- confidence: A numerical score between 0.0 (low) and 1.0 (high) indicating your confidence in this suggestion.
+- reasoning: A brief explanation of why this selector was chosen.
+
+Focus on creating a reliable, specific, and non-brittle selector.
+If the DOM snippet is insufficient or the information is ambiguous, state that in the reasoning and provide the best guess with lower confidence.
+Ensure the suggestedSelector is valid for the chosen strategy.
+Provide ONLY the JSON object in your response.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4", // Using gpt-4 for better instruction following and JSON generation
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI assistant that suggests robust web element selectors. Respond ONLY with a valid JSON object containing 'suggestedSelector', 'suggestedStrategy', 'confidence', and 'reasoning'."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.3, // Lower temperature for more deterministic and focused output
+      response_format: { type: "json_object" }, // Ensure JSON output if supported by the model version
+    });
+
+    const content = completion.choices[0]?.message?.content;
+
+    if (!content) {
+      console.error('[AIController] getDynamicSelectorSuggestion: No content from AI');
+      return res.status(500).json({ success: false, error: 'AI suggestion failed: No content received' });
+    }
+
+    let suggestion;
+    try {
+      suggestion = JSON.parse(content);
+      // Basic validation of the AI's response structure
+      if (!suggestion.suggestedSelector || !suggestion.suggestedStrategy || typeof suggestion.confidence !== 'number') {
+        throw new Error('Invalid JSON structure from AI. Missing required fields.');
+      }
+      if (!suggestion.suggestedSelector.startsWith('xpath://') && !suggestion.suggestedSelector.startsWith('css:')) {
+        throw new Error("Invalid suggestedSelector format. Must start with 'xpath://' or 'css:'.");
+      }
+       if (suggestion.suggestedSelector.startsWith('xpath://') && suggestion.suggestedStrategy !== 'xpath') {
+        throw new Error("Strategy mismatch: selector starts with 'xpath://' but strategy is not 'xpath'.");
+      }
+      if (suggestion.suggestedSelector.startsWith('css:') && suggestion.suggestedStrategy !== 'css') {
+        throw new Error("Strategy mismatch: selector starts with 'css:' but strategy is not 'css'.");
+      }
+
+
+    } catch (parseError: any) {
+      console.error('[AIController] getDynamicSelectorSuggestion: Failed to parse AI response or invalid structure:', parseError.message);
+      console.error('[AIController] Raw AI Response:', content); // Log raw response for debugging
+      // Fallback or error response
+      return res.status(500).json({ 
+        success: false, 
+        error: `AI suggestion parsing failed: ${parseError.message}. Raw response: ${content.substring(0, 200)}...`
+      });
+    }
+    
+    console.log('[AIController] Successfully received and parsed AI suggestion:', suggestion);
+
+    res.json({
+      success: true,
+      data: suggestion,
+      message: 'Dynamic selector suggestion retrieved successfully.'
+    });
+
+  } catch (error: any) {
+    console.error('[AIController] Error in getDynamicSelectorSuggestion:', error.stack || error.message);
+    // Check for OpenAI specific errors if possible, e.g., error.response.data
+    if (error.response && error.response.data) {
+        console.error('[AIController] OpenAI API Error:', error.response.data);
+        return res.status(500).json({ success: false, error: `OpenAI API error: ${error.response.data.error?.message || error.message}` });
+    }
+    return res.status(500).json({ success: false, error: `Internal server error in AI suggestion: ${error.message}` });
+  }
+};
+
 // Helper function to check project access
 async function checkProjectAccess(projectId: any, userId: string): Promise<boolean> {
   const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: userId });
