@@ -514,7 +514,6 @@ Provide ONLY the JSON object in your response.`;
         }
       ],
       temperature: 0.3, // Lower temperature for more deterministic and focused output
-      response_format: { type: "json_object" }, // Ensure JSON output if supported by the model version
     });
 
     const content = completion.choices[0]?.message?.content;
