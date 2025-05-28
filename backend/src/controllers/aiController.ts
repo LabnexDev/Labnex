@@ -530,17 +530,22 @@ Provide ONLY the JSON object in your response.`;
       if (!suggestion.suggestedSelector || !suggestion.suggestedStrategy || typeof suggestion.confidence !== 'number') {
         throw new Error('Invalid JSON structure from AI. Missing required fields.');
       }
+      // Fix the selector format if necessary
       if (!suggestion.suggestedSelector.startsWith('xpath://') && !suggestion.suggestedSelector.startsWith('css:')) {
-        throw new Error("Invalid suggestedSelector format. Must start with 'xpath://' or 'css:'.");
+        if (suggestion.suggestedStrategy === 'xpath') {
+          suggestion.suggestedSelector = 'xpath://' + suggestion.suggestedSelector;
+        } else if (suggestion.suggestedStrategy === 'css') {
+          suggestion.suggestedSelector = 'css:' + suggestion.suggestedSelector;
+        } else {
+          throw new Error("Invalid suggestedSelector format. Must start with 'xpath://' or 'css:' after considering strategy.");
+        }
       }
-       if (suggestion.suggestedSelector.startsWith('xpath://') && suggestion.suggestedStrategy !== 'xpath') {
+      if (suggestion.suggestedSelector.startsWith('xpath://') && suggestion.suggestedStrategy !== 'xpath') {
         throw new Error("Strategy mismatch: selector starts with 'xpath://' but strategy is not 'xpath'.");
       }
       if (suggestion.suggestedSelector.startsWith('css:') && suggestion.suggestedStrategy !== 'css') {
         throw new Error("Strategy mismatch: selector starts with 'css:' but strategy is not 'css'.");
       }
-
-
     } catch (parseError: any) {
       console.error('[AIController] getDynamicSelectorSuggestion: Failed to parse AI response or invalid structure:', parseError.message);
       console.error('[AIController] Raw AI Response:', content); // Log raw response for debugging
