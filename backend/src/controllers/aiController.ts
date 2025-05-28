@@ -496,7 +496,7 @@ Please respond with a JSON object containing:
 - confidence: A numerical score between 0.0 (low) and 1.0 (high) indicating your confidence in this suggestion.
 - reasoning: A brief explanation of why this selector was chosen.
 
-Focus on creating a reliable, specific, and non-brittle selector.
+Focus on creating a reliable, specific, and non-brittle selector. Prioritize standard CSS selectors (using IDs, classes, or attributes) or simple XPath expressions. Avoid using 'contains()' in XPath unless absolutely necessary for text matching, as it can be less reliable. Instead, try exact text matches or other attribute-based selectors when possible.
 If the DOM snippet is insufficient or the information is ambiguous, state that in the reasoning and provide the best guess with lower confidence.
 Ensure the suggestedSelector is valid for the chosen strategy.
 Provide ONLY the JSON object in your response.`;
