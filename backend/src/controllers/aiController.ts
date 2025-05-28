@@ -502,7 +502,7 @@ Ensure the suggestedSelector is valid for the chosen strategy.
 Provide ONLY the JSON object in your response.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4", // Using gpt-4 for better instruction following and JSON generation
+      model: "gpt-3.5-turbo", // Using gpt-3.5-turbo for cost efficiency
       messages: [
         {
           role: "system",
