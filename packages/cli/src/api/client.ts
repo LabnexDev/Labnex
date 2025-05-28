@@ -71,7 +71,7 @@ export class LabnexApiClient {
 
   constructor() {
     this.api = axios.create({
-      timeout: 30000,
+      timeout: 60000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -248,8 +248,60 @@ export class LabnexApiClient {
     analysis: string;
     suggestions: string[];
   }>> {
-    const response = await this.api.post('/ai/analyze-failure', { testRunId, failureId });
+    const response = await this.api.post(`/ai/analyze-failure/${testRunId}/${failureId}`);
     return response.data;
+  }
+
+  // New AI methods for step interpretation and suggestion
+  async interpretTestStep(step: string): Promise<ApiResponse<string>> { // Assuming AI returns a string
+    try {
+      const response = await this.api.post('/api/ai/interpret', { step });
+      // The backend's aiController wraps the actual AI response in a { success: true, data: aiResponse.data } structure.
+      // We need to align with how other methods in this client handle responses.
+      // If response.data from axios already contains our { success, data } structure, we use it directly.
+      // Otherwise, we might need to access response.data.data if the AI service itself returns a simple string.
+      if (response.data && typeof response.data.data === 'string') { // Check if backend returned data as expected
+        return { success: true, data: response.data.data };
+      }
+      // Fallback or if AI directly returns a string and backend forwards it without wrapping
+      if (typeof response.data === 'string') { 
+        return { success: true, data: response.data };
+      } 
+      // If the structure is unexpected, or aiController itself returns { success: false, error: ...}
+      if (response.data && response.data.success === false) {
+        return { success: false, data: null as any, error: response.data.error || 'AI interpretation failed with unspecified error' };
+      }
+      // Default error if response structure is completely off
+      return { success: false, data: null as any, error: 'AI interpretation failed or returned unexpected format' };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: null as any,
+        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during step interpretation'
+      };
+    }
+  }
+
+  async suggestAlternative(step: string): Promise<ApiResponse<string>> { // Assuming AI returns a string
+    try {
+      const response = await this.api.post('/api/ai/suggest', { step });
+      if (response.data && typeof response.data.data === 'string') { // Check if backend returned data as expected
+        return { success: true, data: response.data.data };
+      }
+      if (typeof response.data === 'string') { 
+        return { success: true, data: response.data };
+      } 
+      if (response.data && response.data.success === false) {
+        return { success: false, data: null as any, error: response.data.error || 'AI suggestion failed with unspecified error' };
+      }
+      return { success: false, data: null as any, error: 'AI suggestion failed or returned unexpected format' };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: null as any,
+        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during suggestion request'
+      };
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { TestStepParser, ParsedTestStep } from './testStepParser';
+import { apiClient } from '../apiClient';
 
 export interface TestExecutionResult {
   status: 'pass' | 'fail';
@@ -21,8 +22,14 @@ export class BrowserTestExecutor {
   private browser: Browser | null = null;
   private page: Page | null = null;
   private logs: string[] = [];
+  private aiOptimizationEnabled: boolean;
 
-    async initialize(): Promise<void> {
+  constructor(options: { aiOptimizationEnabled?: boolean } = {}) {
+    this.aiOptimizationEnabled = options.aiOptimizationEnabled ?? false;
+    this.addLog(`AI Optimization Enabled: ${this.aiOptimizationEnabled}`);
+  }
+
+  async initialize(): Promise<void> {
     try {
       // Determine if we're in production (Render) or development
       const isProduction = process.env.NODE_ENV === 'production';
@@ -103,6 +110,7 @@ export class BrowserTestExecutor {
   async executeTestCase(testCase: TestCaseData): Promise<TestExecutionResult> {
     const startTime = Date.now();
     this.logs = [];
+    this.addLog(`AI Optimization Status for this run: ${this.aiOptimizationEnabled}`);
 
     try {
       if (!this.page) {
@@ -112,11 +120,25 @@ export class BrowserTestExecutor {
       this.addLog(`Starting test: ${testCase.title}`);
 
       for (let i = 0; i < testCase.steps.length; i++) {
-        const step = testCase.steps[i];
-        this.addLog(`Executing step ${i + 1}: ${step}`);
+        let currentStepString = testCase.steps[i];
+        this.addLog(`Executing step ${i + 1}: ${currentStepString}`);
         
-        const parsedStep = TestStepParser.parseStep(step);
-        await this.executeStep(parsedStep);
+        let parsedStep: ParsedTestStep;
+        if (this.aiOptimizationEnabled) {
+          this.addLog(`[AI Interaction] Sending step for interpretation: "${currentStepString}"`);
+          const aiResponse = await apiClient.interpretTestStep(currentStepString);
+          if (!aiResponse.success || !aiResponse.data) {
+            this.addLog(`[AI Interaction] AI interpretation failed: ${aiResponse.error || 'No data returned'}. Falling back to original step.`);
+            parsedStep = TestStepParser.parseStep(currentStepString); // Fallback to parsing original step
+          } else {
+            this.addLog(`[AI Interaction] AI interpreted step as: ${JSON.stringify(aiResponse.data)}`);
+            parsedStep = TestStepParser.parseStep(aiResponse.data);
+          }
+        } else {
+          parsedStep = TestStepParser.parseStep(currentStepString);
+        }
+        
+        await this.executeStep(parsedStep, currentStepString); // Pass original step for suggestion context
         
         await this.page!.waitForFunction(() => true, { timeout: 500 }).catch(() => {});
       }
@@ -161,8 +183,9 @@ export class BrowserTestExecutor {
     }
   }
 
-  private async executeStep(step: ParsedTestStep): Promise<void> {
+  private async executeStep(step: ParsedTestStep, originalStepStringContext: string, attempt = 1): Promise<void> {
     if (!this.page) throw new Error('Browser not initialized');
+    const MAX_AI_SUGGESTION_ATTEMPTS = 3;
 
     try {
       switch (step.action) {
@@ -194,7 +217,25 @@ export class BrowserTestExecutor {
           this.addLog(`Unknown action: ${step.action}`);
       }
     } catch (error: any) {
-      throw new Error(`Failed to execute step "${step.originalStep}": ${error.message}`);
+      this.addLog(`Execution of step "${step.originalStep || originalStepStringContext}" failed (attempt ${attempt}). Error: ${error.message}`);
+      if (this.aiOptimizationEnabled && attempt < MAX_AI_SUGGESTION_ATTEMPTS) {
+        this.addLog(`[AI Interaction] Attempting to get AI suggestion for failed step: "${originalStepStringContext}"`);
+        const aiSuggestion = await apiClient.suggestAlternative(originalStepStringContext);
+        if (aiSuggestion.success && aiSuggestion.data) {
+          this.addLog(`[AI Interaction] AI suggested: ${JSON.stringify(aiSuggestion.data)}`);
+          this.addLog(`[AI Interaction] Attempting AI-suggested step (attempt ${attempt + 1})`);
+          const parsedSuggestion = TestStepParser.parseStep(aiSuggestion.data);
+          await this.executeStep(parsedSuggestion, originalStepStringContext, attempt + 1); // Recursive call with incremented attempt
+        } else {
+          this.addLog(`[AI Interaction] AI suggestion failed or no data: ${aiSuggestion.error || 'No suggestion'}. Not retrying.`);
+          throw new Error(`Failed to execute step "${step.originalStep || originalStepStringContext}" after AI suggestion attempt: ${error.message}`);
+        }
+      } else {
+        if (this.aiOptimizationEnabled && attempt >= MAX_AI_SUGGESTION_ATTEMPTS) {
+            this.addLog(`Max AI suggestion attempts reached for step: "${originalStepStringContext}".`);
+        }
+        throw new Error(`Failed to execute step "${step.originalStep || originalStepStringContext}": ${error.message}`);
+      }
     }
   }
 

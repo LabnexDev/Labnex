@@ -339,6 +339,117 @@ Respond with a JSON object containing:
   }
 };
 
+export const interpretTestStep = async (req: AuthRequest, res: Response) => {
+  const currentUser = req.user;
+  if (!currentUser?._id) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  const { step } = req.body;
+  if (!step) {
+    return res.status(400).json({ success: false, error: 'Step is required' });
+  }
+
+  try {
+    console.log(`[AIController] interpretTestStep called with: "${step}"`);
+
+    const prompt = `You are an expert test automation assistant. Your task is to refine a given natural language test step into a more precise and machine-executable format.
+If the step is already precise, return it as is.
+If it involves an action and a target (e.g., a UI element selector), try to identify them clearly.
+Focus on making selectors as robust as possible (e.g., preferring IDs, then specific attributes, then robust XPaths or CSS selectors). Avoid overly brittle selectors.
+The goal is to make the step easier for an automation tool to understand and execute.
+
+Original step: "${step}"
+
+Respond with ONLY the refined step string. Do not include any explanations, greetings, or markdown formatting. Just the step string.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are a test automation assistant. Respond with only the refined test step string."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.5,
+    });
+
+    const interpretedStep = completion.choices[0]?.message?.content?.trim();
+
+    if (!interpretedStep) {
+      console.error('[AIController] interpretTestStep: No content from AI');
+      return res.status(500).json({ success: false, error: 'AI interpretation failed: No content received' });
+    }
+
+    console.log(`[AIController] interpretTestStep AI response: "${interpretedStep}"`);
+    return res.status(200).json({ success: true, data: interpretedStep });
+
+  } catch (error: any) {
+    console.error('[AIController] Error in interpretTestStep:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to interpret test step via AI' });
+  }
+};
+
+export const suggestAlternative = async (req: AuthRequest, res: Response) => {
+  const currentUser = req.user;
+  if (!currentUser?._id) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  const { step } = req.body;
+  if (!step) {
+    return res.status(400).json({ success: false, error: 'Step is required for suggestion' });
+  }
+
+  try {
+    console.log(`[AIController] suggestAlternative called for step: "${step}"`);
+
+    const prompt = `You are an expert test automation debugger. The following test step previously failed: "${step}".
+Please suggest a single, concrete alternative way to perform this step.
+Focus on common reasons for failure like incorrect or brittle selectors.
+Suggest a different type of selector (e.g., if XPath failed, try CSS or ID) or a slightly different interaction if appropriate.
+If the step involves finding an element, be specific about how to find it.
+
+Original failed step: "${step}"
+
+Respond with ONLY the suggested alternative step string. Do not include any explanations, greetings, or markdown formatting. Just the step string.
+If you cannot suggest a clear alternative, you can respond with the original step, but try to offer a variation if possible.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "You are a test automation debugging assistant. Respond with only the suggested alternative test step string."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+    });
+
+    const suggestedStep = completion.choices[0]?.message?.content?.trim();
+
+    if (!suggestedStep) {
+      console.error('[AIController] suggestAlternative: No content from AI');
+      return res.status(500).json({ success: false, error: 'AI suggestion failed: No content received' });
+    }
+
+    console.log(`[AIController] suggestAlternative AI response: "${suggestedStep}"`);
+    return res.status(200).json({ success: true, data: suggestedStep });
+
+  } catch (error: any) {
+    console.error('[AIController] Error in suggestAlternative:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to suggest alternative step via AI' });
+  }
+};
+
 // Helper function to check project access
 async function checkProjectAccess(projectId: any, userId: string): Promise<boolean> {
   const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: userId });

@@ -2,7 +2,8 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import { apiClient, TestCase } from '../api/client';
-import { LocalBrowserExecutor, TestCaseResult as LocalTestCaseResult } from '../localBrowserExecutor';
+import { LocalBrowserExecutor } from '../localBrowserExecutor';
+import { TestCaseResult as LocalTestCaseResult } from '../lib/testTypes';
 
 // Create the command
 export const runCommand = new Command('run');
@@ -99,7 +100,10 @@ runCommand.action(async (options) => {
       }
 
       console.log(chalk.cyan('\n🔧 Starting local browser test execution...'));
-      const executor = new LocalBrowserExecutor({ headless: !config.detailed });
+      const executor = new LocalBrowserExecutor({
+        headless: !config.detailed,
+        aiOptimizationEnabled: config.aiOptimization
+      });
       let allLocalResults: LocalTestCaseResult[] = [];
       let overallPassed = 0;
       let overallFailed = 0;

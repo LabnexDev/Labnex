@@ -7,7 +7,7 @@
     "labnex": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build --force",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
@@ -38,7 +38,10 @@
     "figlet": "^1.7.0",
     "inquirer": "^8.2.6",
     "ora": "^5.4.1",
+    "playwright": "^1.40.1",
+    "playwright-extra": "^4.3.6",
     "puppeteer": "^24.9.0",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "ws": "^8.16.0"
   },
   "devDependencies": {

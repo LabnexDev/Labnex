@@ -301,8 +301,8 @@ function mapStatusToAPI(status: string): string {
 }
 
 // Enhanced test execution with real browser automation
-async function executeRealTest(testCase: any): Promise<{ status: 'pass' | 'fail', message?: string, error?: string, logs?: string[], screenshot?: string }> {
-  const executor = new BrowserTestExecutor();
+async function executeRealTest(testCase: any, aiOptimizationEnabled: boolean): Promise<{ status: 'pass' | 'fail', message?: string, error?: string, logs?: string[], screenshot?: string }> {
+  const executor = new BrowserTestExecutor({ aiOptimizationEnabled });
   
   try {
     // Check if test case has browser automation steps
@@ -311,19 +311,15 @@ async function executeRealTest(testCase: any): Promise<{ status: 'pass' | 'fail'
     );
     
     if (hasUrl && testCase.steps?.length > 0) {
-      // Use real browser automation for tests with navigation
       await executor.initialize();
-      
       const testCaseData = {
         title: testCase.title,
         description: testCase.description || '',
         steps: testCase.steps || [],
         expectedResult: testCase.expectedResult || 'Test completed'
       };
-      
       const result = await executor.executeTestCase(testCaseData);
       await executor.cleanup();
-      
       return {
         status: result.status,
         message: result.message,
@@ -333,51 +329,26 @@ async function executeRealTest(testCase: any): Promise<{ status: 'pass' | 'fail'
       };
     } else {
       // Fallback to intelligent simulation for non-browser tests
-      const hasInteraction = testCase.steps?.some((step: string) => 
-        step.toLowerCase().includes('click') || step.toLowerCase().includes('type')
-      );
-      
-      // Simulate execution time based on complexity
-      const complexity = (testCase.steps?.length || 1) * (hasInteraction ? 1.5 : 1);
+      const complexity = (testCase.steps?.length || 1) * (testCase.steps?.some((step: string) => step.toLowerCase().includes('click') || step.toLowerCase().includes('type')) ? 1.5 : 1);
       const executionTime = Math.random() * 1000 + complexity * 300;
-      
       await new Promise(resolve => setTimeout(resolve, executionTime));
-      
-      // Higher success rate for well-structured tests
-      const successRate = hasInteraction ? 0.85 : 0.80;
+      const successRate = testCase.steps?.some((step: string) => step.toLowerCase().includes('click') || step.toLowerCase().includes('type')) ? 0.85 : 0.80;
       const isPass = Math.random() < successRate;
-      
       const logs = [
         `Test execution started: ${testCase.title}`,
         `Processing ${testCase.steps?.length || 0} test steps (non-browser simulation)`,
-        hasInteraction ? 'Detected user interactions' : 'No interactions detected',
+        testCase.steps?.some((step: string) => step.toLowerCase().includes('click') || step.toLowerCase().includes('type')) ? 'Detected user interactions' : 'No interactions detected',
         `Test execution ${isPass ? 'passed' : 'failed'}`
       ];
-      
       if (isPass) {
-        return {
-          status: 'pass',
-          message: 'Test completed successfully (simulated - add navigation for real browser automation)',
-          logs
-        };
+        return { status: 'pass', message: 'Test completed successfully (simulated - add navigation for real browser automation)', logs };
       } else {
-        return {
-          status: 'fail',
-          message: 'Test failed in simulation',
-          error: 'Simulated failure - add navigation steps for real browser testing',
-          logs
-        };
+        return { status: 'fail', message: 'Test failed in simulation', error: 'Simulated failure - add navigation steps for real browser testing', logs };
       }
     }
-    
   } catch (error: any) {
     await executor.cleanup();
-    return {
-      status: 'fail',
-      message: 'Test execution failed',
-      error: error.message,
-      logs: [`Error: ${error.message}`]
-    };
+    return { status: 'fail', message: 'Test execution failed', error: error.message, logs: [`Error: ${error.message}`] };
   }
 }
 
@@ -386,6 +357,10 @@ async function executeTestRun(runId: string) {
   try {
     const testRun = await TestRun.findById(runId).populate('testCases');
     if (!testRun) return;
+
+    // Extract aiOptimization flag from config
+    const aiOptimizationEnabled = testRun.config?.aiOptimization ?? false;
+    console.log(`[TestRunnerController] AI Optimization for TestRun ${runId}: ${aiOptimizationEnabled}`); // Log the flag status
 
     // Update status to running
     testRun.status = 'running';
@@ -403,8 +378,8 @@ async function executeTestRun(runId: string) {
     for (const testCase of testRun.testCases) {
       const testStartTime = Date.now();
       
-      // Execute test
-      const result = await executeRealTest(testCase);
+      // Pass the flag when calling executeRealTest
+      const result = await executeRealTest(testCase, aiOptimizationEnabled);
       
       const testEndTime = Date.now();
       const duration = testEndTime - testStartTime;
