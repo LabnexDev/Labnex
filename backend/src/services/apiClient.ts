@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const AI_API_BASE_URL = process.env.AI_API_BASE_URL || 'https://labnex-backend.onrender.com';
+const AI_API_BASE_URL = process.env.AI_API_BASE_URL || 'https://labnex-backend.onrender.com/api';
 
 // Helper for logging
 const log = (message: string, data?: any) => {
