@@ -518,6 +518,7 @@ IMPORTANT GUIDELINES:
 5. Consider element hierarchy but avoid overly brittle parent-child chains
 6. If the element might be in a shadow DOM or iframe, mention it in reasoning
 7. Ensure the selector is specific enough to avoid matching multiple elements
+8. **Always provide a selector suggestion**, even if it's a best guess based on partial information. If no exact match is found, suggest a selector for the closest matching element or a parent container that might contain the target.
 
 Based on the descriptive term "${descriptiveTerm}", identify the most likely element in the DOM snippet.
 
