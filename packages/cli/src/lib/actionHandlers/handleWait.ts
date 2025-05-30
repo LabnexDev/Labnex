@@ -1,5 +1,5 @@
-import { Page } from 'puppeteer'; // Page might not be strictly needed but good for context
-import { AddLogFunction } from '../elementFinder'; // Adjust path as necessary
+import { Page, Frame } from 'puppeteer'; // Page might not be strictly needed but good for context
+import { AddLogFunction } from '../elementFinderV2'; // Updated import
 
 export async function handleWait(
   page: Page | null, // Included for consistency, though not directly used here

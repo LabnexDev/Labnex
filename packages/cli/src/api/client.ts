@@ -68,6 +68,7 @@ export interface TestRun {
 export class LabnexApiClient {
   private api: AxiosInstance;
   private token?: string;
+  private verboseLogging: boolean = false; // Added for internal logging control
 
   constructor() {
     this.api = axios.create({
@@ -81,13 +82,15 @@ export class LabnexApiClient {
     this.api.interceptors.request.use(async (config) => {
       const userConfig = await loadConfig();
       
+      this.verboseLogging = userConfig.verbose || false; // Set verbose logging based on config
+
       config.baseURL = userConfig.apiUrl;
       
       if (userConfig.token) {
         config.headers.Authorization = `Bearer ${userConfig.token}`;
       }
 
-      if (userConfig.verbose) {
+      if (this.verboseLogging) {
         console.log(chalk.gray(`→ ${config.method?.toUpperCase()} ${config.url}`));
       }
 
@@ -253,50 +256,55 @@ export class LabnexApiClient {
   }
 
   // New AI methods for step interpretation and suggestion
-  async interpretTestStep(step: string): Promise<ApiResponse<string>> { // Assuming AI returns a string
+  async interpretTestStep(stepDescription: string): Promise<ApiResponse<string>> {
+    if (this.verboseLogging) console.log(`[AI Client] POST /ai/interpret Request:`, { description: stepDescription });
     try {
-      const response = await this.api.post('/ai/interpret', { 
-        step,
-        instruction: 'Provide only one actionable step in a clear format that a test automation CLI can parse and execute, such as "Click on element \"(xpath: //button[text()=\'Open Modal\'])\"" or "Navigate to \"https://example.com\"". Avoid multiple options or alternatives.' 
-      });
-      console.log(`[DEBUG] interpretTestStep response status: ${response.status}, data:`, response.data);
-      if (response.data && typeof response.data.data === 'string') { // Check if backend returned data as expected
-        return { success: true, data: response.data.data };
-      }
-      if (typeof response.data === 'string') { 
+      const response = await this.api.post<string | { suggestion: string; confidence?: number; error?: string; }>('/ai/interpret', { description: stepDescription }); 
+      if (this.verboseLogging) console.log('[AI Client] POST /ai/interpret Response:', response.data);
+      
+      // Handle potentially varied response structures from this endpoint
+      if (typeof response.data === 'string') {
         return { success: true, data: response.data };
-      } 
-      if (response.data && response.data.success === false) {
-        return { success: false, data: null as any, error: response.data.error || 'AI interpretation failed with unspecified error' };
+      } else if (response.data && typeof (response.data as any).suggestion === 'string') {
+        // If it's an object with a 'suggestion' field
+        return { success: true, data: (response.data as any).suggestion };
+      } else if (response.data && (response.data as any).error) {
+        // Use console.error for client-side logging of an error reported by the API
+        console.error(`[AI Client] interpretTestStep returned error structure: ${(response.data as any).error}`);
+        return { success: false, data: '', error: (response.data as any).error };
       }
-      return { success: false, data: null as any, error: 'AI interpretation failed or returned unexpected format' };
+      
+      console.warn(`[AI Client] interpretTestStep received unexpected response format: ${JSON.stringify(response.data).substring(0,100)}`);
+      return { success: false, data: '', error: 'Unexpected response format from /ai/interpret' };
     } catch (error: any) {
-      console.log(`[DEBUG] interpretTestStep error:`, error.response?.status, error.response?.data, error.message);
+      console.error(`[AI Client] Error calling /ai/interpret: ${error.message}`);
       return {
         success: false,
-        data: null as any,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during step interpretation'
+        data: '',
+        error: error.response?.data?.message || error.response?.data?.error || error.message,
       };
     }
   }
 
   async suggestAlternative(step: string, pageContext: string = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
+    if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-alternative Request:', { step, pageContext });
     try {
-      const response = await this.api.post('/ai/suggest-alternative', { 
-        step, 
-        pageContext,
-        instruction: 'Suggest only one actionable step in a clear format that a test automation CLI can parse and execute, such as "Click on element \"(xpath: //button[text()=\'Open Modal\'])\"" or "Navigate to \"https://example.com\"". Avoid multiple options or alternatives and ensure the suggestion matches the context of the page if provided.' 
-      });
-      return {
-        success: response.data.success,
-        data: response.data.data,
-        error: response.data.error
-      };
+      const response = await this.api.post<string | ApiResponse<string>>('/ai/suggest-alternative', { step, pageContext });
+      if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-alternative Response:', response.data);
+
+      if (typeof response.data === 'string') {
+        return { success: true, data: response.data };
+      } else if (response.data && typeof response.data.data === 'string' && typeof response.data.success === 'boolean') {
+        return response.data; // It's already in ApiResponse<string> format
+      }
+      console.warn(`[AI Client] suggestAlternative received unexpected response format: ${JSON.stringify(response.data).substring(0,100)}`);
+      return { success: false, data: '', error: 'Unexpected response format' };
     } catch (error: any) {
+      console.error(`[AI Client] Error calling /ai/suggest-alternative: ${error.message}`);
       return {
         success: false,
         data: '',
-        error: error.response?.data?.message || error.message
+        error: error.response?.data?.message || error.response?.data?.error || error.message,
       };
     }
   }
@@ -308,24 +316,68 @@ export class LabnexApiClient {
     domSnippet: string;
     originalStep: string;
   }): Promise<ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string }>> {
+    if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-selector Request:', JSON.stringify(context, null, 2));
     try {
-      const response = await this.api.post('/ai/suggest-selector', context);
-      // Assuming the backend returns { success: true, data: { suggestedSelector: "...", suggestedStrategy: "..." } }
-      // or { success: false, error: "..." }
-      if (response.data && typeof response.data.success === 'boolean') {
-        return response.data;
+      const response = await this.api.post<any>('/ai/suggest-selector', context);
+      if (this.verboseLogging) {
+        console.log('[AI Client] POST /ai/suggest-selector Full Response Data:', JSON.stringify(response.data, null, 2));
       }
-      // Fallback for unexpected structure, treat as failure
-      return {
-        success: false,
-        data: null as any,
-        error: 'AI selector suggestion failed or returned unexpected format'
-      };
+
+      // Corrected parsing for successful AI response
+      if (response.data && response.data.success && response.data.data && typeof response.data.data.suggestedSelector === 'string') {
+        return {
+          success: true,
+          data: {
+            suggestedSelector: response.data.data.suggestedSelector,
+            suggestedStrategy: response.data.data.suggestedStrategy,
+            // Pass through confidence and reasoning if they exist
+            ...(response.data.data.confidence && { confidence: response.data.data.confidence }),
+            ...(response.data.data.reasoning && { reasoning: response.data.data.reasoning }),
+          }
+        };
+      } else if (response.data && typeof response.data.suggestedSelector === 'string') {
+        // Handle older direct data structure if AI reverts or for other similar endpoints
+        console.warn('[AI Client] getDynamicSelectorSuggestion received direct data structure (fallback). Consider updating AI if this is common.');
+        return {
+          success: true,
+          data: {
+            suggestedSelector: response.data.suggestedSelector,
+            suggestedStrategy: response.data.suggestedStrategy,
+            ...(response.data.confidence && { confidence: response.data.confidence }),
+            ...(response.data.reasoning && { reasoning: response.data.reasoning }),
+          }
+        };
+      } else if (typeof response.data === 'string') {
+        // Handle if backend sends a stringified JSON as data
+        console.warn('[AI Client] getDynamicSelectorSuggestion received string data, attempting parse.');
+        try {
+          const parsedData = JSON.parse(response.data);
+          if (parsedData && typeof parsedData.suggestedSelector === 'string') {
+            return {
+              success: true,
+              data: {
+                suggestedSelector: parsedData.suggestedSelector,
+                suggestedStrategy: parsedData.suggestedStrategy,
+                ...(parsedData.confidence && { confidence: parsedData.confidence }),
+                ...(parsedData.reasoning && { reasoning: parsedData.reasoning }),
+              }
+            };
+          }
+        } catch (parseError) {
+          console.error(`[AI Client] Failed to parse string data from getDynamicSelectorSuggestion: ${(parseError as Error).message}`);
+          return { success: false, data: null as any, error: 'Failed to parse AI suggestion string.' };
+        }
+      }
+      
+      // Log more details if the format is unexpected, including the full problematic response.data
+      console.warn('[AI Client] getDynamicSelectorSuggestion received unexpected response format or missing selector. Full response.data:', JSON.stringify(response.data, null, 2));
+      return { success: false, data: null as any, error: response.data?.error || 'Unexpected response format or missing suggestedSelector' };
     } catch (error: any) {
+      console.error(`[AI Client] Error calling /ai/suggest-selector: ${error.message}`);
       return {
         success: false,
-        data: null as any,
-        error: error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error during dynamic selector suggestion'
+        data: null as any, // Ensure data is null for type consistency on error
+        error: error.response?.data?.message || error.response?.data?.error || error.message,
       };
     }
   }

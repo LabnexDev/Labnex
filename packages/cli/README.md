@@ -1,171 +1,158 @@
 # Labnex CLI
 
-The command-line interface for Labnex - AI-Powered Testing Automation Platform.
+AI-Powered Testing Automation Platform - Command Line Interface
 
-## Installation
+## 🚀 Quick Start
 
+### Installation
 ```bash
-# Install globally
-npm install -g @labnex/cli
-
-# Or run directly with npx
-npx @labnex/cli --help
-```
-
-## Quick Start
-
-1. **Authenticate with Labnex**
-   ```bash
-   labnex auth login
-   ```
-
-2. **List your projects**
-   ```bash
-   labnex projects list
-   ```
-
-3. **Run tests**
-   ```bash
-   labnex run --project MYAPP --ai-optimize
-   ```
-
-## Commands
-
-### Authentication
-```bash
-labnex auth login           # Login to Labnex
-labnex auth logout          # Logout from Labnex  
-labnex auth status          # Check authentication status
-```
-
-### Projects
-```bash
-labnex projects list        # List all projects
-labnex projects create      # Create a new project
-labnex projects show MYAPP  # Show project details
-```
-
-### Test Execution
-```bash
-labnex run --project MYAPP           # Run tests for a project
-labnex run --ai-optimize             # Run with AI optimization
-labnex run --detailed                # Show detailed action logs
-labnex run --parallel 8              # Set parallel workers
-labnex run --env staging             # Specify environment
-labnex status                        # Check status of active test runs
-```
-
-### AI Features
-```bash
-labnex ai generate                   # Generate test case with AI
-labnex ai optimize --project MYAPP   # Optimize test suite
-labnex ai analyze <runId> <failureId> # Analyze test failure
-```
-
-## Advanced Usage
-
-### Running Tests with AI Optimization
-```bash
-# Run optimized test suite based on code changes
-labnex run --project ECOM --ai-optimize --parallel 4 --env staging
-
-# Run with detailed logging
-labnex run --project ECOM --detailed
-
-# Watch mode for continuous testing
-labnex run --project ECOM --watch
-```
-
-### Generating Test Cases
-```bash
-# Generate test case from description
-labnex ai generate --description "Test user login with valid credentials"
-
-# Save directly to a project
-labnex ai generate --project ECOM --description "Test checkout flow"
-```
-
-### Configuration
-
-The CLI stores configuration in `~/.labnex/config.json`:
-
-```json
-{
-  "apiUrl": "https://your-backend.onrender.com/api",
-  "token": "your-jwt-token",
-  "email": "user@example.com",
-  "userId": "user-id"
-}
-```
-
-### Environment Variables
-
-- `LABNEX_API_URL`: Override API URL
-- `LABNEX_VERBOSE`: Enable verbose output
-
-## Examples
-
-### Complete Workflow
-```bash
-# 1. Login
-labnex auth login --email user@company.com
-
-# 2. Create project
-labnex projects create --name "My App" --code MYAPP
-
-# 3. Generate test case with AI
-labnex ai generate --description "Test user registration"
-
-# 4. Run tests with AI optimization
-labnex run --project MYAPP --ai-optimize --parallel 4
-
-# 5. Monitor results
-labnex status
-```
-
-### CI/CD Integration
-```bash
-# In your CI pipeline
-export LABNEX_API_URL="https://your-backend.onrender.com/api"
-echo "$LABNEX_TOKEN" | labnex auth login --token
-labnex run --project $PROJECT_CODE --env production --ai-optimize
-```
-
-## Features
-
-- ✅ **Authentication**: Secure JWT-based authentication
-- ✅ **Project Management**: Create and manage projects
-- ✅ **Test Automation**: Run tests with real-time monitoring
-- ✅ **AI-Powered**: Generate tests and optimize suites with AI
-- ✅ **Real-time Updates**: WebSocket-based live test monitoring
-- ✅ **Interactive Mode**: User-friendly prompts and wizards
-- ✅ **Multiple Formats**: JSON and table output options
-
-## Development
-
-```bash
-# Clone and setup
-git clone <repo-url>
 cd packages/cli
 npm install
-
-# Build
 npm run build
-
-# Run in development
-npm run dev
-
-# Test locally
-npm link
-labnex --help
 ```
 
-## Support
+### Basic Usage
 
-- **Documentation**: [docs.labnex.dev](https://docs.labnex.dev)
-- **Issues**: [GitHub Issues](https://github.com/LabnexDev/Labnex/issues)
-- **Discord**: [Join our community](https://discord.gg/Kx5HrvMB)
+**Important:** Always run commands from the `packages/cli` directory!
 
-## License
+```bash
+# Navigate to CLI directory first
+cd packages/cli
 
-MIT License - see [LICENSE](LICENSE) file for details. 
+# Then run commands
+node dist/index.js --help
+```
+
+## 📋 Commands
+
+### 🧪 Run Tests
+```bash
+# Run all tests for a project
+node dist/index.js run --project-id <PROJECT_ID>
+
+# Run specific test case
+node dist/index.js run --project-id <PROJECT_ID> --test-id <TEST_ID>
+
+# Run with AI optimization (recommended)
+node dist/index.js run --project-id <PROJECT_ID> --optimize-ai --verbose
+```
+
+### 📂 List Projects & Tests
+```bash
+# List all projects
+node dist/index.js list --projects
+
+# List test cases for a project
+node dist/index.js list --tests <PROJECT_ID>
+```
+
+### 📊 Check Status
+```bash
+# Check overall status
+node dist/index.js status
+
+# Check specific test run
+node dist/index.js status --run-id <RUN_ID>
+```
+
+## 🎯 Examples
+
+### Example 1: Run W3Schools Modal Test
+```bash
+cd packages/cli
+node dist/index.js run --project-id 6832ac498153de9c85b03727 --test-id 68362689160c68e7f548621d --optimize-ai --verbose
+```
+
+### Example 2: List All Projects
+```bash
+cd packages/cli
+node dist/index.js list --projects
+```
+
+### Example 3: Run All Tests with AI Optimization
+```bash
+cd packages/cli
+node dist/index.js run --project-id 6832ac498153de9c85b03727 --optimize-ai
+```
+
+## ⚡ Performance Features
+
+- **AI-Optimized Element Finding**: Use `--optimize-ai` for intelligent element detection
+- **Fast Iframe Switching**: Optimized from 5+ minutes to seconds
+- **Smart Timeouts**: Reduced from 30s to 10s with faster failure detection
+- **Verbose Logging**: Use `--verbose` for detailed step-by-step execution
+
+## 🔧 Configuration Options
+
+### Run Command Options
+- `-p, --project-id <id>` - Project ID (required)
+- `-t, --test-id <id>` - Specific test case ID
+- `-e, --environment <env>` - Environment (staging/production)
+- `-m, --mode <mode>` - Execution mode (local/cloud)
+- `--optimize-ai` - Enable AI optimization (recommended)
+- `--verbose` - Detailed logging
+- `--headless` - Run in headless mode
+- `--timeout <ms>` - Test timeout in milliseconds
+
+### List Command Options
+- `-p, --projects` - List all projects
+- `-t, --tests <projectId>` - List test cases for project
+
+## 🏗️ Directory Structure
+
+```
+packages/cli/
+├── dist/              # Built files (run commands from here)
+├── src/               # Source code
+├── quick-test.bat     # Quick test script
+├── help-test.bat      # Help system test
+└── README.md          # This file
+```
+
+## 🚨 Troubleshooting
+
+### "Cannot find module" Error
+This happens when running from the wrong directory.
+
+**❌ Wrong:**
+```bash
+# From root directory
+PS F:\VSC Projects\Labnex> node dist/index.js run --project-id ...
+# Error: Cannot find module 'F:\VSC Projects\Labnex\dist\index.js'
+```
+
+**✅ Correct:**
+```bash
+# Navigate to CLI directory first
+PS F:\VSC Projects\Labnex> cd packages/cli
+PS F:\VSC Projects\Labnex\packages\cli> node dist/index.js run --project-id ...
+```
+
+### Build Issues
+If you encounter TypeScript errors:
+```bash
+cd packages/cli
+npm run build
+```
+
+### Performance Issues
+Always use AI optimization for best performance:
+```bash
+node dist/index.js run --project-id <ID> --optimize-ai
+```
+
+## 📚 Documentation
+
+For detailed documentation, visit: https://labnexdev.github.io/Labnex
+
+## 🆘 Getting Help
+
+```bash
+# Main help
+node dist/index.js --help
+
+# Command-specific help
+node dist/index.js run --help
+node dist/index.js list --help
+node dist/index.js status --help
+``` 

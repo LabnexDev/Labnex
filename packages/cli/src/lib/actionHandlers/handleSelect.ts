@@ -1,5 +1,5 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinderV2'; // Updated import
 
 export async function handleSelect(
   page: Page | null,
@@ -10,36 +10,75 @@ export async function handleSelect(
   originalStep: string,
   retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
+  if (!page) throw new Error('Page not available for select');
   if (!currentFrame) throw new Error('Current frame not available for select');
   if (!selector) throw new Error('Select selector not provided');
   if (!value) throw new Error('Value not provided for select action');
 
   addLog(`Attempting to select value "${value}" in dropdown identified by: "${selector}"`);
   const dropdownElement = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
-  
-  // Attempt to select by value first, then by visible text as a fallback
-  try {
-    await dropdownElement.select(value);
-    addLog(`Successfully selected option with value/text "${value}".`);
-  } catch (error) {
-    addLog(`Could not select by value "${value}". Attempting to select by visible text matching "${value}"...`);
-    // Puppeteer's select does not directly support selecting by visible text if the value attribute differs.
-    // We need to find the option element that has the matching text.
-    const optionToSelect = await dropdownElement.evaluateHandle((selectEl, text) => {
-      const options = Array.from((selectEl as HTMLSelectElement).options);
-      const foundOption = options.find(opt => opt.text.trim() === text.trim() || opt.label.trim() === text.trim());
-      return foundOption;
-    }, value);
+  if (!dropdownElement) {
+    throw new Error('Element not found');
+  }
 
-    if (optionToSelect && optionToSelect.asElement()) {
-      const optionValue = await (optionToSelect.asElement() as ElementHandle<HTMLOptionElement>)!.evaluate((opt: HTMLOptionElement) => opt.value);
-      await dropdownElement.select(optionValue);
-      addLog(`Successfully selected option by visible text "${value}" (actual value: "${optionValue}").`);
-      await optionToSelect.dispose();
-    } else {
-      if (optionToSelect) await optionToSelect.dispose(); // Dispose if it's a JSHandle but not an element
-      throw new Error(`Could not find an option with value or visible text matching "${value}" in dropdown "${selector}".`);
+  // Check if it's a standard select element
+  const isSelectElement = await dropdownElement.evaluate(el => el.tagName.toLowerCase() === 'select');
+  
+  if (isSelectElement) {
+    // Handle standard <select> dropdown
+    try {
+      await dropdownElement.select(value);
+      addLog(`Successfully selected value "${value}" in select dropdown`);
+    } catch (selectError) {
+      // Fallback: try clicking and finding the option
+      addLog(`Direct select failed, trying click approach: ${(selectError as Error).message}`);
+      await dropdownElement.click();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Wait for dropdown to open
+      
+      // Try to find and click the option
+      const optionSelector = `option[value="${value}"], option:contains("${value}")`;
+      try {
+        await dropdownElement.select(value);
+        addLog(`Successfully selected "${value}" using fallback approach`);
+      } catch (fallbackError) {
+        throw new Error(`Failed to select value "${value}": ${(fallbackError as Error).message}`);
+      }
+    }
+  } else {
+    // Handle custom dropdown (click-based)
+    addLog('Non-standard select element detected, using click-based selection');
+    await dropdownElement.click();
+    await new Promise(resolve => setTimeout(resolve, 500)); // Wait for dropdown to open
+    
+    // Try multiple selectors for the option
+    const optionSelectors = [
+      `[data-value="${value}"]`,
+      `[value="${value}"]`,
+      `li:contains("${value}")`,
+      `div:contains("${value}")`,
+      `span:contains("${value}")`,
+      `option:contains("${value}")`
+    ];
+    
+    let optionClicked = false;
+    for (const optionSel of optionSelectors) {
+      try {
+        const optionElement = await page.waitForSelector(optionSel, { visible: true, timeout: 2000 });
+        if (optionElement) {
+          await optionElement.click();
+          addLog(`Successfully clicked option "${value}" using selector: ${optionSel}`);
+          optionClicked = true;
+          break;
+        }
+      } catch (error) {
+        // Continue to next selector
+      }
+    }
+    
+    if (!optionClicked) {
+      throw new Error(`Could not find option "${value}" in custom dropdown`);
     }
   }
+  
   await dropdownElement.dispose();
 } 

@@ -200,6 +200,40 @@ export class TestStepParser {
         };
     }
 
+    // New pattern for structured assertions like: assert "(type=elementVisible, selector=css: #id, expected=value, condition=isVisible)"
+    const structuredAssertPattern = /^(?:assert|verify|check|expect)\s+(['\"])(\s*type\s*=\s*([^,]+?)\s*,\s*selector\s*=\s*([^,]+?)\s*,\s*expected\s*=\s*([^,]*?)\s*,\s*condition\s*=\s*([^,]+?)\s*)\1/i;
+    const structuredAssertMatch = currentStep.match(structuredAssertPattern);
+
+    if (structuredAssertMatch && structuredAssertMatch[2]) {
+        addLog(`[StructuredAssert] Matched: "${structuredAssertMatch[0]}"`);
+        // Full matched group is structuredAssertMatch[2]
+        // individual parts: type=structuredAssertMatch[3], selector=structuredAssertMatch[4], expected=structuredAssertMatch[5], condition=structuredAssertMatch[6]
+        
+        const assertType = structuredAssertMatch[3].trim() as AssertionDetails['type'];
+        const selector = structuredAssertMatch[4].trim();
+        const expectedText = structuredAssertMatch[5].trim() === 'N/A' ? undefined : structuredAssertMatch[5].trim();
+        const condition = structuredAssertMatch[6].trim() as AssertionDetails['condition'];
+
+        // Basic validation
+        if (!assertType || !selector || !condition) {
+            addLog(`[StructuredAssert] Failed to parse essential parts from: "${structuredAssertMatch[2]}"`);
+            return null;
+        }
+        
+        addLog(`[StructuredAssert] Parsed - Type: ${assertType}, Selector: ${selector}, Expected: ${expectedText}, Condition: ${condition}`);
+
+        return {
+            action: 'assert',
+            originalStep: originalStepInput,
+            assertion: {
+                type: assertType,
+                selector: selector,
+                expectedText: expectedText,
+                condition: condition
+            }
+        };
+    }
+
     const generalAssertionPattern =
         /^(?:assert|verify|check|expect)(?: that)?\s+(?:(page)|(element|selector)\s+((?:\\(.+?\\)|[^\\s\'\"])+|\'[^\']+\'|\"[^\"]+\"))(?:\s+(text))?\s+(is visible|is hidden|exists|does not exist|is|equals|contains)(?:\s+([\'\"])(.*?)\7)?$/i;
 

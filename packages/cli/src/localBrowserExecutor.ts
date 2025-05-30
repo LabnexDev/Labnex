@@ -1,7 +1,7 @@
 import puppeteer, { Browser, Page, ElementHandle, JSHandle, Frame } from 'puppeteer';
 import { TestStepParser } from './testStepParser'; // CLI version of parser
 import { ParsedTestStep } from './lib/testTypes'; // Corrected import
-import { findElementWithFallbacks, AddLogFunction } from './lib/elementFinder';
+import { findElementWithFallbacks, AddLogFunction } from './lib/elementFinderV2';
 import * as actionHandlers from './lib/actionHandlers';
 import { TestResult, TestCaseResult } from './lib/testTypes';
 import { apiClient, ApiResponse } from './api/client'; // Assuming apiClient will be enhanced or used for AI
@@ -40,9 +40,10 @@ export class LocalBrowserExecutor {
           '--start-maximized'
         ],
         defaultViewport: null,
-        protocolTimeout: 90000, // Increased protocol timeout
+        protocolTimeout: 300000, // Increased protocol timeout to 5 minutes
       });
       this.page = await this.browser.newPage();
+      await this.page.setDragInterception(true); // Enable drag interception
       this.currentFrame = this.page;
       await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36');
       this.addLog('Browser initialized successfully.');
@@ -131,10 +132,14 @@ export class LocalBrowserExecutor {
         initialStepObject = TestStepParser.parseStep(stepDescription);
         if (!initialStepObject.action && this.aiOptimizationEnabled) {
           this.addLog(`[AI] Initial parsing failed to identify action for step ${stepNumber}. Attempting AI interpretation.`);
+          const stepDescriptionForAI = stepDescription; // Keep original for logging
+          this.addLog('[AI] Calling apiClient.interpretTestStep with description:', { description: stepDescriptionForAI });
           const interpretResponse = await this.retryApiCall(
-            () => apiClient.interpretTestStep(stepDescription),
+            () => apiClient.interpretTestStep(stepDescriptionForAI),
             MAX_RETRY_ATTEMPTS, BASE_RETRY_DELAY_MS, `interpret step ${stepNumber}`
           );
+          this.addLog('[AI] apiClient.interpretTestStep response:', interpretResponse);
+
           if (interpretResponse.success && interpretResponse.data) {
             const interpretedStepString = interpretResponse.data.split(/\s+or\s+/i)[0].trim();
             this.addLog(`[AI] Interpreted step ${stepNumber} as: "${interpretedStepString.substring(0, 70)}..."`);
@@ -183,8 +188,18 @@ export class LocalBrowserExecutor {
 
     // If step failed, and AI optimization is on, and we haven't exceeded AI attempts for this step
     if (result.status === 'failed' && this.aiOptimizationEnabled && attempt < MAX_AI_SUGGESTION_ATTEMPTS) {
-      this.addLog(`[AI] Step ${stepNumber} failed (Action: "${currentStepObject.action}", Target: "${currentStepObject.target || 'N/A'}"). Attempting AI selector suggestion (${attempt + 1}/${MAX_AI_SUGGESTION_ATTEMPTS}).`);
+      this.addLog(`[AI] Step ${stepNumber} failed (Action: "${currentStepObject.action}", Target: "${currentStepObject.target || 'N/A'}"). Attempting AI suggestion (${attempt + 1}/${MAX_AI_SUGGESTION_ATTEMPTS}).`);
       
+      // Check the original step description to see if it was a navigation attempt.
+      // This is a workaround for linter issues with currentStepObject.action type narrowing.
+      const originalActionWasNavigate = currentStepObject.originalStep?.toLowerCase().startsWith('navigate to ') || 
+                                      stepDescription.toLowerCase().startsWith('navigate to ');
+
+      if (originalActionWasNavigate) {
+        this.addLog('[AI] Failed action appears to be "navigate" based on original step description. Skipping AI selector suggestion as it is not applicable for URL issues.');
+        return result; // Return original failure
+      }
+
       // Ensure page is available for context capture
       if (!this.page) {
         this.addLog('[AI] Page not available for capturing DOM context. Skipping AI suggestion.');
@@ -330,62 +345,86 @@ export class LocalBrowserExecutor {
         if (selectorSuggestionResponse.success && selectorSuggestionResponse.data && selectorSuggestionResponse.data.suggestedSelector) {
           const aiData = selectorSuggestionResponse.data;
           // Access confidence and reasoning dynamically as they are not strictly typed on the client side
-          const confidence = (aiData as any).confidence;
-          const reasoning = (aiData as any).reasoning;
-          this.addLog(`[AI] Received selector suggestion: "${aiData.suggestedSelector}" (Strategy: ${aiData.suggestedStrategy || 'N/A'}, Confidence: ${confidence || 'N/A'}, Reasoning: ${reasoning || 'N/A'})`);
+          const aiConfidence = (aiData as any).confidence;
+          const aiReasoning = (aiData as any).reasoning;
+          const aiSuggestedSelector = aiData.suggestedSelector;
+          const aiSuggestedStrategy = aiData.suggestedStrategy;
+          this.addLog(`[AI] Received selector suggestion: "${aiSuggestedSelector}" (Strategy: ${aiSuggestedStrategy || 'N/A'}, Confidence: ${aiConfidence || 'N/A'}, Reasoning: ${aiReasoning || 'N/A'})`);
           
-          let aiSuggestedStepString = `${currentStepObject.action}`;
+          let aiReconstructedStepString: string;
+          const originalStepAction = currentStepObject.action; // Action from the parsed current step
 
-          // 1. Handle the primary target selector using actionNeedsPrimaryTarget
-          if (aiData.suggestedSelector && aiData.suggestedStrategy && actionNeedsPrimaryTarget(currentStepObject.action)) {
-              let cleanSelector = aiData.suggestedSelector;
-              const strategyPrefix = aiData.suggestedStrategy + ':';
-              // Case-insensitive check for the prefix
-              if (cleanSelector.toLowerCase().startsWith(strategyPrefix.toLowerCase())) {
-                  cleanSelector = cleanSelector.substring(strategyPrefix.length);
-              }
-              aiSuggestedStepString += ` "(${aiData.suggestedStrategy}: ${cleanSelector})"`;
-          } else if (currentStepObject.target && actionNeedsPrimaryTarget(currentStepObject.action)) {
-              aiSuggestedStepString += ` "${currentStepObject.target}"`;
+          let finalAiSelectorForReconstructionInHintFormat: string;
+          const strategyToUse = aiSuggestedStrategy || 'css';
+          let selectorValueForHint = aiSuggestedSelector;
+
+          if (selectorValueForHint.startsWith(strategyToUse + ':')) {
+            selectorValueForHint = selectorValueForHint.substring((strategyToUse + ':').length);
           }
-
-          // 2. Handle specific action structures AFTER the primary target
-          if (currentStepObject.action === 'dragAndDrop') {
-              if ((currentStepObject as ParsedTestStep).destinationTarget) {
-                  aiSuggestedStepString += ` to "${(currentStepObject as ParsedTestStep).destinationTarget}"`;
-              } else {
-                  this.addLog(`[AI] Warning: DragAndDrop step missing destinationTarget during AI reconstruction for step: ${aiSuggestedStepString}`);
-              }
-          }
-
-          // 3. Handle value for actions like 'type', 'select'
-          if (currentStepObject.value) { 
-              aiSuggestedStepString += ` with value "${currentStepObject.value}"`;
+          if (selectorValueForHint.startsWith('css:') && strategyToUse === 'css') { // handle accidental double prefix css:css:
+            selectorValueForHint = selectorValueForHint.substring('css:'.length);
+          } else if (selectorValueForHint.startsWith('xpath:') && strategyToUse === 'xpath') {
+            selectorValueForHint = selectorValueForHint.substring('xpath:'.length);
           }
           
-          // 4. Handle variableName for store-like actions (appends 'as "varName"')
-          if ((currentStepObject as ParsedTestStep).variableName) {
-              aiSuggestedStepString += ` as "${(currentStepObject as ParsedTestStep).variableName}"`;
+          // Ensure the selector value is properly escaped to be a single string argument for the hint
+          // JSON.stringify will handle quotes and special characters.
+          // The parser for "(type: value)" expects value to be a single token or a quoted string.
+          // By JSON.stringify-ing, we ensure it's a valid JS string, then we slice off the outer quotes 
+          // because the step parser might expect the raw value or a value with its own quotes if needed.
+          let escapedSelectorValue = JSON.stringify(selectorValueForHint);
+          if (escapedSelectorValue.startsWith('"') && escapedSelectorValue.endsWith('"')) {
+            escapedSelectorValue = escapedSelectorValue.substring(1, escapedSelectorValue.length - 1);
           }
 
-          // 5. Handle assertion details (type and expectedText)
-          if (currentStepObject.action === 'assert') {
-              if (currentStepObject.assertionType) {
-                  aiSuggestedStepString += ` ${currentStepObject.assertionType}`;
-              }
-              if (currentStepObject.expectedText !== undefined) {
-                  aiSuggestedStepString += ` "${currentStepObject.expectedText}"`;
-              }
+          finalAiSelectorForReconstructionInHintFormat = `(${strategyToUse}: ${escapedSelectorValue})`;
+          // For XPaths that need to be single-quoted literals within the (type: 'literal') structure for the parser
+          // This is tricky because the target parser's behavior for `(type: value)` isn't fully known.
+          // If type is xpath, and value contains single quotes, it must be escaped correctly.
+          // The JSON.stringify approach above handles internal quotes by escaping them (e.g., \' or \").
+          // Let's assume the parser of (type: value) can handle a value that is itself a correctly escaped string.
+
+          if (strategyToUse === 'xpath') {
+            // Ensure XPaths are typically single quoted if they are complex, helps some parsers.
+            // However, the main parser expects `(type: value)` where value is the token.
+            // The JSON.stringify approach is safer for complex values containing spaces/quotes.
+            // Let's stick to JSON.stringify's output, sliced of its own outer quotes.
+            finalAiSelectorForReconstructionInHintFormat = `(${strategyToUse}: ${escapedSelectorValue})`;
+          } else {
+            finalAiSelectorForReconstructionInHintFormat = `(${strategyToUse}: ${escapedSelectorValue})`;
+          }
+          
+          // If the original action was an assertion, keep it as an assertion
+          if (originalStepAction === 'assert' && currentStepObject.target) {
+            const originalAssertionDetails = currentStepObject.target.match(/type="([^"]+)", selector="([^"]+)", expected="([^"]*)", condition="([^"]+)"/);
+            if (originalAssertionDetails) {
+              const [, assertType, , assertExpected, assertCondition] = originalAssertionDetails;
+              // Reconstruct assertion target with AI selector in its own hint format
+              const aiSelectorInHint = `(type=${strategyToUse}, selector=${finalAiSelectorForReconstructionInHintFormat})`; // This part is for the assertion string itself.
+              aiReconstructedStepString = `assert "(type=${assertType}, selector=${aiSelectorInHint}, expected=${assertExpected}, condition=${assertCondition})"`;
+              this.addLog(`[AI] Reconstructed assertion step (complex): ${aiReconstructedStepString}`);
+            } else {
+              this.addLog(`[AI] Could not parse original assertion details from target: "${currentStepObject.target}". Defaulting to click.`);
+              aiReconstructedStepString = `click "${finalAiSelectorForReconstructionInHintFormat}"`;
+            }
+          } else if (originalStepAction === 'dragAndDrop' && currentStepObject.target && currentStepObject.destinationTarget) {
+            const originalDestinationSelector = currentStepObject.destinationTarget; // This should already be in a good format from original step
+            aiReconstructedStepString = `drag "${finalAiSelectorForReconstructionInHintFormat}" to "${originalDestinationSelector}"`;
+            this.addLog(`[AI] Reconstructed dragAndDrop step: ${aiReconstructedStepString}`);
+          } else {
+            // For other actions like 'click', 'type', etc.
+            // Ensure the target for the step is JUST the hint string.
+            aiReconstructedStepString = `${originalStepAction} ${finalAiSelectorForReconstructionInHintFormat}`;
+            if (currentStepObject.value && (originalStepAction === 'type' || originalStepAction === 'select')) {
+              // For 'type' and 'select', the value needs to be appended correctly.
+              // The parser expects "type (selector) with value "the value""
+              aiReconstructedStepString += ` with value "${currentStepObject.value}"`;
+            }
           }
 
-          // 6. Handle wait timeout (replaces the whole string if it's a wait action)
-          if (currentStepObject.action === 'wait' && currentStepObject.timeout) {
-              aiSuggestedStepString = `${currentStepObject.action} for ${currentStepObject.timeout} milliseconds`;
-          }
-          // TODO: Consider filePath for 'upload' if it could change via AI (unlikely for now)
-
-          this.addLog(`[AI] Constructed AI step for retry (Attempt ${attempt + 1}): "${aiSuggestedStepString}"`);
-          return await this._processSingleStep(aiSuggestedStepString, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
+          this.addLog(`[AI] Attempt ${attempt + 1}: Retrying with AI suggested step: "${aiReconstructedStepString.substring(0, 150)}..."`);
+          // IMPORTANT: Pass the aiReconstructedStepString to the recursive call
+          return await this._processSingleStep(aiReconstructedStepString, baseUrl, stepNumber, overallExpectedResult, attempt + 1);
         
         } else {
           this.addLog(`[AI] Selector suggestion failed or no selector provided. Error: ${selectorSuggestionResponse.error || 'No selector in response'}. Raw: ${JSON.stringify(selectorSuggestionResponse).substring(0,100)}`);
@@ -533,11 +572,44 @@ export class LocalBrowserExecutor {
           await actionHandlers.handleUpload(this.page, this.currentFrame, this.addLog, uploadSelector, parsedStep.filePath || '', parsedStep.originalStep || '', commonParams.retryApiCall);
           break;
         case 'dragAndDrop':
-            if (!parsedStep.target || !parsedStep.destinationTarget) {
-                throw new Error('Source or destination target not provided for drag and drop.');
-            }
-            await actionHandlers.handleDragAndDrop(this.page, this.currentFrame, this.addLog, parsedStep.target, parsedStep.destinationTarget, parsedStep.originalStep || '', commonParams.retryApiCall);
-            break;
+          if (!target) throw new Error('Drag and drop requires a source selector');
+          if (!parsedStep.destinationTarget) throw new Error('Drag and drop requires a destination selector');
+          // Use V2 handler when AI optimization is enabled for better reliability
+          if (this.aiOptimizationEnabled) {
+            await actionHandlers.handleDragAndDropV2(
+              this.page, this.currentFrame, this.addLog, 
+              target, parsedStep.destinationTarget, 
+              parsedStep.originalStep || '',
+              this.retryApiCall.bind(this)
+            );
+          } else {
+            await actionHandlers.handleDragAndDrop(
+              this.page, this.currentFrame, this.addLog, 
+              target, parsedStep.destinationTarget, 
+              parsedStep.originalStep || '',
+              this.retryApiCall.bind(this)
+            );
+          }
+          break;
+        case 'switchToIframe':
+          newFrameContext = await actionHandlers.handleSwitchToIframe(this.page, this.addLog, parsedStep.target);
+          if (newFrameContext) {
+            this.currentFrame = newFrameContext;
+            this.addLog('[LBE_Context] Switched to iframe successfully. Current context is an iframe.');
+          } else {
+            this.currentFrame = this.page; // Fallback to main page if iframe switch failed or returned null
+            this.addLog('[LBE_Context] Failed to switch to iframe or iframe not found. Context reset to main page.');
+            // Optionally, we might want to throw an error here if failing to switch to an iframe is critical
+            // throw new Error(`Failed to switch to iframe with selector: ${parsedStep.target}`);
+          }
+          break;
+        case 'switchToMainContent':
+          newFrameContext = actionHandlers.handleSwitchToMainContent(this.page, this.addLog);
+          this.currentFrame = newFrameContext; // This will be the main page
+          this.addLog('[LBE_Context] Switched to main content. Current context is the main page.');
+          break;
+        default:
+          throw new Error(`Unsupported action: ${parsedStep.action}`);
       }
     } catch (error: any) {
       this.addLog(`[Action] Error in ${parsedStep.action}: ${error.message.substring(0, 50)}...`);

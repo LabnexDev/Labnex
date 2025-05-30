@@ -1,5 +1,5 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinderV2'; // Updated import
 
 export async function handleScroll(
   page: Page | null, // Included for consistency, though currentFrame is primary
@@ -9,6 +9,7 @@ export async function handleScroll(
   originalStep: string,
   retryApiCallFn?: RetryApiCallFunction // Added
 ): Promise<void> {
+  if (!page) throw new Error('Page not available for scroll');
   if (!currentFrame) throw new Error('Current frame not available for scroll');
   const executionContext = currentFrame;
 

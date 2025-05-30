@@ -1,5 +1,5 @@
 import { Page, Frame } from 'puppeteer';
-import { AddLogFunction } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction } from '../elementFinderV2'; // Updated import
 
 export function handleSwitchToMainContent(
   page: Page | null,

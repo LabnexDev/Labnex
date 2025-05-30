@@ -1,5 +1,5 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinder'; // Adjust path as necessary
+import { AddLogFunction, findElementWithFallbacks, RetryApiCallFunction } from '../elementFinderV2'; // Updated import
 
 export async function handleType(
   page: Page | null,
@@ -10,12 +10,16 @@ export async function handleType(
   originalStep: string,
   retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
+  if (!page) throw new Error('Page not available for type');
   if (!currentFrame) throw new Error('Current frame not available for type');
   if (!selector) throw new Error('Type selector not provided');
   if (textToType === undefined) throw new Error('Text to type not provided');
 
   addLog(`Attempting to type "${textToType}" into element identified by "${selector}"`);
   const elementToTypeIn = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
+  if (!elementToTypeIn) {
+    throw new Error('Element not found');
+  }
   
   // Clear the field before typing
   await elementToTypeIn.evaluate((el: any) => {

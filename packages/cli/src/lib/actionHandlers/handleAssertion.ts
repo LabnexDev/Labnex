@@ -1,5 +1,5 @@
 import { Page, Frame, ElementHandle } from 'puppeteer';
-import { findElementWithFallbacks, AddLogFunction, RetryApiCallFunction } from '../elementFinder';
+import { findElementWithFallbacks, AddLogFunction, RetryApiCallFunction } from '../elementFinderV2';
 import { ParsedTestStep } from '../testTypes';
 
 export async function handleAssertion(
@@ -48,6 +48,10 @@ export async function handleAssertion(
       throw new Error(`Selector not provided for assertion type: ${assertionType}`);
     }
     element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, parsedStep.originalStep || '', false, retryApiCallFn);
+
+    if (!element) {
+      throw new Error(`Element not found for selector: ${selector}`);
+    }
 
     if (assertionType === 'elementText') {
       const actualText = await element.evaluate(el => el.textContent);

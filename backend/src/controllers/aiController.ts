@@ -345,37 +345,57 @@ export const interpretTestStep = async (req: AuthRequest, res: Response) => {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
-  const { step } = req.body;
-  if (!step) {
-    return res.status(400).json({ success: false, error: 'Step is required' });
+  const { description } = req.body;
+  if (!description) {
+    return res.status(400).json({ success: false, error: 'Description is required' });
   }
 
   try {
-    console.log(`[AIController] interpretTestStep called with: "${step}"`);
+    console.log(`[AIController] interpretTestStep called with: "${description}"`);
 
-    const prompt = `You are an expert test automation assistant. Your task is to refine a given natural language test step into a more precise and machine-executable format.
-If the step is already precise, return it as is.
-If it involves an action and a target (e.g., a UI element selector), try to identify them clearly.
-Focus on making selectors as robust as possible (e.g., preferring IDs, then specific attributes, then robust XPaths or CSS selectors). Avoid overly brittle selectors.
-The goal is to make the step easier for an automation tool to understand and execute.
+    const prompt = `You are an expert test automation assistant that converts natural language test steps into precise, executable commands.
 
-Original step: "${step}"
+Original step: "${description}"
 
-Respond with ONLY the refined step string. Do not include any explanations, greetings, or markdown formatting. Just the step string.`;
+Convert this into a standardized test automation command following these patterns:
+- Navigation: "navigate to <URL>"
+- Clicking: "click <selector>"
+- Typing: "type <selector> with value <text>"
+- Selecting: "select <selector> with value <option>"
+- Drag and drop: "drag <source-selector> to <destination-selector>"
+- Assertions: "assert <selector> contains text <expected-text>"
+- Waiting: "wait for <selector>" or "wait <seconds>"
+- Screenshots: "take screenshot"
+
+For selectors, use this format:
+- For ID: "#elementId"
+- For class: ".className"
+- For text: "text containing 'Button Text'"
+- For attributes: "[data-testid='value']"
+- For complex selectors, use CSS format or descriptive text
+
+Examples:
+- "Click the login button" → "click #login-button"
+- "Enter username" → "type #username with value testuser@example.com"
+- "Go to homepage" → "navigate to https://example.com"
+- "Verify success message appears" → "assert .success-message contains text Success"
+
+Respond with ONLY the converted command. No explanations or additional text.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are a test automation assistant. Respond with only the refined test step string."
+          content: "You are a test automation expert. Convert natural language steps into precise automation commands. Respond only with the command, no explanations."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.5,
+      temperature: 0.3,
+      max_tokens: 150,
     });
 
     const interpretedStep = completion.choices[0]?.message?.content?.trim();
@@ -476,7 +496,7 @@ export const getDynamicSelectorSuggestion = async (req: AuthRequest, res: Respon
     // Log only a portion of the DOM snippet to avoid flooding logs
     console.log('  DOM Snippet (first 200 chars):', domSnippet?.substring(0, 200));
 
-
+    // Enhanced prompt with better context and structure
     const prompt = `You are an expert web automation assistant specializing in creating robust selectors.
 Given the following context from a web page, suggest a robust Puppeteer selector (XPath or CSS) to find an element.
 
@@ -490,88 +510,117 @@ Relevant DOM Snippet where the element might be found:
 ${domSnippet}
 \`\`\`
 
-Please respond with a JSON object containing:
-- suggestedSelector: The new selector string (e.g., "xpath://button[@id='submit']" or "css:.my-class > a"). It MUST start with "xpath://" or "css:".
-- suggestedStrategy: Explicitly "xpath" or "css". This should match the prefix of suggestedSelector.
-- confidence: A numerical score between 0.0 (low) and 1.0 (high) indicating your confidence in this suggestion.
-- reasoning: A brief explanation of why this selector was chosen.
+IMPORTANT GUIDELINES:
+1. Prefer CSS selectors over XPath when possible (they're faster and more maintainable)
+2. Use IDs first if available, then unique attributes like data-testid, aria-label, then classes
+3. Avoid text-based selectors unless absolutely necessary (they break with i18n)
+4. For XPath, avoid contains() - use exact matches like [@id='value'] or [text()='exact text']
+5. Consider element hierarchy but avoid overly brittle parent-child chains
+6. If the element might be in a shadow DOM or iframe, mention it in reasoning
+7. Ensure the selector is specific enough to avoid matching multiple elements
 
-Focus on creating a reliable, specific, and non-brittle selector. Prioritize standard CSS selectors (using IDs, classes, or attributes) or simple XPath expressions. Avoid using 'contains()' in XPath unless absolutely necessary for text matching, as it can be less reliable. Instead, try exact text matches or other attribute-based selectors when possible.
-If the DOM snippet is insufficient or the information is ambiguous, state that in the reasoning and provide the best guess with lower confidence.
-Ensure the suggestedSelector is valid for the chosen strategy.
-Provide ONLY the JSON object in your response.`;
+Based on the descriptive term "${descriptiveTerm}", identify the most likely element in the DOM snippet.
+
+Please respond with a JSON object containing:
+{
+  "suggestedSelector": "The new selector string (e.g., '#submit-button' or '//button[@data-testid=\"submit\"]')",
+  "suggestedStrategy": "css or xpath",
+  "confidence": 0.8,
+  "reasoning": "Brief explanation of why this selector should work",
+  "alternativeSelectors": ["optional array of 1-2 backup selectors"],
+  "waitStrategy": "visible|present|clickable",
+  "estimatedWaitTime": 3000
+}`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // Using gpt-3.5-turbo for cost efficiency
+      model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: "You are an AI assistant that suggests robust web element selectors. Respond ONLY with a valid JSON object containing 'suggestedSelector', 'suggestedStrategy', 'confidence', and 'reasoning'."
+          content: "You are a web automation expert. Always respond with valid JSON containing selector suggestions. Focus on creating robust, maintainable selectors that won't break easily."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.3, // Lower temperature for more deterministic and focused output
+      temperature: 0.3, // Lower temperature for more consistent selector generation
+      max_tokens: 500,
     });
 
-    const content = completion.choices[0]?.message?.content;
-
+    const content = completion.choices[0]?.message?.content?.trim();
+    
     if (!content) {
       console.error('[AIController] getDynamicSelectorSuggestion: No content from AI');
-      return res.status(500).json({ success: false, error: 'AI suggestion failed: No content received' });
-    }
-
-    let suggestion;
-    try {
-      suggestion = JSON.parse(content);
-      // Basic validation of the AI's response structure
-      if (!suggestion.suggestedSelector || !suggestion.suggestedStrategy || typeof suggestion.confidence !== 'number') {
-        throw new Error('Invalid JSON structure from AI. Missing required fields.');
-      }
-      // Fix the selector format if necessary
-      if (!suggestion.suggestedSelector.startsWith('xpath://') && !suggestion.suggestedSelector.startsWith('css:')) {
-        if (suggestion.suggestedStrategy === 'xpath') {
-          suggestion.suggestedSelector = 'xpath://' + suggestion.suggestedSelector;
-        } else if (suggestion.suggestedStrategy === 'css') {
-          suggestion.suggestedSelector = 'css:' + suggestion.suggestedSelector;
-        } else {
-          throw new Error("Invalid suggestedSelector format. Must start with 'xpath://' or 'css:' after considering strategy.");
-        }
-      }
-      if (suggestion.suggestedSelector.startsWith('xpath://') && suggestion.suggestedStrategy !== 'xpath') {
-        throw new Error("Strategy mismatch: selector starts with 'xpath://' but strategy is not 'xpath'.");
-      }
-      if (suggestion.suggestedSelector.startsWith('css:') && suggestion.suggestedStrategy !== 'css') {
-        throw new Error("Strategy mismatch: selector starts with 'css:' but strategy is not 'css'.");
-      }
-    } catch (parseError: any) {
-      console.error('[AIController] getDynamicSelectorSuggestion: Failed to parse AI response or invalid structure:', parseError.message);
-      console.error('[AIController] Raw AI Response:', content); // Log raw response for debugging
-      // Fallback or error response
       return res.status(500).json({ 
         success: false, 
-        error: `AI suggestion parsing failed: ${parseError.message}. Raw response: ${content.substring(0, 200)}...`
+        error: 'AI selector suggestion failed: No content received' 
       });
     }
-    
-    console.log('[AIController] Successfully received and parsed AI suggestion:', suggestion);
 
-    res.json({
-      success: true,
-      data: suggestion,
-      message: 'Dynamic selector suggestion retrieved successfully.'
+    console.log('[AIController] AI raw response:', content);
+
+    let aiResponse;
+    try {
+      aiResponse = JSON.parse(content);
+    } catch (parseError) {
+      console.error('[AIController] Failed to parse AI response:', parseError);
+      console.error('Raw content:', content);
+      
+      // Fallback: try to extract a simple selector from the response
+      const cssMatch = content.match(/[#\.][\w-]+|[\w-]+\[[\w-]+=['"]\w+['"]\]/);
+      const xpathMatch = content.match(/\/\/[\w]+\[@[\w-]+=['"]\w+['"]\]/);
+      
+      if (cssMatch || xpathMatch) {
+        aiResponse = {
+          suggestedSelector: cssMatch ? cssMatch[0] : xpathMatch![0],
+          suggestedStrategy: cssMatch ? 'css' : 'xpath',
+          confidence: 0.5,
+          reasoning: 'Fallback extraction from malformed response',
+          waitStrategy: 'visible',
+          estimatedWaitTime: 3000
+        };
+      } else {
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to parse AI response and no fallback selector found' 
+        });
+      }
+    }
+
+    // Validate and normalize the response
+    const response = {
+      suggestedSelector: aiResponse.suggestedSelector || '',
+      suggestedStrategy: aiResponse.suggestedStrategy || 'css',
+      confidence: aiResponse.confidence || 0.5,
+      reasoning: aiResponse.reasoning || 'No reasoning provided',
+      alternativeSelectors: aiResponse.alternativeSelectors || [],
+      waitStrategy: aiResponse.waitStrategy || 'visible',
+      estimatedWaitTime: aiResponse.estimatedWaitTime || 3000
+    };
+
+    // Clean up the selector (remove 'css:' or 'xpath:' prefixes if present)
+    if (response.suggestedSelector.startsWith('css:')) {
+      response.suggestedSelector = response.suggestedSelector.substring(4);
+    } else if (response.suggestedSelector.startsWith('xpath:')) {
+      response.suggestedSelector = response.suggestedSelector.substring(6);
+      response.suggestedStrategy = 'xpath';
+    }
+
+    console.log('[AIController] Sending response:', response);
+    
+    return res.status(200).json({ 
+      success: true, 
+      data: response,
+      message: 'Selector suggestion generated successfully'
     });
 
   } catch (error: any) {
-    console.error('[AIController] Error in getDynamicSelectorSuggestion:', error.stack || error.message);
-    // Check for OpenAI specific errors if possible, e.g., error.response.data
-    if (error.response && error.response.data) {
-        console.error('[AIController] OpenAI API Error:', error.response.data);
-        return res.status(500).json({ success: false, error: `OpenAI API error: ${error.response.data.error?.message || error.message}` });
-    }
-    return res.status(500).json({ success: false, error: `Internal server error in AI suggestion: ${error.message}` });
+    console.error('[AIController] Error in getDynamicSelectorSuggestion:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Failed to generate selector suggestion' 
+    });
   }
 };
 
