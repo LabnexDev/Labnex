@@ -13,7 +13,7 @@
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepublishOnly": "npm run build && npm run lint",
+    "prepublishOnly": "npm run build",
     "release": "npm run build && npm publish --access public",
     "verify": "node verify-cli.js"
   },

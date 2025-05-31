@@ -39,15 +39,15 @@ const HeroSection: React.FC = () => {
 
         {/* Subheadline */}
         <h2 className="text-xl sm:text-2xl md:text-3xl font-light mb-6 text-slate-300 max-w-4xl mx-auto">
-          The Future of Test Case Management & Project Automation
+          AI-Powered Project Management & Test Automation Platform
         </h2>
 
         {/* Description */}
         <p className="text-lg sm:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-          Revolutionize your testing workflow with{' '}
-          <span className="text-purple-300 font-medium">AI-powered test generation</span>,{' '}
-          <span className="text-blue-300 font-medium">real-time execution monitoring</span>, and{' '}
-          <span className="text-pink-300 font-medium">intelligent failure analysis</span>.
+          Streamline your development with{' '}
+          <span className="text-purple-300 font-medium">AI-driven test case generation</span>,{' '}
+          <span className="text-blue-300 font-medium">automated project workflows</span>, and{' '}
+          <span className="text-pink-300 font-medium">smart insights for faster delivery</span>.
         </p>
 
         {/* CTA Buttons */}
@@ -58,7 +58,7 @@ const HeroSection: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300" />
             
             <Button 
-              to="/register" 
+              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
               variant="primary"
               size="lg" 
               className="relative px-8 py-4 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl border border-white/10 shadow-xl transition-all duration-300 hover:scale-[1.02]"
@@ -67,7 +67,7 @@ const HeroSection: React.FC = () => {
                 <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Start Building Today
+                Join Waitlist Now
               </span>
             </Button>
           </div>
@@ -103,13 +103,6 @@ const HeroSection: React.FC = () => {
                 <span className="text-sm font-medium text-slate-300">{item}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center backdrop-blur-sm">
-            <div className="w-1 h-3 bg-gradient-to-b from-purple-400 to-blue-400 rounded-full mt-2" />
           </div>
         </div>
       </div>

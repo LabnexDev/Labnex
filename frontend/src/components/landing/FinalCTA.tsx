@@ -42,7 +42,7 @@ const FinalCTA: React.FC = () => {
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300" />
               <Button 
-                to="/register" 
+                onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
                 variant="primary"
                 size="lg" 
                 className="relative px-8 py-4 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl border border-white/10 shadow-xl transition-all duration-300 hover:scale-[1.02]"
@@ -57,7 +57,7 @@ const FinalCTA: React.FC = () => {
             </div>
             
             <Button 
-              to="/demo" 
+              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
               variant="secondary"
               size="lg" 
               className="px-8 py-4 text-lg font-semibold bg-white/5 backdrop-blur-md border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02]"
@@ -110,18 +110,18 @@ const FinalCTA: React.FC = () => {
         <div className="mt-16 text-center">
           <div className="flex flex-wrap justify-center items-center gap-8 text-slate-500 text-sm">
             {[
-              { text: "Privacy Policy", href: "/privacy" },
-              { text: "Terms of Service", href: "/terms" },
-              { text: "Support", href: "/support" },
-              { text: "Contact", href: "/contact" }
+              { text: "Privacy Policy", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'privacy' } })) },
+              { text: "Terms of Service", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'terms' } })) },
+              { text: "Support", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'support' } })) },
+              { text: "Contact", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'contact' } })) }
             ].map((link, index) => (
-              <a key={index} href={link.href} className="hover:text-slate-300 transition-colors duration-300">
+              <button key={index} onClick={link.action} className="hover:text-slate-300 transition-colors duration-300">
                 {link.text}
-              </a>
+              </button>
             ))}
           </div>
           <div className="mt-6 text-slate-500 text-sm">
-            © 2024 Labnex. A new platform for modern development teams.
+            © {new Date().getFullYear()} Labnex. A new platform for modern development teams.
           </div>
         </div>
       </div>

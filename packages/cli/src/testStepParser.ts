@@ -251,7 +251,7 @@ export class TestStepParser {
     const urlAssertMatch   = currentStep.match(assertUrlPattern);
     if (urlAssertMatch) {
       addLog(`[AssertURL] Matched: "${urlAssertMatch[0]}"`);
-      let capturedCondition = urlAssertMatch[1].toLowerCase();
+      const capturedCondition = urlAssertMatch[1].toLowerCase();
       const finalCondition = (capturedCondition === 'is' ? 'equals' : capturedCondition) as
         AssertionDetails['condition'];
       const expectedText  = urlAssertMatch[3];
@@ -698,7 +698,7 @@ export class TestStepParser {
 
       // Try extracting a hinted selector
       const hintResult            = extractHintedSelector(rawTarget);
-      let finalTargetSelector: string = '';
+      let finalTargetSelector = '';
 
       if (hintResult.selectorValue) {
         // Coalesce hintResult.type and hintResult.selectorValue into real strings

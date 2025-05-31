@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import { loadConfig } from '../utils/config';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data: T;
   message?: string;
@@ -68,11 +68,11 @@ export interface TestRun {
 export class LabnexApiClient {
   private api: AxiosInstance;
   private token?: string;
-  private verboseLogging: boolean = false; // Added for internal logging control
+  private verboseLogging = false;
 
   constructor() {
     this.api = axios.create({
-      timeout: 60000,
+      timeout: 120000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -118,7 +118,7 @@ export class LabnexApiClient {
   }
 
   // Authentication
-  async login(email: string, password: string): Promise<ApiResponse<{ user: any; token: string }>> {
+  async login(email: string, password: string): Promise<ApiResponse<{ user: unknown; token: string }>> {
     const response = await this.api.post('/auth/login', { email, password });
     
     // Handle both old and new response formats
@@ -134,7 +134,13 @@ export class LabnexApiClient {
           token: response.data.token
         }
       };
-        } else {      return {        success: false,        data: null as any,        error: 'Invalid response format'      };    }
+    } else {
+      return {
+        success: false,
+        data: { user: null, token: '' },
+        error: 'Invalid response format'
+      };
+    }
   }
 
   async me(): Promise<ApiResponse<{ user: any }>> {
@@ -151,11 +157,11 @@ export class LabnexApiClient {
         success: true,
         data: response.data
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         data: [],
-        error: error.response?.data?.message || error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -167,11 +173,11 @@ export class LabnexApiClient {
         success: true,
         data: response.data
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        data: null as any,
-        error: error.response?.data?.message || error.message
+        data: null as unknown as Project,
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -187,11 +193,11 @@ export class LabnexApiClient {
         success: true,
         data: response.data
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         data: [],
-        error: error.response?.data?.message || error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -225,14 +231,14 @@ export class LabnexApiClient {
       if (response.data && response.data.success === false) {
         return {
           success: false,
-          data: null as any,
+          data: null as unknown as TestCase,
           error: response.data.error || response.data.message || 'API reported failure'
         };
       }
       if (!response.data || (response.data._id === undefined && response.data.id === undefined)) {
         return {
           success: false,
-          data: null as any,
+          data: null as unknown as TestCase,
           error: 'Invalid response format or missing test case ID'
         };
       }
@@ -240,18 +246,18 @@ export class LabnexApiClient {
         success: true,
         data: response.data
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (this.verboseLogging) {
-        console.log(chalk.red(`[DEBUG] Error creating test case: ${error.message}`));
-        if (error.response) {
-          console.log(chalk.red(`[DEBUG] Response status: ${error.response.status}`));
-          console.log(chalk.red(`[DEBUG] Response data: ${JSON.stringify(error.response.data, null, 2)}`));
+        console.log(chalk.red(`[DEBUG] Error creating test case: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        if (error instanceof Error && 'response' in error) {
+          console.log(chalk.red(`[DEBUG] Response status: ${(error as any).response.status}`));
+          console.log(chalk.red(`[DEBUG] Response data: ${JSON.stringify((error as any).response.data, null, 2)}`));
         }
       }
       return {
         success: false,
-        data: null as any,
-        error: error.response?.data?.message || error.message
+        data: null as unknown as TestCase,
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
@@ -272,7 +278,7 @@ export class LabnexApiClient {
     return response.data;
   }
 
-  async getTestRunResults(runId: string): Promise<ApiResponse<any>> {
+  async getTestRunResults(runId: string): Promise<ApiResponse<{ total: number; passed: number; failed: number; duration: number; }>> {
     const response = await this.api.get(`/test-runs/${runId}/results`);
     return response.data;
   }
@@ -296,10 +302,7 @@ export class LabnexApiClient {
     return response.data;
   }
 
-  async analyzeFailure(testRunId: string, failureId: string): Promise<ApiResponse<{
-    analysis: string;
-    suggestions: string[];
-  }>> {
+  async analyzeFailure(testRunId: string, failureId: string): Promise<ApiResponse<{ analysis: string; suggestions: string[] }>> {
     const response = await this.api.post(`/ai/analyze-failure/${testRunId}/${failureId}`);
     return response.data;
   }
@@ -335,7 +338,7 @@ export class LabnexApiClient {
     }
   }
 
-  async suggestAlternative(step: string, pageContext: string = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
+  async suggestAlternative(step: string, pageContext = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
     if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-alternative Request:', { step, pageContext });
     try {
       const response = await this.api.post<string | ApiResponse<string>>('/ai/suggest-alternative', { step, pageContext });
@@ -364,10 +367,10 @@ export class LabnexApiClient {
     pageUrl: string;
     domSnippet: string;
     originalStep: string;
-  }): Promise<ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string }>> {
+  }): Promise<ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string; confidence?: number; reasoning?: string }>> {
     if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-selector Request:', JSON.stringify(context, null, 2));
     try {
-      const response = await this.api.post<any>('/ai/suggest-selector', context);
+      const response = await this.api.post<{ success: boolean; data: { suggestedSelector: string; suggestedStrategy?: string; confidence?: number; reasoning?: string }; error?: string }>('/ai/suggest-selector', context);
       if (this.verboseLogging) {
         console.log('[AI Client] POST /ai/suggest-selector Full Response Data:', JSON.stringify(response.data, null, 2));
       }
@@ -379,21 +382,20 @@ export class LabnexApiClient {
           data: {
             suggestedSelector: response.data.data.suggestedSelector,
             suggestedStrategy: response.data.data.suggestedStrategy,
-            // Pass through confidence and reasoning if they exist
-            ...(response.data.data.confidence && { confidence: response.data.data.confidence }),
-            ...(response.data.data.reasoning && { reasoning: response.data.data.reasoning }),
+            confidence: response.data.data.confidence,
+            reasoning: response.data.data.reasoning
           }
         };
-      } else if (response.data && typeof response.data.suggestedSelector === 'string') {
+      } else if (response.data && !response.data.success && typeof response.data === 'object' && 'suggestedSelector' in response.data && typeof response.data.suggestedSelector === 'string') {
         // Handle older direct data structure if AI reverts or for other similar endpoints
         console.warn('[AI Client] getDynamicSelectorSuggestion received direct data structure (fallback). Consider updating AI if this is common.');
         return {
           success: true,
           data: {
             suggestedSelector: response.data.suggestedSelector,
-            suggestedStrategy: response.data.suggestedStrategy,
-            ...(response.data.confidence && { confidence: response.data.confidence }),
-            ...(response.data.reasoning && { reasoning: response.data.reasoning }),
+            suggestedStrategy: 'suggestedStrategy' in response.data && typeof response.data.suggestedStrategy === 'string' ? response.data.suggestedStrategy : undefined,
+            confidence: 'confidence' in response.data && typeof response.data.confidence === 'number' ? response.data.confidence : undefined,
+            reasoning: 'reasoning' in response.data && typeof response.data.reasoning === 'string' ? response.data.reasoning : undefined
           }
         };
       } else if (typeof response.data === 'string') {
@@ -407,25 +409,25 @@ export class LabnexApiClient {
               data: {
                 suggestedSelector: parsedData.suggestedSelector,
                 suggestedStrategy: parsedData.suggestedStrategy,
-                ...(parsedData.confidence && { confidence: parsedData.confidence }),
-                ...(parsedData.reasoning && { reasoning: parsedData.reasoning }),
+                confidence: parsedData.confidence,
+                reasoning: parsedData.reasoning
               }
             };
           }
         } catch (parseError) {
           console.error(`[AI Client] Failed to parse string data from getDynamicSelectorSuggestion: ${(parseError as Error).message}`);
-          return { success: false, data: null as any, error: 'Failed to parse AI suggestion string.' };
+          return { success: false, data: { suggestedSelector: '', suggestedStrategy: '' }, error: 'Failed to parse AI suggestion string.' };
         }
       }
       
       // Log more details if the format is unexpected, including the full problematic response.data
       console.warn('[AI Client] getDynamicSelectorSuggestion received unexpected response format or missing selector. Full response.data:', JSON.stringify(response.data, null, 2));
-      return { success: false, data: null as any, error: response.data?.error || 'Unexpected response format or missing suggestedSelector' };
+      return { success: false, data: { suggestedSelector: '', suggestedStrategy: '' }, error: response.data?.error || 'Unexpected response format or missing suggestedSelector' };
     } catch (error: any) {
       console.error(`[AI Client] Error calling /ai/suggest-selector: ${error.message}`);
       return {
         success: false,
-        data: null as any, // Ensure data is null for type consistency on error
+        data: { suggestedSelector: '', suggestedStrategy: '' },
         error: error.response?.data?.message || error.response?.data?.error || error.message,
       };
     }

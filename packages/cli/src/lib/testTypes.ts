@@ -3,6 +3,7 @@ export interface TestResult {
   message?: string;
   screenshot?: string; // Base64 encoded screenshot
   duration: number;
+  failureType?: 'elementNotFound' | 'actionFailed' | 'other';
 }
 
 export interface TestCaseResult {

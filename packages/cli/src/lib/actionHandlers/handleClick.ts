@@ -8,7 +8,7 @@ export async function handleClick(
   addLog: AddLogFunction,
   selector: string, // This can be a raw selector or a complex string like "(type: selector)"
   originalStep: string,
-  index: number = 0,
+  index = 0,
   retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
   if (!page) throw new Error('Page not available');

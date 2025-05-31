@@ -171,7 +171,7 @@ const FeatureGrid: React.FC = () => {
 
               {/* Learn More Link */}
               <div className="pt-4 border-t border-white/10">
-                <button className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm font-medium group/button">
+                <button onClick={() => window.dispatchEvent(new CustomEvent('openComingSoonModal', { detail: { feature: feature.title } }))} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm font-medium group/button">
                   Learn more
                   <svg className="w-4 h-4 transition-transform group-hover/button:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -192,7 +192,7 @@ const FeatureGrid: React.FC = () => {
           <p className="text-slate-400 mb-6 leading-relaxed">
             Join early adopters building better software with Labnex.
           </p>
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <button onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             Start Building Today
           </button>
         </div>

@@ -34,10 +34,10 @@ export async function findElementWithFallbacks(
   addLog: AddLogFunction,
   selectorOrText: string,
   descriptiveTerm: string,
-  originalStep: string = '',
-  disableFallbacks: boolean = false,
+  originalStep = '',
+  disableFallbacks = false,
   retryApiCallFn?: RetryApiCallFunction,
-  index: number = 0
+  index = 0
 ): Promise<ElementHandle | null> {
   if (!selectorOrText) {
     addLog('[findElementWithFallbacks] No selector provided');
@@ -52,7 +52,7 @@ export async function findElementWithFallbacks(
   // Extract selector hint if present
   const hintExtraction = extractHintedSelector(selectorOrText);
   let primarySelector = hintExtraction.selectorValue || selectorOrText;
-  let selectorType = hintExtraction.type || 'auto';
+  const selectorType = hintExtraction.type || 'auto';
 
   // Minimal cleanup - don't be too aggressive
   primarySelector = primarySelector.trim();
@@ -172,7 +172,7 @@ async function tryFindElementImmediate(
   selector: string,
   selectorType: string,
   addLog: AddLogFunction,
-  index: number = 0
+  index = 0
 ): Promise<ElementHandle | null> {
   try {
     let element: ElementHandle | null = null;

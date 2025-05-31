@@ -56,7 +56,7 @@ export const authCommand = new Command('auth')
               await updateConfig({
                 token: response.data.token,
                 email: email,
-                userId: response.data.user.id
+                userId: (response.data.user as { id: string }).id
               });
 
               spinner.succeed(chalk.green(`Successfully logged in as ${email}`));
@@ -64,11 +64,11 @@ export const authCommand = new Command('auth')
             } else {
               spinner.fail(chalk.red('Login failed: ' + (response.error || 'Unknown error')));
             }
-          } catch (error: any) {
-            spinner.fail(chalk.red('Login failed: ' + (error.response?.data?.message || error.message)));
+          } catch (error: unknown) {
+            spinner.fail(chalk.red('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error')));
           }
-        } catch (error: any) {
-          console.error(chalk.red('Error:'), error.message);
+        } catch (error: unknown) {
+          console.error(chalk.red('Error:'), error instanceof Error ? error.message : 'Unknown error');
         }
       })
   )

@@ -293,7 +293,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
     aiOptimizationEnabled: options.optimizeAi || false
   });
 
-  let allResults: any[] = [];
+  const allResults: any[] = [];
   let passed = 0;
   let failed = 0;
   const startTime = Date.now();
@@ -305,7 +305,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
       const tc = testCases[i];
       console.log(chalk.blue(`\n--- Running Test Case ${i + 1}/${testCases.length}: ${tc.title} (${tc._id}) ---`));
       
-      const result = await executor.executeTestCase(tc._id, tc.steps, tc.expectedResult, project.baseUrl || '');
+      const result = await executor.executeTestCase(tc._id, tc.steps, tc.expectedResult, project.baseUrl || '', tc.title);
       allResults.push(result);
       
       if (result.status === 'passed') {
@@ -415,6 +415,76 @@ async function listTestCases(projectId: string) {
   } catch (error: any) {
     spinner.fail(chalk.red(`❌ Error: ${error.message}`));
   }
+}
+
+// AI test case generation with input validation
+async function generateTestCase(options: any) {
+  let description = options.description;
+  console.log(chalk.cyan('🤖 Generating AI-powered test case...'));
+  console.log(chalk.gray(`📝 Description: ${description}`));
+
+  // Check if description is vague
+  if (isVagueDescription(description)) {
+    console.log(chalk.yellow('⚠️ The provided description seems vague. Please provide more specific details for better test case generation.'));
+    const detailedDescription = await promptForDetails();
+    console.log(chalk.gray(`📝 Updated Description: ${detailedDescription}`));
+    options.description = detailedDescription;
+    description = detailedDescription;
+  }
+
+  const spinner = ora('Generating test case...').start();
+  try {
+    // Request detailed test case with specific steps and expected outcomes
+    const response = await apiClient.generateTestCase(description);
+    if (response.success && response.data) {
+      spinner.succeed(chalk.green('✅ Test case generated successfully'));
+      console.log(chalk.cyan('🧪 Generated Test Case:'));
+      console.log(chalk.gray(`Title: ${response.data.title}`));
+      console.log(chalk.gray(`Description: ${response.data.description}`));
+      if (response.data.steps && Array.isArray(response.data.steps)) {
+        console.log(chalk.gray('Steps:'));
+        response.data.steps.forEach((step: any, index: number) => {
+          if (typeof step === 'string') {
+            console.log(chalk.gray(`  ${index + 1}. ${step}`));
+          } else {
+            console.log(chalk.gray(`  ${index + 1}. ${step.description || 'Step description not provided'}`));
+            if (step.expectedOutcome) {
+              console.log(chalk.gray(`     Expected: ${step.expectedOutcome}`));
+            }
+          }
+        });
+      } else {
+        console.log(chalk.gray(`Steps: ${response.data.steps || 'Not provided'}`));
+      }
+      console.log(chalk.gray(`Overall Expected Result: ${response.data.expectedResult || 'Not specified'}`));
+    } else {
+      spinner.fail(chalk.red(`❌ Failed to generate test case: ${response.error || 'Unknown error'}`));
+    }
+  } catch (error: any) {
+    spinner.fail(chalk.red(`❌ Error generating test case: ${error.message}`));
+  }
+}
+
+// Function to check if description is vague
+function isVagueDescription(description: string): boolean {
+  const vagueKeywords = ['test', 'check', 'verify', 'functionality', 'feature'];
+  const words = description.toLowerCase().split(' ');
+  return words.length < 5 || vagueKeywords.some(keyword => words.includes(keyword));
+}
+
+// Function to prompt user for more details
+async function promptForDetails(): Promise<string> {
+  const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    readline.question(chalk.cyan('Please provide a more detailed description of the test case: '), (answer: string) => {
+      readline.close();
+      resolve(answer);
+    });
+  });
 }
 
 // Call the main function to start the CLI

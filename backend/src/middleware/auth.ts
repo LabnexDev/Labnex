@@ -17,6 +17,7 @@ declare global {
 }
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`Auth middleware: Attempting to authenticate path: ${req.path}`);
   try {
     console.log('Auth middleware: Request received');
     console.log('Auth middleware: Headers:', req.headers);

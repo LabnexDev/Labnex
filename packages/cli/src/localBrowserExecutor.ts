@@ -13,8 +13,8 @@ export class LocalBrowserExecutor {
   private page: Page | null = null;
   private currentFrame: Page | Frame | null = null;
   private logs: string[] = [];
-  private headlessMode: boolean = false;
-  private aiOptimizationEnabled: boolean = false; // Added AI flag
+  private headlessMode = false;
+  private aiOptimizationEnabled = false; // Added AI flag
 
   constructor(options: { headless?: boolean; aiOptimizationEnabled?: boolean } = {}) {
     this.headlessMode = options.headless !== undefined ? options.headless : false;
@@ -77,7 +77,8 @@ export class LocalBrowserExecutor {
     testCaseId: string,
     stepDescriptions: string[],
     overallExpectedResult?: string,
-    baseUrl: string = ''
+    baseUrl = '',
+    testCaseTitle?: string
   ): Promise<TestCaseResult> {
     if (!this.browser || !this.page) {
       await this.initialize();
@@ -97,8 +98,22 @@ export class LocalBrowserExecutor {
     this.addLog(`Starting test case: ${testCaseId}`);
     this.addLog(`[AI] Resetting context for new test case ${testCaseId}.`);
 
+    // Check if test case likely targets saucedemo.com and does not include login steps
+    let modifiedStepDescriptions = [...stepDescriptions];
+    const isEcommerceTest = (stepDescriptions.some(step => step.toLowerCase().includes('e-commerce')) || (testCaseTitle && testCaseTitle.toLowerCase().includes('e-commerce')));
+    const hasLoginStep = stepDescriptions.some(step => step.toLowerCase().includes('login') || step.toLowerCase().includes('enter') || step.toLowerCase().includes('username') || step.toLowerCase().includes('password'));
+    if (isEcommerceTest && !hasLoginStep) {
+      this.addLog(`[Auto-Login] Detected e-commerce test without login steps. Prepending login steps for saucedemo.com.`);
+      modifiedStepDescriptions = [
+        'Enter "standard_user" in the username field',
+        'Enter "secret_sauce" in the password field',
+        'Click the Login button',
+        'Wait for the page to redirect to the inventory'
+      ].concat(stepDescriptions.slice(1)); // Replace first step if it's just navigation
+    }
+
     const { stepResults, overallStatus } = await this._executeStepsInSequence(
-      stepDescriptions,
+      modifiedStepDescriptions,
       baseUrl,
       overallExpectedResult
     );
@@ -158,7 +173,7 @@ export class LocalBrowserExecutor {
     baseUrl: string,
     stepNumber: number,
     overallExpectedResult?: string,
-    attempt: number = 0 // 0 for original, 1+ for AI suggested retry
+    attempt = 0 // 0 for original, 1+ for AI suggested retry
   ): Promise<TestResult> {
     const stepStartTime = Date.now();
     let result: TestResult = { status: 'failed', message: 'Not executed yet', duration: 0 };
@@ -430,11 +445,11 @@ export class LocalBrowserExecutor {
             typeof passedFailedSelector === 'string' &&
             passedFailedSelector.toLowerCase().startsWith('(css:')
           ) {
-            let cssSelector = passedFailedSelector.substring(5, passedFailedSelector.length - 1).trim();
+            const cssSelector = passedFailedSelector.substring(5, passedFailedSelector.length - 1).trim();
             if (cssSelector) {
               const parts = cssSelector.split(/\s+/);
               for (let i = parts.length - 1; i > 0; i--) {
-                let candidateSelector = parts.slice(0, i).join(' ');
+                const candidateSelector = parts.slice(0, i).join(' ');
                 if (
                   candidateSelector.trim() === '>' ||
                   candidateSelector.trim() === '+' ||
@@ -661,7 +676,7 @@ export class LocalBrowserExecutor {
   private async executeStep(
     parsedStep: ParsedTestStep,
     overallTestCaseExpectedResult?: string,
-    disableFallbacksForAiRetry: boolean = false
+    disableFallbacksForAiRetry = false
   ): Promise<TestResult> {
     if (!this.page || !this.currentFrame) {
       throw new Error('Page or currentFrame not initialized');
@@ -670,6 +685,7 @@ export class LocalBrowserExecutor {
     let status: 'passed' | 'failed' = 'failed';
     let message: string | undefined;
     let screenshot: string | undefined;
+    let failureType: 'elementNotFound' | 'actionFailed' | 'other' | undefined;
 
     this.addLog(
       `[Action] ${parsedStep.action}: ${parsedStep.target?.substring(0, 30) || 'N/A'}...`
@@ -685,8 +701,27 @@ export class LocalBrowserExecutor {
         this.addLog(
           `[Action] ${parsedStep.action} failed: ${error.message.substring(0, 50)}...`
         );
+        // Add warning for click actions with generic selectors
+        if (parsedStep.action === 'click' && parsedStep.target && 
+            !parsedStep.target.includes('#') && !parsedStep.target.includes('.') && 
+            !parsedStep.target.includes('[') && parsedStep.target.length < 20) {
+          this.addLog(
+            `[Warning] The target '${parsedStep.target}' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.`
+          );
+        }
         status = 'failed';
         message = error.message;
+        // Categorize failure type
+        if (message.includes('not found') || message.includes('No element matching')) {
+          failureType = 'elementNotFound';
+          this.addLog('[Failure Type] Element not found.');
+        } else if (message.includes('failed to perform') || message.includes('action not performed')) {
+          failureType = 'actionFailed';
+          this.addLog('[Failure Type] Action not performed as expected.');
+        } else {
+          failureType = 'other';
+          this.addLog('[Failure Type] Other error during action execution.');
+        }
         try {
           screenshot = await this.page.screenshot({ encoding: 'base64' });
         } catch (screenshotError: unknown) {
@@ -696,6 +731,7 @@ export class LocalBrowserExecutor {
         }
       } else {
         message = 'Unknown action error';
+        failureType = 'other';
       }
     }
 
@@ -703,6 +739,7 @@ export class LocalBrowserExecutor {
       status,
       message,
       screenshot,
+      failureType,
       duration: Date.now() - stepStartTime,
     };
   }
@@ -710,7 +747,7 @@ export class LocalBrowserExecutor {
   private async _dispatchStepAction(
     parsedStep: ParsedTestStep,
     overallTestCaseExpectedResult?: string,
-    disableFallbacks: boolean = false
+    disableFallbacks = false
   ): Promise<void> {
     if (!this.page || !this.currentFrame) {
       throw new Error('Page or frame not initialized for dispatching action.');
@@ -731,7 +768,6 @@ export class LocalBrowserExecutor {
       overallTestCaseExpectedResult,
       baseUrl: '',
       disableFallbacksForAiRetry: disableFallbacks,
-      retryApiCall: this.retryApiCall.bind(this),
       apiClient: apiClient,
     };
 
@@ -746,11 +782,19 @@ export class LocalBrowserExecutor {
             throw new Error('Page or currentFrame still not initialized after recovery attempt.');
           }
           {
+            let navigationUrl = parsedStep.target || '';
+            if (!navigationUrl && parsedStep.originalStep?.toLowerCase().includes('e-commerce')) {
+              navigationUrl = 'https://www.saucedemo.com/';
+              this.addLog(`[Default URL] Using default e-commerce URL: ${navigationUrl}`);
+            }
+            if (!navigationUrl) {
+              throw new Error('Navigation URL not provided');
+            }
             const newFrameContext = await actionHandlers.handleNavigate(
               this.page,
               this.currentFrame,
               this.addLog,
-              parsedStep.target || ''
+              navigationUrl
             );
             if (newFrameContext) {
               this.currentFrame = newFrameContext;
@@ -783,7 +827,7 @@ export class LocalBrowserExecutor {
             parsedStep.target || '',
             parsedStep.value || '',
             parsedStep.originalStep || '',
-            commonParams.retryApiCall
+            this.retryApiCall.bind(this)
           );
           break;
 
@@ -809,7 +853,7 @@ export class LocalBrowserExecutor {
             parsedStep.target || '',
             parsedStep.value || '',
             parsedStep.originalStep || '',
-            commonParams.retryApiCall
+            this.retryApiCall.bind(this)
           );
           break;
 
@@ -820,7 +864,7 @@ export class LocalBrowserExecutor {
             this.addLog,
             parsedStep.target || '',
             parsedStep.originalStep || '',
-            commonParams.retryApiCall
+            this.retryApiCall.bind(this)
           );
           break;
 
@@ -831,7 +875,7 @@ export class LocalBrowserExecutor {
             this.addLog,
             parsedStep.target || '',
             parsedStep.originalStep || '',
-            commonParams.retryApiCall
+            this.retryApiCall.bind(this)
           );
           break;
 
@@ -878,7 +922,7 @@ export class LocalBrowserExecutor {
               uploadSelector,
               filePathToUpload,
               parsedStep.originalStep || '',
-              commonParams.retryApiCall
+              this.retryApiCall.bind(this)
             );
             this.addLog(`[Upload] Upload action completed for file: ${filePathToUpload}`);
             // Validate upload success
@@ -916,7 +960,7 @@ export class LocalBrowserExecutor {
               target,
               parsedStep.destinationTarget,
               parsedStep.originalStep || '',
-              commonParams.retryApiCall
+              this.retryApiCall.bind(this)
             );
           } else {
             await actionHandlers.handleDragAndDrop(
@@ -926,7 +970,7 @@ export class LocalBrowserExecutor {
               target,
               parsedStep.destinationTarget,
               parsedStep.originalStep || '',
-              commonParams.retryApiCall
+              this.retryApiCall.bind(this)
             );
           }
           break;

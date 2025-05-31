@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import mongoose from 'mongoose';
 import { connectDB } from './config/database';
 import authRoutes from './routes/auth';
 import projectRoutes from './routes/projectRoutes';
@@ -17,6 +18,7 @@ import codeSnippetRoutes from './routes/codeSnippetRoutes';
 import myTaskRoutes from './routes/myTaskRoutes';
 import testRunnerRoutes from './routes/testRunnerRoutes';
 import aiRoutes from './routes/aiRoutes';
+import statsRoutes from './routes/statsRoutes';
 import { setupWebSocket } from './utils/websocket';
 import { createServer } from 'http';
 
@@ -49,17 +51,41 @@ app.use('/api/integrations/discord', discordIntegrationRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/snippets', codeSnippetRoutes);
 app.use('/api/tasks', myTaskRoutes);
-app.use('/api', testRunnerRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api', testRunnerRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  let mongoStatus = 'Unknown';
+  let mongoResponseTime = null;
+
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const startTime = Date.now();
+      await mongoose.connection.db.admin().ping();
+      mongoResponseTime = `${Date.now() - startTime}ms`;
+      mongoStatus = 'Operational';
+    } else {
+      mongoStatus = 'Disconnected';
+    }
+  } catch (e) {
+    mongoStatus = 'Error';
+    console.error('MongoDB ping error:', e);
+  }
+
   res.json({ 
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     version: process.env.npm_package_version || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    services: [
+      { name: 'Express API', status: 'Operational', responseTime: `${Math.floor(process.uptime())}s uptime` },
+      { name: 'MongoDB', status: mongoStatus, responseTime: mongoResponseTime },
+      { name: 'Discord Bot', status: 'Not Monitored', responseTime: 'N/A' },
+      { name: 'OpenAI Integration', status: 'Not Monitored', responseTime: 'N/A' }
+    ]
   });
 });
 

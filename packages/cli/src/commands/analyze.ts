@@ -44,7 +44,7 @@ export const analyzeCommand = new Command('analyze')
             const results = resultsResponse.data;
             
             // Find failed test cases
-            const failedTests = results.testCases.filter((testCase: any) => 
+            const failedTests = (results as any).testCases.filter((testCase: any) => 
               testCase.status === 'FAIL' || testCase.status === 'FAILED' || testCase.status === 'fail'
             );
 
