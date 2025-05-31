@@ -1,158 +1,221 @@
 # Labnex CLI
 
-AI-Powered Testing Automation Platform - Command Line Interface
+AI-Powered Testing Automation Platform Command Line Interface
 
-## 🚀 Quick Start
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://www.npmjs.com/package/@labnex/cli)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/LabnexDev/Labnex/blob/main/LICENSE)
 
-### Installation
-```bash
-cd packages/cli
-npm install
-npm run build
-```
-
-### Basic Usage
-
-**Important:** Always run commands from the `packages/cli` directory!
+## Installation
 
 ```bash
-# Navigate to CLI directory first
-cd packages/cli
+# Install globally
+npm install -g @labnex/cli
 
-# Then run commands
-node dist/index.js --help
+# Or use npx
+npx @labnex/cli --help
 ```
 
-## 📋 Commands
+## Authentication
 
-### 🧪 Run Tests
+Before using the CLI, you need to authenticate:
+
+```bash
+# Configure your API settings
+labnex config set
+
+# Log in with your credentials
+labnex auth login
+```
+
+## Commands
+
+### Running Tests
+
 ```bash
 # Run all tests for a project
-node dist/index.js run --project-id <PROJECT_ID>
+labnex run --project-id <PROJECT_ID>
 
-# Run specific test case
-node dist/index.js run --project-id <PROJECT_ID> --test-id <TEST_ID>
+# Run a specific test case
+labnex run --project-id <PROJECT_ID> --test-id <TEST_ID>
 
 # Run with AI optimization (recommended)
-node dist/index.js run --project-id <PROJECT_ID> --optimize-ai --verbose
+labnex run --project-id <PROJECT_ID> --optimize-ai
+
+# Run in headless mode
+labnex run --project-id <PROJECT_ID> --headless
+
+# Run with verbose logging
+labnex run --project-id <PROJECT_ID> --verbose
 ```
 
-### 📂 List Projects & Tests
+### Managing Projects
+
 ```bash
 # List all projects
-node dist/index.js list --projects
+labnex list --projects
 
 # List test cases for a project
-node dist/index.js list --tests <PROJECT_ID>
+labnex list --tests <PROJECT_ID>
+
+# Create a new project
+labnex projects create --name "My Project" --code PROJECT1 --description "Description"
+
+# List all projects with details
+labnex projects list
 ```
 
-### 📊 Check Status
+### AI Features
+
 ```bash
+# Generate a test case with AI
+labnex ai generate --description "Test the login functionality with valid credentials"
+
+# Optimize test selection with AI
+labnex ai optimize --project <PROJECT_CODE>
+```
+
+### Analysis
+
+```bash
+# Analyze test failure
+labnex analyze failure --run-id <RUN_ID>
+
 # Check overall status
-node dist/index.js status
+labnex status
 
 # Check specific test run
-node dist/index.js status --run-id <RUN_ID>
+labnex status --run-id <RUN_ID>
 ```
 
-## 🎯 Examples
+## Options
 
-### Example 1: Run W3Schools Modal Test
-```bash
-cd packages/cli
-node dist/index.js run --project-id 6832ac498153de9c85b03727 --test-id 68362689160c68e7f548621d --optimize-ai --verbose
-```
+### Global Options
 
-### Example 2: List All Projects
-```bash
-cd packages/cli
-node dist/index.js list --projects
-```
-
-### Example 3: Run All Tests with AI Optimization
-```bash
-cd packages/cli
-node dist/index.js run --project-id 6832ac498153de9c85b03727 --optimize-ai
-```
-
-## ⚡ Performance Features
-
-- **AI-Optimized Element Finding**: Use `--optimize-ai` for intelligent element detection
-- **Fast Iframe Switching**: Optimized from 5+ minutes to seconds
-- **Smart Timeouts**: Reduced from 30s to 10s with faster failure detection
-- **Verbose Logging**: Use `--verbose` for detailed step-by-step execution
-
-## 🔧 Configuration Options
+| Option | Description |
+|--------|-------------|
+| `--verbose` | Enable detailed logging |
+| `--api-url <url>` | Override API URL |
 
 ### Run Command Options
-- `-p, --project-id <id>` - Project ID (required)
-- `-t, --test-id <id>` - Specific test case ID
-- `-e, --environment <env>` - Environment (staging/production)
-- `-m, --mode <mode>` - Execution mode (local/cloud)
-- `--optimize-ai` - Enable AI optimization (recommended)
-- `--verbose` - Detailed logging
-- `--headless` - Run in headless mode
-- `--timeout <ms>` - Test timeout in milliseconds
 
-### List Command Options
-- `-p, --projects` - List all projects
-- `-t, --tests <projectId>` - List test cases for project
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-p, --project-id <id>` | Project ID (required) | - |
+| `-t, --test-id <id>` | Run specific test case by ID | - |
+| `-e, --environment <env>` | Environment (staging/production) | `staging` |
+| `-m, --mode <mode>` | Execution mode (local/cloud) | `local` |
+| `--optimize-ai` | Enable AI optimization for element finding | `false` |
+| `--parallel <number>` | Number of parallel workers (cloud mode) | `4` |
+| `--headless` | Run in headless mode (local mode) | `false` |
+| `--timeout <ms>` | Test timeout in milliseconds | `300000` |
 
-## 🏗️ Directory Structure
+## Performance Features
 
-```
-packages/cli/
-├── dist/              # Built files (run commands from here)
-├── src/               # Source code
-├── quick-test.bat     # Quick test script
-├── help-test.bat      # Help system test
-└── README.md          # This file
-```
+- **AI Element Optimization**: Enables intelligent element finding and reduces flakiness
+- **Iframe Handling**: Optimized iframe switching for complex web applications
+- **Smart Waits**: Dynamic wait times based on element visibility
+- **Detailed Reporting**: Step-by-step execution reports with timing
 
-## 🚨 Troubleshooting
+## Changelog
 
-### "Cannot find module" Error
-This happens when running from the wrong directory.
+### Version 1.3.0 (Current)
+- Added main function execution to fix CLI initialization
+- Improved AI-powered element finding for better test reliability
+- Enhanced error reporting for failed test steps
+- Added verification script for quick CLI testing
+- Updated documentation for production release
 
-**❌ Wrong:**
-```bash
-# From root directory
-PS F:\VSC Projects\Labnex> node dist/index.js run --project-id ...
-# Error: Cannot find module 'F:\VSC Projects\Labnex\dist\index.js'
-```
+### Status of Features
 
-**✅ Correct:**
-```bash
-# Navigate to CLI directory first
-PS F:\VSC Projects\Labnex> cd packages/cli
-PS F:\VSC Projects\Labnex\packages\cli> node dist/index.js run --project-id ...
-```
+#### Working Features
+- Core CLI commands and help system
+- Project and test case listing
+- Test execution with AI optimization
+- Basic login flow testing on standard websites
+- Status reporting and detailed logging
 
-### Build Issues
-If you encounter TypeScript errors:
-```bash
-cd packages/cli
-npm run build
-```
+#### In Development / Coming Soon
+- Cloud execution mode (currently only local execution is supported)
+- Test run monitoring for specific run IDs
+- Advanced modal handling for complex UI components
+- File upload testing improvements
+- Cross-browser test execution
 
-### Performance Issues
-Always use AI optimization for best performance:
-```bash
-node dist/index.js run --project-id <ID> --optimize-ai
-```
+#### Known Issues
+- Some complex UI interactions (like modals on certain websites) may require specific selectors
+- File upload operations require test files to be present in the expected location
 
-## 📚 Documentation
+## Troubleshooting
 
-For detailed documentation, visit: https://labnexdev.github.io/Labnex
+### Authentication Issues
 
-## 🆘 Getting Help
+If you encounter authentication errors:
 
 ```bash
-# Main help
-node dist/index.js --help
+# Reset API configuration
+labnex config set --reset
 
-# Command-specific help
-node dist/index.js run --help
-node dist/index.js list --help
-node dist/index.js status --help
-``` 
+# Login again
+labnex auth login
+```
+
+### Connection Problems
+
+If you cannot connect to the Labnex API:
+
+```bash
+# Check status
+labnex status
+
+# Configure custom API URL
+labnex config set --api-url https://custom-api.labnex.com
+```
+
+### Browser Execution Errors
+
+If tests fail with browser-related errors:
+
+```bash
+# Update dependencies
+npm update -g @labnex/cli
+
+# Run with verbose logging
+labnex run --project-id <ID> --verbose
+```
+
+## Examples
+
+### Example 1: Complete Test Workflow
+
+```bash
+# Create a new project
+labnex projects create --name "E-commerce Site" --code ECOM --description "Testing for our e-commerce platform"
+
+# Generate tests with AI
+labnex ai generate --description "Test checkout process with credit card payment"
+
+# Run all tests with optimization
+labnex run --project-id <PROJECT_ID> --optimize-ai --headless
+```
+
+### Example 2: Debugging Failed Tests
+
+```bash
+# Run specific test with detailed logging
+labnex run --project-id <PROJECT_ID> --test-id <TEST_ID> --verbose
+
+# Analyze failure reasons
+labnex analyze failure --run-id <LATEST_RUN_ID>
+```
+
+## Documentation
+
+For complete documentation, visit [https://labnexdev.github.io/Labnex](https://labnexdev.github.io/Labnex)
+
+## Contributing
+
+Contributions are welcome! Please see the [CONTRIBUTING.md](https://github.com/LabnexDev/Labnex/blob/main/CONTRIBUTING.md) file for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/LabnexDev/Labnex/blob/main/LICENSE) file for details. 

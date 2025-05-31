@@ -170,23 +170,9 @@ Labnex follows a modern, scalable architecture:
 
 ## Documentation
 
-### User Guides
-- [Getting Started](./docs/getting-started.md)
-- [Test Case Management](./docs/test-case-management.md)
-- [CLI Usage](./docs/cli-usage.md)
-- [Discord Integration](./docs/discord-integration.md)
+All essential documentation is provided within this README. For further details on contributing, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-### Developer Guides
-- [API Reference](./docs/api-reference.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Development Setup](./docs/development-setup.md)
-- [Deployment Guide](./docs/deployment.md)
-
-### Advanced Topics
-- [AI Features](./docs/ai-features.md)
-- [Performance Optimization](./docs/performance.md)
-- [Security](./docs/security.md)
-- [Troubleshooting](./docs/troubleshooting.md)
+For advanced usage or troubleshooting, join our [Discord](https://discord.gg/Kx5HrvMB) community or [report bugs](https://github.com/LabnexDev/Labnex/issues).
 
 <hr style="margin: 30px 0; border: 0; border-top: 1px solid #444;" />
 

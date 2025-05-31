@@ -51,7 +51,13 @@ export const aiCommand = new Command('ai')
               if (project) {
                 const saveSpinner = ora('Saving test case to specified project...').start();
                 try {
-                  const saveResponse = await apiClient.createTestCase(project, {
+                  const projects = await apiClient.getProjects();
+                  const projectData = projects.data.find(p => p.projectCode === project);
+                  if (!projectData) {
+                    saveSpinner.fail(chalk.red('Project not found: ' + project));
+                    return;
+                  }
+                  const saveResponse = await apiClient.createTestCase(projectData._id, {
                     title: response.data.title,
                     description: response.data.description,
                     steps: response.data.steps,
@@ -62,10 +68,10 @@ export const aiCommand = new Command('ai')
                   if (saveResponse.success) {
                     saveSpinner.succeed(chalk.green('Test case saved to project'));
                   } else {
-                    saveSpinner.fail(chalk.red('Failed to save test case'));
+                    saveSpinner.fail(chalk.red('Failed to save test case: ' + (saveResponse.error || 'Unknown error')));
                   }
                 } catch (error: any) {
-                  saveSpinner.fail(chalk.red('Save failed: ' + error.message));
+                  saveSpinner.fail(chalk.red('Save failed: ' + (error.response?.data?.message || error.message || 'Unknown error')));
                 }
               } else {
                 // Ask if user wants to save to project
@@ -107,10 +113,10 @@ export const aiCommand = new Command('ai')
                       if (saveResponse.success) {
                         saveSpinner.succeed(chalk.green('Test case saved to project'));
                       } else {
-                        saveSpinner.fail(chalk.red('Failed to save test case'));
+                        saveSpinner.fail(chalk.red('Failed to save test case: ' + (saveResponse.error || 'Unknown error')));
                       }
                     } catch (error: any) {
-                      saveSpinner.fail(chalk.red('Save failed: ' + error.message));
+                      saveSpinner.fail(chalk.red('Save failed: ' + (error.response?.data?.message || error.message || 'Unknown error')));
                     }
                   }
                 }

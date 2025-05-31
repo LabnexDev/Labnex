@@ -24,6 +24,7 @@ interface ElementContext {
   descriptiveTerm: string;
   originalStep: string;
   previousAttempts?: string[];
+  index?: number;
 }
 
 // Fast and efficient element finding with AI assistance
@@ -35,7 +36,8 @@ export async function findElementWithFallbacks(
   descriptiveTerm: string,
   originalStep: string = '',
   disableFallbacks: boolean = false,
-  retryApiCallFn?: RetryApiCallFunction
+  retryApiCallFn?: RetryApiCallFunction,
+  index: number = 0
 ): Promise<ElementHandle | null> {
   if (!selectorOrText) {
     addLog('[findElementWithFallbacks] No selector provided');
@@ -45,7 +47,7 @@ export async function findElementWithFallbacks(
   const MAX_WAIT_TIME = 10000; // 10 seconds max
   const startTime = Date.now();
 
-  addLog(`[findElementWithFallbacks] Looking for: "${selectorOrText}" (${descriptiveTerm})`);
+  addLog(`[findElementWithFallbacks] Looking for: "${selectorOrText}" (${descriptiveTerm}) at index: ${index}`);
 
   // Extract selector hint if present
   const hintExtraction = extractHintedSelector(selectorOrText);
@@ -56,7 +58,7 @@ export async function findElementWithFallbacks(
   primarySelector = primarySelector.trim();
   
   // Try immediate element finding first (no waiting)
-  let element = await tryFindElementImmediate(currentFrame, primarySelector, selectorType, addLog);
+  let element = await tryFindElementImmediate(currentFrame, primarySelector, selectorType, addLog, index);
   if (element) {
     addLog(`[findElementWithFallbacks] ✓ Found element immediately`);
     return element;
@@ -115,7 +117,7 @@ export async function findElementWithFallbacks(
         const alternatives = (aiResponse.data as any).alternativeSelectors;
         if (alternatives && Array.isArray(alternatives)) {
           for (const altSelector of alternatives) {
-            element = await tryFindElementImmediate(currentFrame, altSelector, 'auto', addLog);
+            element = await tryFindElementImmediate(currentFrame, altSelector, 'auto', addLog, index);
             if (element) {
               addLog(`[AI] ✓ Found element using alternative selector: ${altSelector}`);
               return element;
@@ -169,7 +171,8 @@ async function tryFindElementImmediate(
   frame: Page | Frame,
   selector: string,
   selectorType: string,
-  addLog: AddLogFunction
+  addLog: AddLogFunction,
+  index: number = 0
 ): Promise<ElementHandle | null> {
   try {
     let element: ElementHandle | null = null;
@@ -182,96 +185,78 @@ async function tryFindElementImmediate(
     if (cleanSelector.startsWith('xpath://')) {
       isXPath = true;
       cleanSelector = cleanSelector.replace(/^xpath:\/\//, '');
-      addLog(`[tryFindElementImmediate] XPath prefix detected, cleaned selector: "${cleanSelector}"`);
+      addLog('[tryFindElementImmediate] XPath prefix detected, cleaned selector: ' + JSON.stringify(cleanSelector));
     }
     // Check for explicit xpath type or XPath syntax
     else if (selectorType === 'xpath' || cleanSelector.includes('//') || cleanSelector.startsWith('/')) {
       isXPath = true;
       cleanSelector = cleanSelector.replace(/^xpath:/, ''); // Remove xpath: prefix if present
-      addLog(`[tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "${cleanSelector}"`);
+      addLog('[tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: ' + JSON.stringify(cleanSelector));
     }
     // Check for css:// prefix
     else if (cleanSelector.startsWith('css://')) {
       isXPath = false;
       cleanSelector = cleanSelector.replace(/^css:\/\//, '');
-      addLog(`[tryFindElementImmediate] CSS prefix detected, cleaned selector: "${cleanSelector}"`);
+      addLog('[tryFindElementImmediate] CSS prefix detected, cleaned selector: ' + JSON.stringify(cleanSelector));
     }
     
-    addLog(`[tryFindElementImmediate] Using ${isXPath ? 'XPath' : 'CSS'} method for: "${cleanSelector}"`);
+    addLog('[tryFindElementImmediate] Using ' + (isXPath ? 'XPath' : 'CSS') + ' method for: ' + JSON.stringify(cleanSelector));
     
     if (isXPath) {
-      // Try multiple approaches for XPath
-      try {
-        // First, try the direct $x method if available
-        if ('$x' in frame && typeof (frame as any).$x === 'function') {
-          const elements = await (frame as any).$x(cleanSelector);
-          addLog(`[tryFindElementImmediate] XPath query found ${elements.length} elements using $x method`);
-          if (elements.length > 0) {
-            element = elements[0];
-          }
-        } else {
-          // Fallback: use evaluateHandle with document.evaluate
-          addLog(`[tryFindElementImmediate] $x method not available, using document.evaluate fallback`);
-          const elementHandle = await frame.evaluateHandle((xpath: string) => {
-            const result = document.evaluate(
-              xpath,
-              document,
-              null,
-              XPathResult.FIRST_ORDERED_NODE_TYPE,
-              null
-            );
-            return result.singleNodeValue;
-          }, cleanSelector);
-          
-          if (elementHandle) {
-            const asElement = elementHandle.asElement();
-            if (asElement) {
-              element = asElement as ElementHandle<Element>;
-              addLog(`[tryFindElementImmediate] XPath found element using document.evaluate fallback`);
-            } else {
-              await elementHandle.dispose();
-              addLog(`[tryFindElementImmediate] XPath result was not an element`);
-            }
-          }
+      // Handle XPath query
+      const elements = await frame.evaluateHandle((sel: string) => {
+        const result = document.evaluate(sel, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        const nodes: Node[] = [];
+        for (let i = 0; i < result.snapshotLength; i++) {
+          nodes.push(result.snapshotItem(i) as Node);
         }
-      } catch (xpathError: any) {
-        addLog(`[tryFindElementImmediate] XPath execution failed: ${xpathError.message}`);
-        
-        // Last resort: convert XPath to CSS if it's a simple case
-        const cssEquivalent = convertSimpleXPathToCSS(cleanSelector);
-        if (cssEquivalent) {
-          addLog(`[tryFindElementImmediate] Attempting CSS equivalent: "${cssEquivalent}"`);
-          element = await frame.$(cssEquivalent);
-          if (element) {
-            addLog(`[tryFindElementImmediate] Successfully found element using CSS equivalent`);
+        return nodes;
+      }, cleanSelector) as JSHandle<Node[]>;
+      
+      addLog(`[tryFindElementImmediate] XPath query found ${await elements.evaluate(e => e.length)} elements`);
+      if (await elements.evaluate(e => e.length) > 0) {
+        element = await frame.$(`xpath=${cleanSelector}`);
+        if (element && index > 0) {
+          const allElements = await frame.evaluateHandle((sel: string) => {
+            const result = document.evaluate(sel, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            const nodes: Node[] = [];
+            for (let i = 0; i < result.snapshotLength; i++) {
+              nodes.push(result.snapshotItem(i) as Node);
+            }
+            return nodes;
+          }, cleanSelector) as JSHandle<Node[]>;
+          const allElementHandles = await allElements.evaluateHandle((nodes: Node[]) => nodes) as JSHandle<Node[]>;
+          const allElementsArray = await allElementHandles.evaluate((nodes: Node[]) => nodes.map((node, i) => i));
+          if (allElementsArray.length > index) {
+            const indexedElement = await frame.evaluateHandle((nodes: Node[], idx: number) => nodes[idx], allElementHandles, index);
+            element = indexedElement.asElement() as ElementHandle;
           }
+          await allElements.dispose();
+          await allElementHandles.dispose();
         }
       }
     } else {
-      element = await frame.$(cleanSelector);
-      addLog(`[tryFindElementImmediate] CSS query result: ${element ? 'found' : 'not found'}`);
+      // Handle CSS selector
+      const elements = await frame.$$(cleanSelector);
+      addLog(`[tryFindElementImmediate] CSS query found ${elements.length} elements`);
+      if (elements.length > 0) {
+        if (index >= 0 && index < elements.length) {
+          element = elements[index];
+        } else {
+          element = elements[0];
+        }
+      }
+      // Dispose of extra handles if any
+      elements.forEach((el, i) => {
+        if (i !== index && el !== element) el.dispose();
+      });
     }
     
-    if (element) {
-      const isConnected = await element.evaluate(el => el.isConnected);
-      if (isConnected) {
-        const isVisible = await verifyElementVisibility(element);
-        if (isVisible) {
-          addLog(`[tryFindElementImmediate] ✓ Element found and visible`);
-          return element;
-        } else {
-          addLog(`[tryFindElementImmediate] Element found but not visible`);
-        }
-      } else {
-        addLog(`[tryFindElementImmediate] Element found but not connected to DOM`);
-      }
-      await element.dispose();
-    }
+    return element;
   } catch (error: any) {
     addLog(`[tryFindElementImmediate] Error: ${error.message}`);
+    return null;
   }
-  
-  return null;
 }
 
 // Helper function to convert simple XPath expressions to CSS selectors
@@ -469,7 +454,7 @@ export async function captureFocusedDomSnippet(
   addLog: AddLogFunction
 ): Promise<string> {
   try {
-    const domSnippet = await currentFrame.evaluate(() => {
+    const domSnippet = await (currentFrame === page ? page : currentFrame).evaluate((selector) => {
       // Enhanced DOM capture with better context but limited size
       const buttons = Array.from(document.querySelectorAll('button')).slice(0, 10).map(b => 
         `<button${b.id ? ` id="${b.id}"` : ''}${b.className ? ` class="${b.className}"` : ''}${b.onclick ? ` onclick="..."` : ''}>${b.textContent?.trim().substring(0, 50) || ''}</button>`
@@ -499,7 +484,7 @@ export async function captureFocusedDomSnippet(
       const pageInfo = `Page: ${document.title} (${window.location.href})`;
       
       return `${pageInfo}\n\nButtons: ${buttons.join(', ')}\n\nInputs: ${inputs.join(', ')}\n\nImages: ${images.join(', ')}\n\nLinks: ${links.join(', ')}\n\nDivs: ${divs.join(', ')}\n\nSpans: ${spans.join(', ')}`;
-    });
+    }, failedSelector);
     
     addLog(`[DOM Capture] Captured ${domSnippet.length} characters of DOM context`);
     return domSnippet;
@@ -540,7 +525,8 @@ export class ElementFinder {
       context.descriptiveTerm,
       context.originalStep,
       !options.retryWithAI,
-      this.retryApiCallFn
+      this.retryApiCallFn,
+      context.index || 0
     );
   }
-} 
+}

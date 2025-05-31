@@ -37,6 +37,7 @@ export interface ParsedTestStep {
   originalStep?: string;
   expectedText?: string;
   assertionType?: 'visible' | 'present' | 'text' | 'enabled' | 'disabled';
+  index?: number;
   expectsDialog?: {
     message?: string;
     title?: string;

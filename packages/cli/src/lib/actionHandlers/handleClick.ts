@@ -8,12 +8,13 @@ export async function handleClick(
   addLog: AddLogFunction,
   selector: string, // This can be a raw selector or a complex string like "(type: selector)"
   originalStep: string,
+  index: number = 0,
   retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
   if (!page) throw new Error('Page not available');
   if (!currentFrame) throw new Error('Frame not available');
   if (!selector) throw new Error('Click selector not provided');
-  addLog(`Attempting to click on element identified by: "${selector}"`);
+  addLog(`Attempting to click on element identified by: "${selector}" at index: ${index}`);
   
   // Extract the core selector value for accurate checking
   const hintExtraction = extractHintedSelector(selector);
@@ -117,7 +118,7 @@ export async function handleClick(
   }
   addLog(`[handleClick Verbose] Effective context for finding element: ${effectiveTargetFrameLogMessage}`);
 
-  const elementToClick = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
+  const elementToClick = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn, index);
   if (!elementToClick) {
     throw new Error('Element not found');
   }

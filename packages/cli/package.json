@@ -1,6 +1,6 @@
 {
   "name": "@labnex/cli",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "CLI for Labnex, an AI-Powered Testing Automation Platform",
   "main": "dist/index.js",
   "bin": {
@@ -13,7 +13,9 @@
     "test": "jest",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build && npm run lint",
+    "release": "npm run build && npm publish --access public",
+    "verify": "node verify-cli.js"
   },
   "keywords": [
     "testing",
@@ -60,7 +62,9 @@
   },
   "files": [
     "dist/**/*",
-    "README.md"
+    "README.md",
+    "VERIFY.md",
+    "verify-cli.js"
   ],
   "engines": {
     "node": ">=16.0.0"
@@ -73,5 +77,8 @@
   "homepage": "https://labnexdev.github.io/Labnex",
   "bugs": {
     "url": "https://github.com/LabnexDev/Labnex/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

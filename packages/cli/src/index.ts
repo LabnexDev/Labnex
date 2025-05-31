@@ -33,7 +33,7 @@ async function main() {
   program
     .name('labnex')
     .description('The official CLI for the Labnex AI-Powered Testing Automation Platform.')
-    .version('1.2.1')
+    .version('1.3.0')
     .option('-v, --verbose', 'enable verbose output')
     .option('--api-url <url>', 'override API URL')
     .hook('preAction', (thisCommand) => {
@@ -137,6 +137,13 @@ async function main() {
         'config': 'Configure Labnex CLI settings (API URL, verbosity)'
       };
       return descriptions[cmd.name()] || cmd.description();
+    },
+    commandUsage: (cmd) => {
+      let usage = cmd.usage();
+      if (cmd.commands.length > 0) {
+        usage += ' [command]';
+      }
+      return usage;
     }
   });
 
@@ -160,6 +167,15 @@ ${chalk.bold('Examples:')}
 
   ${chalk.cyan('labnex status')}
     Check overall test execution status
+
+  ${chalk.cyan('labnex ai generate --description "Test login functionality"')}
+    Generate a test case using AI
+
+  ${chalk.cyan('labnex ai optimize --project LABX')}
+    Optimize test suite for a project
+
+  ${chalk.cyan('labnex analyze failure --run-id <run-id>')}
+    Analyze a test failure with AI
 
 ${chalk.bold('Configuration:')}
   Run ${chalk.cyan('labnex config set')} to configure API settings
@@ -401,24 +417,8 @@ async function listTestCases(projectId: string) {
   }
 }
 
-// Global error handling
-process.on('unhandledRejection', (reason, promise) => {
-  console.error(chalk.red('Unhandled rejection at:'), promise, chalk.red('reason:'), reason);
+// Call the main function to start the CLI
+main().catch(error => {
+  console.error('❌ CLI execution error:', error);
   process.exit(1);
 });
-
-process.on('uncaughtException', (error) => {
-  console.error(chalk.red('Uncaught exception:'), error);
-  process.exit(1);
-});
-
-// Run CLI
-if (require.main === module) {
-  main().catch((error) => {
-    console.error(chalk.red('CLI Error:'), error.message);
-    if (process.env.LABNEX_VERBOSE === 'true') {
-      console.error(error.stack);
-    }
-    process.exit(1);
-  });
-} 
