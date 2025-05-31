@@ -4,12 +4,12 @@ import { loadConfig, saveConfig, updateConfig, clearConfig, getConfigPath } from
 
 export function setupConfigCommands(): Command {
   const config = new Command('config');
-  config.description('Configuration management');
+  config.description('Manage Labnex CLI configuration settings (API URL, verbosity, etc.).');
 
   // Set configuration value
   config
     .command('set <key> <value>')
-    .description('Set a configuration value')
+    .description('Set a specific configuration key to a new value (e.g., apiUrl).')
     .action(async (key: string, value: string) => {
       try {
         const allowedKeys = ['apiUrl', 'verbose'];
@@ -39,7 +39,7 @@ export function setupConfigCommands(): Command {
   // Get configuration value
   config
     .command('get [key]')
-    .description('Get configuration value(s)')
+    .description('Display the current value of a specific key or all configurations.')
     .action(async (key?: string) => {
       try {
         const currentConfig = await loadConfig();
@@ -64,7 +64,7 @@ export function setupConfigCommands(): Command {
   // Reset configuration
   config
     .command('reset')
-    .description('Reset configuration to defaults')
+    .description('Reset all Labnex CLI configurations to their default values.')
     .action(async () => {
       try {
         await clearConfig();
@@ -78,7 +78,7 @@ export function setupConfigCommands(): Command {
   // Setup production configuration
   config
     .command('setup-production')
-    .description('Configure CLI for production use')
+    .description('Quickly configure the CLI to use the production Labnex API endpoint.')
     .action(async () => {
       try {
         await updateConfig({

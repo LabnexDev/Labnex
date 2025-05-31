@@ -5,10 +5,10 @@ import ora from 'ora';
 import { apiClient } from '../api/client';
 
 export const analyzeCommand = new Command('analyze')
-  .description('Analyze test results and failures')
+  .description('Analyze test execution results and pinpoint failure causes.')
   .addCommand(
     new Command('failure')
-      .description('Analyze test failures using AI')
+      .description('Analyze a specific test failure from a run ID using AI for insights.')
       .option('--run-id <runId>', 'Test run ID to analyze failures from')
       .action(async (options) => {
         try {

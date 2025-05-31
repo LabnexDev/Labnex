@@ -6,10 +6,10 @@ import { apiClient } from '../api/client';
 import { updateConfig, clearConfig, loadConfig } from '../utils/config';
 
 export const authCommand = new Command('auth')
-  .description('Authentication commands')
+  .description('Manage Labnex authentication, API tokens, and session status.')
   .addCommand(
     new Command('login')
-      .description('Login to Labnex')
+      .description('Authenticate with the Labnex platform to obtain an API token.')
       .option('-e, --email <email>', 'Email address')
       .option('-p, --password <password>', 'Password (not recommended for security)')
       .action(async (options) => {
@@ -74,7 +74,7 @@ export const authCommand = new Command('auth')
   )
   .addCommand(
     new Command('logout')
-      .description('Logout from Labnex')
+      .description('Clear local authentication data and log out from Labnex.')
       .action(async () => {
         try {
           const spinner = ora('Logging out...').start();
@@ -89,7 +89,7 @@ export const authCommand = new Command('auth')
   )
   .addCommand(
     new Command('status')
-      .description('Check authentication status')
+      .description('Check your current Labnex authentication status and API configuration.')
       .action(async () => {
         try {
           const config = await loadConfig();

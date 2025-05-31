@@ -32,7 +32,7 @@ async function main() {
 
   program
     .name('labnex')
-    .description('Command-line interface for Labnex testing automation platform')
+    .description('The official CLI for the Labnex AI-Powered Testing Automation Platform.')
     .version('1.2.1')
     .option('-v, --verbose', 'enable verbose output')
     .option('--api-url <url>', 'override API URL')
@@ -49,7 +49,7 @@ async function main() {
   // Main run command - unified and clean
   program
     .command('run')
-    .description('Run tests for a project')
+    .description('Execute tests for a specified project using local or cloud resources.')
     .requiredOption('-p, --project-id <id>', 'Project ID (required)')
     .option('-t, --test-id <id>', 'Run specific test case by ID')
     .option('-e, --environment <env>', 'Environment to run tests against', 'staging')
@@ -73,7 +73,7 @@ async function main() {
   // Status command
   program
     .command('status')
-    .description('Check status of active test runs')
+    .description('Monitor test execution status or check a specific test run.')
     .option('-r, --run-id <id>', 'Check specific test run ID')
     .action(async (options) => {
       try {
@@ -90,7 +90,7 @@ async function main() {
   // List command
   program
     .command('list')
-    .description('List projects and test cases')
+    .description('View available projects or list test cases for a specific project.')
     .option('-p, --projects', 'List all projects')
     .option('-t, --tests <projectId>', 'List test cases for a project')
     .action(async (options) => {
@@ -127,14 +127,14 @@ async function main() {
     },
     subcommandDescription: (cmd) => {
       const descriptions: { [key: string]: string } = {
-        'run': 'Execute test cases locally or in the cloud',
+        'run': 'Execute tests for a project (local/cloud)',
         'status': 'Monitor test execution status',
-        'list': 'View available projects and test cases',
-        'auth': 'Manage authentication and API tokens',
-        'projects': 'Manage projects and test cases',
-        'ai': 'AI-powered test generation and optimization',
-        'analyze': 'Analyze test results and performance',
-        'config': 'Configure CLI settings'
+        'list': 'List projects and test cases',
+        'auth': 'Manage authentication and API token settings',
+        'projects': 'Manage projects (create, list, show details)',
+        'ai': 'Access AI-powered features (generate, optimize tests)',
+        'analyze': 'Analyze test results and identify failure reasons',
+        'config': 'Configure Labnex CLI settings (API URL, verbosity)'
       };
       return descriptions[cmd.name()] || cmd.description();
     }

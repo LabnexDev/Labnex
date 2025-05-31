@@ -6,11 +6,11 @@ import Table from 'cli-table3';
 import { apiClient } from '../api/client';
 
 export const projectsCommand = new Command('projects')
-  .description('Project management commands')
+  .description('Manage your Labnex projects (list, create, view details).')
   .alias('project')
   .addCommand(
     new Command('list')
-      .description('List all projects')
+      .description('List all your available Labnex projects.')
       .option('--format <format>', 'Output format (table, json)', 'table')
       .action(async (options) => {
         try {
@@ -36,7 +36,7 @@ export const projectsCommand = new Command('projects')
   )
   .addCommand(
     new Command('create')
-      .description('Create a new project')
+      .description('Create a new Labnex project with a name, code, and description.')
       .option('-n, --name <name>', 'Project name')
       .option('-c, --code <code>', 'Project code (3-5 chars)')
       .option('-d, --description <description>', 'Project description')
@@ -117,8 +117,8 @@ export const projectsCommand = new Command('projects')
   )
   .addCommand(
     new Command('show')
-      .description('Show project details')
-      .argument('<code>', 'Project code')
+      .description('Display detailed information about a specific Labnex project.')
+      .argument('<code>', 'Project code of the project to show')
       .action(async (code) => {
         try {
           const spinner = ora('Fetching project details...').start();

@@ -364,6 +364,25 @@ export class TestStepParser {
     return null;
   }
 
+  private static _tryParseTypeAction(currentStep: string, originalStepInput: string): ParsedTestStep | null {
+    // Pattern for AI-suggested type action: type (css: #selector) with value "text"
+    const typePattern = /type\s+\(([^)]+)\)\s+with\s+value\s+(['"])(.*?)\2/i;
+    const typeMatch = currentStep.match(typePattern);
+    
+    if (typeMatch && typeMatch[1] && typeMatch[3]) {
+      const selector = typeMatch[1].trim();
+      const value = typeMatch[3];
+      addLog(`[TypeParser] Matched AI-suggested type action. Selector: ${selector}, Value: ${value}`);
+      return {
+        action: 'type',
+        target: selector,
+        value: value,
+        originalStep: originalStepInput
+      };
+    }
+    return null;
+  }
+
   private static _parseStandardActionsAndFallbacks(
     currentStep: string, 
     normalizedCurrentStep: string, 
@@ -405,6 +424,20 @@ export class TestStepParser {
         const rawTargetField = typeMatch[2]?.trim();
         let valueToType = extractQuotedText(rawValueToType) ?? rawValueToType;
         addLog(`[TypeActionAttempt] Raw value: "${rawValueToType}", Extracted value: "${valueToType}"`);
+        // Further refine the value to type by extracting potential email or password
+        if (valueToType.includes('@') || valueToType.toLowerCase().includes('email')) {
+            const emailMatch = valueToType.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+            if (emailMatch) {
+                valueToType = emailMatch[0];
+                addLog(`[TypeActionAttempt] Extracted email: "${valueToType}" from "${rawValueToType}"`);
+            }
+        } else if (valueToType.toLowerCase().includes('password')) {
+            const passwordMatch = valueToType.match(/(?:password\s+)([^\s].*?)$/i);
+            if (passwordMatch && passwordMatch[1]) {
+                valueToType = passwordMatch[1];
+                addLog(`[TypeActionAttempt] Extracted password: "${valueToType}" from "${rawValueToType}"`);
+            }
+        }
         let finalTargetSelector: string | undefined;
         if (rawTargetField) {
             addLog(`[TypeActionAttempt] Raw target field specified: "${rawTargetField}"`);
@@ -421,7 +454,18 @@ export class TestStepParser {
             addLog(`[TypeActionAttempt] No explicit target field. Using pre-parsed main hint selector.`);
             finalTargetSelector = finalizeSelector(mainHintedSelectorType, mainHintedSelectorValue);
         } else {
-            addLog(`[TypeActionAttempt] No explicit target field and no main hint. Value might be selector or no target.`);
+            addLog(`[TypeActionAttempt] No explicit target field and no main hint. Inferring target based on value content.`);
+            // Infer target selector based on the content of valueToType
+            if (valueToType.toLowerCase().includes('email') || valueToType.includes('@')) {
+                finalTargetSelector = 'input[type="email"], #email, input[name="email"], input[placeholder*="email" i]';
+                addLog(`[TypeActionAttempt] Inferred email input target: "${finalTargetSelector}"`);
+            } else if (valueToType.toLowerCase().includes('password') || rawValueToType.toLowerCase().includes('password')) {
+                finalTargetSelector = 'input[type="password"], #password, input[name="password"], input[placeholder*="password" i]';
+                addLog(`[TypeActionAttempt] Inferred password input target: "${finalTargetSelector}"`);
+            } else {
+                finalTargetSelector = 'input, textarea';
+                addLog(`[TypeActionAttempt] No specific content match, using generic input target: "${finalTargetSelector}"`);
+            }
         }
         if (valueToType === '""' || valueToType === "''") valueToType = "";
         addLog(`[ParseSuccess] Action: type, Value: "${valueToType}", Target: "${finalTargetSelector}"`);
@@ -544,6 +588,17 @@ export class TestStepParser {
   }
 
   static parseStep(step: string): ParsedTestStep {
+    addLog(`[ParseStep] Parsing step: "${step}"`);
+    const normalizedStep = step.trim().replace(/\s+/g, ' ');
+    let result: ParsedTestStep | null = null;
+    
+    // Check for AI-suggested type action format
+    result = TestStepParser._tryParseTypeAction(step, step);
+    if (result) {
+      addLog(`[ParseStep] Successfully parsed as AI-suggested type action.`);
+      return result;
+    }
+
     const originalStepInput = step;
     let currentStep = step.trim();
     let normalizedCurrentStep = currentStep.toLowerCase();

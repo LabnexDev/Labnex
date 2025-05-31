@@ -5,10 +5,10 @@ import ora from 'ora';
 import { apiClient } from '../api/client';
 
 export const aiCommand = new Command('ai')
-  .description('AI-powered testing features')
+  .description('Access AI-powered features like test generation and optimization.')
   .addCommand(
     new Command('generate')
-      .description('Generate test case using AI')
+      .description('Generate a new test case using AI based on a description.')
       .option('-d, --description <description>', 'Test description')
       .option('-p, --project <code>', 'Project code to add test case to')
       .action(async (options) => {
@@ -128,7 +128,7 @@ export const aiCommand = new Command('ai')
   )
   .addCommand(
     new Command('optimize')
-      .description('Optimize test suite using AI')
+      .description('Optimize a project\'s test suite using AI to select relevant tests.')
       .option('-p, --project <code>', 'Project code')
       .option('--changes <files>', 'Comma-separated list of changed files')
       .action(async (options) => {
@@ -211,9 +211,9 @@ export const aiCommand = new Command('ai')
   )
   .addCommand(
     new Command('analyze')
-      .description('Analyze test failure using AI')
-      .argument('<runId>', 'Test run ID')
-      .argument('<failureId>', 'Failure ID')
+      .description('Analyze a specific test failure using AI to get insights and suggestions.')
+      .argument('<runId>', 'Test run ID containing the failure')
+      .argument('<failureId>', 'Specific ID of the failure to analyze')
       .action(async (runId, failureId) => {
         try {
           const spinner = ora('Analyzing failure with AI...').start();

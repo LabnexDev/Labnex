@@ -240,6 +240,20 @@ export class LocalBrowserExecutor {
         )}..."`
       );
       initialStepObject = TestStepParser.parseStep(stepDescriptionToParse);
+      // Log the parsed result to verify target extraction
+      this.addLog(`[AI Retry Parse Result] Action: ${initialStepObject.action || 'N/A'}, Target: ${initialStepObject.target || 'N/A'}, Value: ${initialStepObject.value || 'N/A'}`);
+      // Fallback: If action is 'type' and target is missing, try to extract manually from common AI format
+      if (initialStepObject.action === 'type' && !initialStepObject.target) {
+        const typePattern = /type\s+\(([^)]+)\)\s+with\s+value\s+(['"])(.*?)\2/i;
+        const typeMatch = stepDescriptionToParse.match(typePattern);
+        if (typeMatch && typeMatch[1] && typeMatch[3]) {
+          this.addLog(`[AI Retry Fallback] Manually extracted selector: ${typeMatch[1]}, value: ${typeMatch[3]}`);
+          initialStepObject.target = typeMatch[1].trim();
+          initialStepObject.value = typeMatch[3];
+        } else {
+          this.addLog(`[AI Retry Fallback] Manual extraction failed for: ${stepDescriptionToParse}`);
+        }
+      }
     }
 
     if (!initialStepObject || !initialStepObject.action) {
@@ -760,6 +774,8 @@ export class LocalBrowserExecutor {
           break;
 
         case 'type':
+          this.addLog(`[Type Action Debug] Selector being passed to handleType: ${parsedStep.target || 'N/A'}`);
+          this.addLog(`[Type Action Debug] Full parsedStep object: Action=${parsedStep.action}, Target=${parsedStep.target || 'N/A'}, Value=${parsedStep.value || 'N/A'}, OriginalStep=${parsedStep.originalStep || 'N/A'}`);
           await actionHandlers.handleType(
             this.page,
             this.currentFrame,

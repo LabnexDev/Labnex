@@ -21,11 +21,20 @@ export async function handleType(
     throw new Error('Element not found');
   }
   
-  // Clear the field before typing
-  await elementToTypeIn.evaluate((el: any) => {
-    if (el.value !== undefined) el.value = ''; // For input, textarea
-    else if (el.isContentEditable) el.textContent = ''; // For contenteditable divs
-  });
+  // Clear the field before typing only if it's likely to be the correct field
+  const elementTag = await elementToTypeIn.evaluate((el) => el.tagName.toLowerCase());
+  const elementType = await elementToTypeIn.evaluate((el) => el.getAttribute('type') || '');
+  const shouldClear = (elementTag === 'input' || elementTag === 'textarea') && 
+                      !(textToType.toLowerCase().includes('password') && elementType !== 'password');
+  if (shouldClear) {
+    await elementToTypeIn.evaluate((el: any) => {
+      if (el.value !== undefined) el.value = ''; // For input, textarea
+      else if (el.isContentEditable) el.textContent = ''; // For contenteditable divs
+    });
+    addLog(`Cleared field before typing.`);
+  } else {
+    addLog(`Skipped clearing field due to mismatch or password input.`);
+  }
 
   await elementToTypeIn.type(textToType, { delay: 50 });
   await elementToTypeIn.dispose();
