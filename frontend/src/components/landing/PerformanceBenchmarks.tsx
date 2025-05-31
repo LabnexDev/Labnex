@@ -1,5 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import SectionWrapper from './SectionWrapper';
+import { useQuery } from '@tanstack/react-query';
+import { fetchPlatformStats, fetchPlatformHealth } from '../../api/statsApi';
+
+interface PlatformStats {
+  projects: number;
+  tasks: number;
+  testCases: number;
+  users: number;
+  aiCommands: number;
+  snippets: number;
+}
+
+interface ServiceHealth {
+  name: string;
+  status: string;
+  responseTime: string | null;
+}
+
+interface PlatformHealthData {
+  status: string;
+  timestamp: string;
+  uptime: number;
+  version: string;
+  environment: string;
+  services: ServiceHealth[];
+}
 
 interface BenchmarkData {
   metric: string;
@@ -27,7 +53,26 @@ const PerformanceBenchmarks: React.FC = () => {
   const [animatedValues, setAnimatedValues] = useState<Record<string, number>>({});
   const [activeCategory, setActiveCategory] = useState<'speed' | 'scale' | 'reliability'>('speed');
 
-  const benchmarkData: BenchmarkData[] = [
+  const parseResponseTime = (rt: string | null | undefined): number | null => {
+    if (!rt) return null;
+    const match = rt.match(/^(\\d+)ms$/);
+    return match ? parseInt(match[1], 10) : null;
+  };
+
+  const { data: stats, isLoading: isLoadingStats, isError: isErrorStats } = useQuery<PlatformStats>({
+    queryKey: ['platformStats'],
+    queryFn: fetchPlatformStats,
+    staleTime: 60000,
+  });
+
+  const { data: healthData, isLoading: isLoadingHealth, isError: isErrorHealth } = useQuery<PlatformHealthData>({
+    queryKey: ['platformHealth'],
+    queryFn: fetchPlatformHealth,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+
+  const initialBenchmarkData: BenchmarkData[] = [
     {
       metric: 'API Response Time',
       labnex: 85,
@@ -90,7 +135,7 @@ const PerformanceBenchmarks: React.FC = () => {
     }
   ];
 
-  const performanceMetrics: PerformanceMetric[] = [
+  const initialPerformanceMetrics: PerformanceMetric[] = [
     {
       id: 'latency',
       label: 'Response Latency',
@@ -132,37 +177,86 @@ const PerformanceBenchmarks: React.FC = () => {
       color: 'orange'
     }
   ];
+  
+  const [currentBenchmarkData, setCurrentBenchmarkData] = useState<BenchmarkData[]>(initialBenchmarkData);
+  const [currentPerformanceMetrics, setCurrentPerformanceMetrics] = useState<PerformanceMetric[]>(initialPerformanceMetrics);
 
-  // Animate metrics on mount
+  useEffect(() => {
+    let newBenchmarkData = [...initialBenchmarkData];
+    let newPerformanceMetrics = [...initialPerformanceMetrics];
+
+    if (stats) {
+      newBenchmarkData = newBenchmarkData.map(bm => 
+        bm.metric === 'Active Projects' && stats.projects !== undefined ? { ...bm, labnex: stats.projects } : bm
+      );
+      newPerformanceMetrics = newPerformanceMetrics.map(pm =>
+        pm.id === 'users' && stats.users !== undefined ? { ...pm, value: stats.users } : pm
+      );
+    }
+
+    if (healthData) {
+      const expressApiService = healthData.services?.find(s => s.name === 'Express API');
+      const apiResponseTime = parseResponseTime(expressApiService?.responseTime);
+
+      if (apiResponseTime !== null) {
+        newBenchmarkData = newBenchmarkData.map(bm =>
+          bm.metric === 'API Response Time' ? { ...bm, labnex: apiResponseTime } : bm
+        );
+        newPerformanceMetrics = newPerformanceMetrics.map(pm =>
+          pm.id === 'latency' ? { ...pm, value: apiResponseTime } : pm
+        );
+      }
+    }
+    
+    if ((stats || healthData) && (!isLoadingStats && !isLoadingHealth)) {
+        setCurrentBenchmarkData(newBenchmarkData);
+        setCurrentPerformanceMetrics(newPerformanceMetrics);
+    } else if (!isLoadingStats && !isLoadingHealth && (isErrorStats || isErrorHealth)) {
+        if(!stats && !healthData) {
+            setCurrentBenchmarkData(initialBenchmarkData);
+            setCurrentPerformanceMetrics(initialPerformanceMetrics);
+        }
+    }
+
+  }, [stats, healthData, isLoadingStats, isLoadingHealth, isErrorStats, isErrorHealth]);
+
   useEffect(() => {
     const animateMetric = (metric: PerformanceMetric) => {
       const duration = 2000;
       const steps = 60;
-      const increment = metric.value / steps;
+      const targetValue = typeof metric.value === 'number' ? metric.value : 0;
+      const increment = targetValue / steps;
       let currentStep = 0;
 
       const timer = setInterval(() => {
         currentStep++;
-        const currentValue = Math.min(increment * currentStep, metric.value);
+        const currentValue = Math.min(increment * currentStep, targetValue);
         
         setAnimatedValues(prev => ({
           ...prev,
           [metric.id]: currentValue
         }));
 
-        if (currentStep >= steps) {
+        if (currentStep >= steps || targetValue === 0) {
+          if(targetValue === 0) {
+             setAnimatedValues(prev => ({ ...prev, [metric.id]: 0 }));
+          }
           clearInterval(timer);
         }
       }, duration / steps);
+      return () => clearInterval(timer);
     };
 
-    performanceMetrics.forEach(metric => {
-      setTimeout(() => animateMetric(metric), Math.random() * 500);
-    });
-  }, []);
+    if (!isLoadingStats && !isLoadingHealth) {
+        currentPerformanceMetrics.forEach(metric => {
+            setAnimatedValues(prev => ({ ...prev, [metric.id]: 0 })); 
+            setTimeout(() => animateMetric(metric), Math.random() * 100);
+        });
+    }
+  }, [currentPerformanceMetrics, isLoadingStats, isLoadingHealth]);
 
   const getCategoryData = () => {
-    return benchmarkData.filter(item => item.category === activeCategory);
+    return currentBenchmarkData.filter(item => item.category === activeCategory);
   };
 
   const formatValue = (value: number, unit: string): string => {
@@ -218,9 +312,12 @@ const PerformanceBenchmarks: React.FC = () => {
         <h3 className="text-2xl font-bold text-white text-center mb-8">
           Current Performance Metrics
         </h3>
+        {(isLoadingStats || isLoadingHealth) && <p className="text-center text-slate-400">Loading performance metrics...</p>}
+        {isErrorStats && <p className="text-center text-red-400">Error loading platform statistics.</p>}
+        {isErrorHealth && <p className="text-center text-red-400">Error loading platform health.</p>}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {performanceMetrics.map((metric) => (
+          {currentPerformanceMetrics.map((metric) => (
             <div key={metric.id} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-white font-semibold">{metric.label}</h4>
@@ -261,6 +358,7 @@ const PerformanceBenchmarks: React.FC = () => {
         <h3 className="text-2xl font-bold text-white text-center mb-8">
           Competitive Performance Analysis
         </h3>
+        {(isLoadingStats || isLoadingHealth) && (activeCategory === 'speed' || activeCategory === 'scale') && <p className="text-center text-slate-400">Loading benchmark data...</p>}
 
         {/* Category Tabs */}
         <div className="flex justify-center mb-8">
