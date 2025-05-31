@@ -121,10 +121,9 @@ export async function handleClick(
   if (!elementToClick) {
     throw new Error('Element not found');
   }
-  if (!elementToClick) {
-    throw new Error(`Element not found for click: ${selector}`);
-  }
-
+  // Scroll element into view before clicking
+  addLog('Scrolling element into view before clicking.');
+  await elementToClick.evaluate(el => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   try {
     await elementToClick.click();
     addLog('Click successful.');

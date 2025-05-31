@@ -22,7 +22,7 @@ export async function handleUpload(
     throw new Error(`File not found at path: ${absoluteFilePath}`);
   }
 
-  addLog(`Attempting to upload file "${absoluteFilePath}" to element identified by "${selector}"`);
+  addLog(`[Upload] Attempting to upload file: ${absoluteFilePath} to element identified by: ${selector}`);
   const element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
   if (!element) {
     throw new Error('Element not found');
@@ -37,5 +37,19 @@ export async function handleUpload(
 
   await (element as ElementHandle<HTMLInputElement>).uploadFile(absoluteFilePath);
   await element.dispose();
-  addLog(`Successfully uploaded file "${absoluteFilePath}" to element "${selector}"`);
+  addLog(`[Upload] Successfully uploaded file: ${absoluteFilePath} to element: ${selector}`);
+  
+  // Validate upload success by checking for a confirmation message or element
+  try {
+    const uploadConfirmationSelector = '#uploaded-files'; // Specific to the-internet.herokuapp.com/upload
+    await page.waitForSelector(uploadConfirmationSelector, { timeout: 5000 });
+    const uploadedFileName = await page.evaluate(sel => {
+      const el = document.querySelector(sel);
+      return el && el.textContent ? el.textContent.trim() : '';
+    }, uploadConfirmationSelector);
+    addLog(`[Upload Validation] Upload confirmed. File name displayed: ${uploadedFileName}`);
+  } catch (validationError: any) {
+    addLog(`[Upload Validation] Failed to confirm upload: ${validationError.message}`);
+    throw new Error(`Upload action performed but confirmation not found: ${validationError.message}`);
+  }
 } 

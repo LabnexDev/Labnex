@@ -47,8 +47,28 @@ export const aiCommand = new Command('ai')
                 console.log(`  ${index + 1}. ${step}`);
               });
 
-              // Ask if user wants to save to project
-              if (!project) {
+              // Save to project if provided
+              if (project) {
+                const saveSpinner = ora('Saving test case to specified project...').start();
+                try {
+                  const saveResponse = await apiClient.createTestCase(project, {
+                    title: response.data.title,
+                    description: response.data.description,
+                    steps: response.data.steps,
+                    expectedResult: response.data.expectedResult,
+                    priority: 'MEDIUM'
+                  });
+                  
+                  if (saveResponse.success) {
+                    saveSpinner.succeed(chalk.green('Test case saved to project'));
+                  } else {
+                    saveSpinner.fail(chalk.red('Failed to save test case'));
+                  }
+                } catch (error: any) {
+                  saveSpinner.fail(chalk.red('Save failed: ' + error.message));
+                }
+              } else {
+                // Ask if user wants to save to project
                 const savePrompt = await inquirer.prompt([
                   {
                     type: 'confirm',

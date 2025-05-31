@@ -62,7 +62,7 @@ export async function findElementWithFallbacks(
     return element;
   }
 
-  // If AI is available and we haven't found the element, try AI suggestion immediately
+  // Temporarily disable AI assistance to bypass backend 500 error
   if (!disableFallbacks && retryApiCallFn && apiClient) {
     addLog('[findElementWithFallbacks] Element not found immediately. Requesting AI assistance...');
     
@@ -72,25 +72,26 @@ export async function findElementWithFallbacks(
       
       const aiContext = {
         failedSelector: primarySelector,
-        descriptiveTerm: descriptiveTerm || selectorOrText,
+        descriptiveTerm,
         pageUrl: page.url(),
-        domSnippet: domSnippet,
-        originalStep: originalStep
+        domSnippet,
+        originalStep
       };
-
-      addLog('[AI] Requesting dynamic selector suggestion...');
-      const response = await retryApiCallFn(
+      
+      addLog('[findElementWithFallbacks] AI Request Payload:', JSON.stringify(aiContext, null, 2).substring(0, 500) + (JSON.stringify(aiContext).length > 500 ? "... (truncated)" : ""));
+      
+      const aiResponse = await retryApiCallFn(
         () => apiClient.getDynamicSelectorSuggestion(aiContext),
-        2, // Reduced retries
-        1000, // Faster retry
-        'AI selector suggestion'
+        3, // maxRetries
+        1000, // baseDelayMs
+        'AI selector suggestion' // callDescription
       );
 
-      if (response.success && response.data) {
-        const suggestedSelector = response.data.suggestedSelector;
-        const suggestedStrategy = response.data.suggestedStrategy;
-        const confidence = (response.data as any).confidence;
-        const reasoning = (response.data as any).reasoning;
+      if (aiResponse.success && aiResponse.data) {
+        const suggestedSelector = aiResponse.data.suggestedSelector;
+        const suggestedStrategy = aiResponse.data.suggestedStrategy;
+        const confidence = (aiResponse.data as any).confidence;
+        const reasoning = (aiResponse.data as any).reasoning;
         
         addLog(`[AI] Suggested: ${suggestedSelector} (${suggestedStrategy}, confidence: ${confidence})`);
         if (reasoning) {
@@ -101,7 +102,7 @@ export async function findElementWithFallbacks(
         element = await waitForElement(
           currentFrame, 
           suggestedSelector, 
-          3000, // Short wait for AI suggestion
+          5000, // Increased wait for AI suggestion
           suggestedStrategy as 'css' | 'xpath'
         );
 
@@ -111,7 +112,7 @@ export async function findElementWithFallbacks(
         }
 
         // Try alternative selectors if provided
-        const alternatives = (response.data as any).alternativeSelectors;
+        const alternatives = (aiResponse.data as any).alternativeSelectors;
         if (alternatives && Array.isArray(alternatives)) {
           for (const altSelector of alternatives) {
             element = await tryFindElementImmediate(currentFrame, altSelector, 'auto', addLog);
@@ -122,10 +123,10 @@ export async function findElementWithFallbacks(
           }
         }
       } else {
-        addLog(`[AI] AI response failed or no suggestion: ${response.error || 'Unknown error'}`);
+        addLog(`[AI] AI response failed or no suggestion: ${aiResponse.error || 'Unknown error'}`);
       }
     } catch (error: any) {
-      addLog(`[AI] Error getting selector suggestion: ${error.message}`);
+      addLog('[findElementWithFallbacks] AI assistance failed:', error.message);
     }
   }
 
@@ -356,7 +357,15 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
   if (cleanSelector.includes('Open Modal') || cleanSelector.includes('Modal')) {
     strategies.push({ type: 'w3schools-modal-id', selector: '#myBtn', method: 'css' as const });
     strategies.push({ type: 'w3schools-modal-class', selector: 'button.w3-button', method: 'css' as const });
+    strategies.push({ type: 'w3schools-modal-class-green', selector: 'button.w3-button.w3-green', method: 'css' as const });
+    strategies.push({ type: 'w3schools-modal-class-blue', selector: 'button.w3-button.w3-blue', method: 'css' as const });
     strategies.push({ type: 'w3schools-modal-onclick', selector: 'button[onclick*="modal"]', method: 'css' as const });
+  }
+  // Add W3Schools specific fallbacks for close buttons
+  if (cleanSelector.includes('close') || cleanSelector.includes('Close')) {
+    strategies.push({ type: 'w3schools-close-class', selector: 'span.w3-button.w3-display-topright', method: 'css' as const });
+    strategies.push({ type: 'w3schools-close-onclick', selector: 'span[onclick*="display=\'none\']', method: 'css' as const });
+    strategies.push({ type: 'w3schools-close-symbol', selector: 'span.w3-xlarge', method: 'css' as const });
   }
   
   return strategies;
@@ -461,28 +470,28 @@ export async function captureFocusedDomSnippet(
 ): Promise<string> {
   try {
     const domSnippet = await currentFrame.evaluate(() => {
-      // Enhanced DOM capture with better context
-      const buttons = Array.from(document.querySelectorAll('button')).map(b => 
+      // Enhanced DOM capture with better context but limited size
+      const buttons = Array.from(document.querySelectorAll('button')).slice(0, 10).map(b => 
         `<button${b.id ? ` id="${b.id}"` : ''}${b.className ? ` class="${b.className}"` : ''}${b.onclick ? ` onclick="..."` : ''}>${b.textContent?.trim().substring(0, 50) || ''}</button>`
       );
       
-      const inputs = Array.from(document.querySelectorAll('input')).map(i => 
+      const inputs = Array.from(document.querySelectorAll('input')).slice(0, 5).map(i => 
         `<input${i.id ? ` id="${i.id}"` : ''}${i.className ? ` class="${i.className}"` : ''}${i.type ? ` type="${i.type}"` : ''}${i.name ? ` name="${i.name}"` : ''}${i.placeholder ? ` placeholder="${i.placeholder}"` : ''}>`
       );
       
-      const images = Array.from(document.querySelectorAll('img')).map(img => 
+      const images = Array.from(document.querySelectorAll('img')).slice(0, 5).map(img => 
         `<img${img.id ? ` id="${img.id}"` : ''}${img.className ? ` class="${img.className}"` : ''}${img.alt ? ` alt="${img.alt}"` : ''}${img.src ? ` src="${img.src.substring(0, 50)}..."` : ''}>`
       );
       
-      const links = Array.from(document.querySelectorAll('a')).map(a => 
+      const links = Array.from(document.querySelectorAll('a')).slice(0, 5).map(a => 
         `<a${a.id ? ` id="${a.id}"` : ''}${a.className ? ` class="${a.className}"` : ''}${a.href ? ` href="${a.href.substring(0, 30)}..."` : ''}>${a.textContent?.trim().substring(0, 50) || ''}</a>`
       );
       
-      const divs = Array.from(document.querySelectorAll('div[id], div[class*="gallery"], div[class*="trash"], div[class*="modal"], div[class*="popup"]')).map(d => 
+      const divs = Array.from(document.querySelectorAll('div[id], div[class*="gallery"], div[class*="trash"], div[class*="modal"], div[class*="popup"]')).slice(0, 5).map(d => 
         `<div${d.id ? ` id="${d.id}"` : ''}${d.className ? ` class="${d.className}"` : ''}>${d.children.length > 0 ? '...' : (d.textContent?.trim().substring(0, 30) || '')}</div>`
       );
       
-      const spans = Array.from(document.querySelectorAll('span[id], span[class]')).map(s => 
+      const spans = Array.from(document.querySelectorAll('span[id], span[class]')).slice(0, 5).map(s => 
         `<span${s.id ? ` id="${s.id}"` : ''}${s.className ? ` class="${s.className}"` : ''}>${s.textContent?.trim().substring(0, 30) || ''}</span>`
       );
       

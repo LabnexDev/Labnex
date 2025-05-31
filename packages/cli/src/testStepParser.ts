@@ -235,7 +235,7 @@ export class TestStepParser {
     }
 
     const generalAssertionPattern =
-        /^(?:assert|verify|check|expect)(?: that)?\s+(?:(page)|(element|selector)\s+((?:\\(.+?\\)|[^\\s\'\"])+|\'[^\']+\'|\"[^\"]+\"))(?:\s+(text))?\s+(is visible|is hidden|exists|does not exist|is|equals|contains)(?:\s+([\'\"])(.*?)\7)?$/i;
+        /^(?:assert|verify|check|expect)(?: that)?\s+(?:(page)|(element|selector)\s+((?:\\(.+?\\)|[^\\s\'\"])+|\'[^\']+\'|\"[^\"]+\")(?:\s+(text))?\s+(is visible|is hidden|is not visible|exists|does not exist|is|equals|contains)(?:\s+([\'\"])(.*?)\7)?)$/i;
 
     const assertionMatch = currentStep.match(generalAssertionPattern);
     addLog(`[AssertGeneralElement] Attempting to match: "${currentStep}"`);
@@ -248,90 +248,58 @@ export class TestStepParser {
         // M3: (selector value) group
         // M4: (text) keyword group
         // M6: (condition: "is visible", etc.) group
-        // M8: (expected text value for text assertions) group
+        // M7: (quote char) group for expected text
+        // M8: (expected text) group
+        let assertionType: AssertionDetails['type'] = 'elementVisible';
+        let condition: AssertionDetails['condition'] = 'isVisible';
+        let expectedText: string | undefined;
+        let selector: string | undefined;
 
-        const isPageAssertion = !!assertionMatch[1]; // Corrected: Check M1 (page group)
-        const rawSelectorFromMatch = assertionMatch[3]; // Corrected: M3 is selector value
-        const conditionStr = assertionMatch[6].toLowerCase(); // Corrected: M6 is condition
-        const expectedTextFromRegex = assertionMatch[8]; // Corrected: M8 is expected text value
-
-        addLog(`[AssertParseInternals] Regex Match Array: ${JSON.stringify(assertionMatch)}`);
-        addLog(`[AssertParseInternals] isPageAssertion (from M1): ${isPageAssertion}, RawSelectorFromMatch (M3): \"${rawSelectorFromMatch}\", ConditionStr (M6): \"${conditionStr}\", ExpectedTextFromRegex (M8): \"${expectedTextFromRegex}\"`);
-
-        let assertionType: AssertionDetails['type'] = 'elementText';
-        let finalSelector: string | undefined = undefined;
-        let assertionCondition: AssertionDetails['condition'] = 'equals';
-
-        if (isPageAssertion) {
+        if (assertionMatch[1]) { // page
             assertionType = 'pageText';
-            if (conditionStr === 'contains') assertionCondition = 'contains';
-            else if (conditionStr === 'is' || conditionStr === 'equals') assertionCondition = 'equals';
-            else {
-                 addLog(`[AssertParseInternals] Page assertion, unknown condition \"${conditionStr}\", defaulting to 'contains'.`);
-                 assertionCondition = 'contains';
-            }
-            finalSelector = undefined; 
-            addLog(`[AssertParseInternals] Outcome for page assertion: Type=${assertionType}, Condition=${assertionCondition}, ExpectedText=${expectedTextFromRegex}`);
-        } else { 
-            if (!rawSelectorFromMatch) {
-                addLog("[AssertParseInternals] Element assertion expected, but RawSelectorFromMatch (M3) is undefined. This is a parsing bug.");
-                return null; 
-            }
-            const hintResult = extractHintedSelector(rawSelectorFromMatch);
-            if (hintResult.selectorValue) {
-                finalSelector = finalizeSelector(hintResult.type, hintResult.selectorValue);
-                addLog(`[AssertParseInternals] Element assertion. Hinted selector parsed: Type=${hintResult.type}, Value=\"${hintResult.selectorValue}\", Final=\"${finalSelector}\"`);
-            } else {
-                finalSelector = extractQuotedText(rawSelectorFromMatch) || rawSelectorFromMatch;
-                 addLog(`[AssertParseInternals] Element assertion. No hint in selector. Using: \"${finalSelector}\"`);
-            }
+            condition = assertionMatch[6].toLowerCase() === 'contains' ? 'contains' : 'equals';
+            expectedText = assertionMatch[8];
+        } else if (assertionMatch[2]) { // element or selector
+            selector = assertionMatch[3];
+            // Clean up selector if quoted
+            selector = extractQuotedText(selector) ?? selector;
+            addLog(`[AssertGeneralElement] Extracted selector: "${selector}"`);
 
-            if (conditionStr === 'is visible') {
-                assertionType = 'elementVisible';
-                assertionCondition = 'isVisible';
-            } else if (conditionStr === 'is hidden') {
-                addLog(`[AssertParseInternals] Condition 'is hidden' encountered. Currently unhandled by specific logic, may default.`);
-                 assertionType = 'elementText'; // Fallback
-                 assertionCondition = 'equals';
-            } else if (conditionStr === 'exists') {
-                 addLog(`[AssertParseInternals] Condition 'exists' encountered. Currently unhandled by specific logic, may default.`);
-                 assertionType = 'elementText'; // Fallback
-                 assertionCondition = 'equals';
-            } else if (conditionStr === 'does not exist') {
-                 addLog(`[AssertParseInternals] Condition 'does not exist' encountered. Currently unhandled by specific logic, may default.`);
-                 assertionType = 'elementText'; // Fallback
-                 assertionCondition = 'equals';
-            } else if ( (conditionStr === 'is' || conditionStr === 'equals') ) {
+            if (assertionMatch[5]) { // text keyword present
                 assertionType = 'elementText';
-                assertionCondition = 'equals';
-            } else if ( conditionStr === 'contains' ) {
-                assertionType = 'elementText';
-                assertionCondition = 'contains';
+                condition = assertionMatch[6].toLowerCase() === 'contains' ? 'contains' : 'equals';
+                expectedText = assertionMatch[8];
             } else {
-                addLog(`[AssertParseInternals] Element assertion, unknown condition: \"${conditionStr}\". Defaulting to elementText equals.`);
-                assertionType = 'elementText'; 
-                assertionCondition = 'equals'; 
+                const conditionText = assertionMatch[6].toLowerCase();
+                if (conditionText === 'is visible') {
+                    assertionType = 'elementVisible';
+                    condition = 'isVisible';
+                    expectedText = 'true';
+                } else if (conditionText === 'is hidden' || conditionText === 'is not visible') {
+                    assertionType = 'elementVisible';
+                    condition = 'isVisible';
+                    expectedText = 'false';
+                } else if (conditionText === 'exists' || conditionText === 'does not exist') {
+                    assertionType = 'elementVisible';
+                    condition = 'isVisible';
+                    expectedText = conditionText === 'exists' ? 'true' : 'false';
+                } else {
+                    assertionType = 'elementVisible';
+                    condition = 'isVisible';
+                    expectedText = 'true'; // default
+                }
             }
-            addLog(`[AssertParseInternals] Outcome for element assertion: Type=${assertionType}, Selector=\"${finalSelector}\", Condition=${assertionCondition}, ExpectedTextForTextAssertions=\"${expectedTextFromRegex}\" (M8)`);
         }
-        
-        let finalExpectedTextValue: string | undefined = undefined;
-        if (assertionType === 'elementText' || assertionType === 'pageText') {
-            finalExpectedTextValue = expectedTextFromRegex; // M8 is the expected text
-        }
-
-        const returnedAssertionObject = {
-            type: assertionType,
-            selector: finalSelector,
-            condition: assertionCondition,
-            expectedText: finalExpectedTextValue
-        };
-        addLog(`[AssertParseInternals] Returning assertion object: ${JSON.stringify(returnedAssertionObject)}`);
 
         return {
             action: 'assert',
             originalStep: originalStepInput,
-            assertion: returnedAssertionObject
+            assertion: {
+                type: assertionType,
+                selector: selector,
+                expectedText: expectedText,
+                condition: condition
+            }
         };
     }
     return null;

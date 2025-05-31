@@ -1,0 +1,837 @@
+[2025-05-31 00:20:06] AI Optimization Enabled: false
+[2025-05-31 00:20:06] Initializing browser...
+[2025-05-31 00:20:08] Browser initialized successfully.
+[2025-05-31 00:20:08] Starting test case: 683a4833f4cb96b688444ab0
+[2025-05-31 00:20:08] [AI] Resetting context for new test case 683a4833f4cb96b688444ab0.
+[2025-05-31 00:20:08] Step 1: Navigate to https://the-internet.herokuapp.com/upl...
+[2025-05-31 00:20:08] [AI] Parsing/Interpreting original step 1: "Navigate to https://the-internet.herokuapp.com/upload..."
+[2025-05-31 00:20:09] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 00:20:09] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 00:20:09] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 00:20:09] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 00:20:14] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748650814272r0.2043736975508268&wxhr=true&t=1748650814288&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 00:20:14] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 00:20:14] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 00:20:27] No common consent buttons found or clicked. Continuing...
+[2025-05-31 00:20:27] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 00:20:28] [Action] navigate successful.
+[2025-05-31 00:20:28] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:20:28] Step 2: Click the 'Choose File' or 'Browse' button...
+[2025-05-31 00:20:28] [AI] Parsing/Interpreting original step 2: "Click the 'Choose File' or 'Browse' button..."
+[2025-05-31 00:20:28] [Step] Executing (Attempt 0): click on "Choose File"
+[2025-05-31 00:20:28] [Action] click: Choose File...
+[2025-05-31 00:20:28] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:20:28] [Action] click: Choose File...
+[2025-05-31 00:20:28] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:20:28] Attempting to click on element identified by: "Choose File"
+[2025-05-31 00:20:28] [handleClick Verbose] Original Selector: "Choose File"
+[2025-05-31 00:20:28] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:20:28] [handleClick Verbose] Core Selector Value for Check: "Choose File"
+[2025-05-31 00:20:28] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:20:28] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:20:28] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:28] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:28] [findElementWithFallbacks] Looking for: "Choose File" (Choose File)
+[2025-05-31 00:20:28] [tryFindElementImmediate] Using CSS method for: "Choose File"
+[2025-05-31 00:20:28] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:20:28] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:20:28] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:20:28] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Choose File\",\n  \"descriptiveTerm\": \"Choose File\",\n  \"pageUrl\": ...
+[2025-05-31 00:20:33] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:20:33] [AI] Reasoning: The input element with the id 'file-upload' is the 'Choose File' button. IDs are unique within a page, so this should be a robust selector.
+[2025-05-31 00:20:33] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:20:33] Scrolling element into view before clicking.
+[2025-05-31 00:20:33] Click successful.
+[2025-05-31 00:20:33] [Action] click successful.
+[2025-05-31 00:20:33] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:20:33] Step 3: Select a sample file from the system file explorer...
+[2025-05-31 00:20:33] [AI] Parsing/Interpreting original step 3: "Select a sample file from the system file explorer..."
+[2025-05-31 00:20:33] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 00:20:33] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 00:20:33] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 00:20:33] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]...
+[2025-05-31 00:20:33] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1], Value: N/A
+[2025-05-31 00:20:33] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:20:33] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:20:33] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:20:33] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:20:33] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:20:33] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:20:33] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:33] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:33] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1])
+[2025-05-31 00:20:33] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:20:33] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:20:33] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 00:20:33] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 00:20:33] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:20:33] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:20:33] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"xpath:(//*[self::a or self::button or self::input[@type='button'] or sel...
+[2025-05-31 00:20:36] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:20:36] [AI] Reasoning: The input element with id 'file-upload' is the most likely target for selecting a file from the system file explorer. IDs are unique within a page, making them reliable selectors.
+[2025-05-31 00:20:36] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:20:36] Scrolling element into view before clicking.
+[2025-05-31 00:20:36] Click successful.
+[2025-05-31 00:20:36] [Action] click successful.
+[2025-05-31 00:20:36] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:20:36] Step 4: Click the 'Upload' button...
+[2025-05-31 00:20:36] [AI] Parsing/Interpreting original step 4: "Click the 'Upload' button..."
+[2025-05-31 00:20:36] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 00:20:36] [Action] click: Upload...
+[2025-05-31 00:20:36] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:20:36] [Action] click: Upload...
+[2025-05-31 00:20:36] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:20:36] Attempting to click on element identified by: "Upload"
+[2025-05-31 00:20:36] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 00:20:36] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:20:36] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 00:20:36] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:20:36] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:20:36] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:36] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:20:36] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 00:20:36] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 00:20:36] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:20:36] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:20:36] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:20:36] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Upload\",\n  \"descriptiveTerm\": \"Upload\",\n  \"pageUrl\": \"https://...
+[2025-05-31 00:20:40] [AI] Suggested: #file-submit (css, confidence: 1)
+[2025-05-31 00:20:40] [AI] Reasoning: The 'Upload' button is likely to be the input element with id 'file-submit'. This is a unique id, which makes it a robust and reliable selector.
+[2025-05-31 00:20:40] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:20:40] Scrolling element into view before clicking.
+[2025-05-31 00:20:40] Click successful.
+[2025-05-31 00:20:40] [Action] click successful.
+[2025-05-31 00:20:40] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:20:40] Test case 683a4833f4cb96b688444ab0 finished. Status: passed, Duration: 32016ms
+[2025-05-31 00:20:40] Cleaning up browser...
+[2025-05-31 00:20:43] Browser closed successfully.
+[2025-05-31 00:21:59] AI Optimization Enabled: false
+[2025-05-31 00:21:59] Initializing browser...
+[2025-05-31 00:22:02] Browser initialized successfully.
+[2025-05-31 00:22:02] Starting test case: 683a4833f4cb96b688444ab0
+[2025-05-31 00:22:02] [AI] Resetting context for new test case 683a4833f4cb96b688444ab0.
+[2025-05-31 00:22:02] Step 1: Navigate to https://the-internet.herokuapp.com/upl...
+[2025-05-31 00:22:02] [AI] Parsing/Interpreting original step 1: "Navigate to https://the-internet.herokuapp.com/upload..."
+[2025-05-31 00:22:02] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 00:22:02] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 00:22:02] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 00:22:02] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 00:22:09] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748650928646r0.13106045508055564&wxhr=true&t=1748650928663&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 00:22:09] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 00:22:09] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 00:22:21] No common consent buttons found or clicked. Continuing...
+[2025-05-31 00:22:21] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 00:22:23] [Action] navigate successful.
+[2025-05-31 00:22:23] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:22:23] Step 2: Click the 'Choose File' or 'Browse' button...
+[2025-05-31 00:22:23] [AI] Parsing/Interpreting original step 2: "Click the 'Choose File' or 'Browse' button..."
+[2025-05-31 00:22:23] [Step] Executing (Attempt 0): click on "Choose File"
+[2025-05-31 00:22:23] [Action] click: Choose File...
+[2025-05-31 00:22:23] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:22:23] [Action] click: Choose File...
+[2025-05-31 00:22:23] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:22:23] Attempting to click on element identified by: "Choose File"
+[2025-05-31 00:22:23] [handleClick Verbose] Original Selector: "Choose File"
+[2025-05-31 00:22:23] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:22:23] [handleClick Verbose] Core Selector Value for Check: "Choose File"
+[2025-05-31 00:22:23] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:22:23] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:22:23] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:23] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:23] [findElementWithFallbacks] Looking for: "Choose File" (Choose File)
+[2025-05-31 00:22:23] [tryFindElementImmediate] Using CSS method for: "Choose File"
+[2025-05-31 00:22:23] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:22:23] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:22:23] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:22:23] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Choose File\",\n  \"descriptiveTerm\": \"Choose File\",\n  \"pageUrl\": ...
+[2025-05-31 00:22:27] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:22:27] [AI] Reasoning: The 'Choose File' button is typically associated with an input of type 'file'. In the provided DOM snippet, there is an input element with id 'file-upload' and type 'file', which is likely the intended target.
+[2025-05-31 00:22:27] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:22:27] Scrolling element into view before clicking.
+[2025-05-31 00:22:27] Click successful.
+[2025-05-31 00:22:27] [Action] click successful.
+[2025-05-31 00:22:27] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:22:27] Step 3: Select a sample file from the system file explorer...
+[2025-05-31 00:22:27] [AI] Parsing/Interpreting original step 3: "Select a sample file from the system file explorer..."
+[2025-05-31 00:22:27] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 00:22:27] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 00:22:27] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 00:22:27] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]...
+[2025-05-31 00:22:27] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1], Value: N/A
+[2025-05-31 00:22:27] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:22:27] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:22:27] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:22:27] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:22:27] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:22:27] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:22:27] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:27] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:27] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1])
+[2025-05-31 00:22:27] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:22:27] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:22:27] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 00:22:27] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 00:22:27] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:22:27] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:22:27] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"xpath:(//*[self::a or self::button or self::input[@type='button'] or sel...
+[2025-05-31 00:22:30] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:22:30] [AI] Reasoning: The input element with id 'file-upload' is the one responsible for file selection. It's a unique id which makes it a robust and reliable selector.
+[2025-05-31 00:22:30] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:22:30] Scrolling element into view before clicking.
+[2025-05-31 00:22:30] Click successful.
+[2025-05-31 00:22:30] [Action] click successful.
+[2025-05-31 00:22:30] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:22:30] Step 4: Click the 'Upload' button...
+[2025-05-31 00:22:30] [AI] Parsing/Interpreting original step 4: "Click the 'Upload' button..."
+[2025-05-31 00:22:30] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 00:22:30] [Action] click: Upload...
+[2025-05-31 00:22:30] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:22:30] [Action] click: Upload...
+[2025-05-31 00:22:30] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:22:30] Attempting to click on element identified by: "Upload"
+[2025-05-31 00:22:30] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 00:22:30] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:22:30] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 00:22:30] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:22:30] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:22:30] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:30] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:22:30] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 00:22:30] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 00:22:30] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:22:30] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:22:30] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:22:30] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Upload\",\n  \"descriptiveTerm\": \"Upload\",\n  \"pageUrl\": \"https://...
+[2025-05-31 00:22:34] [AI] Suggested: #file-submit (css, confidence: 1)
+[2025-05-31 00:22:34] [AI] Reasoning: The input element with id 'file-submit' is the 'Upload' button. Using id as a selector is the most reliable approach as id's are unique per page.
+[2025-05-31 00:22:34] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:22:34] Scrolling element into view before clicking.
+[2025-05-31 00:22:35] Click successful.
+[2025-05-31 00:22:35] [Action] click successful.
+[2025-05-31 00:22:35] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:22:35] Test case 683a4833f4cb96b688444ab0 finished. Status: passed, Duration: 32481ms
+[2025-05-31 00:22:35] Cleaning up browser...
+[2025-05-31 00:22:36] Browser closed successfully.
+[2025-05-31 00:23:21] AI Optimization Enabled: false
+[2025-05-31 00:23:22] Initializing browser...
+[2025-05-31 00:23:24] Browser initialized successfully.
+[2025-05-31 00:23:24] Starting test case: 683a4be9f4cb96b688444b3a
+[2025-05-31 00:23:24] [AI] Resetting context for new test case 683a4be9f4cb96b688444b3a.
+[2025-05-31 00:23:24] Step 1: Navigate to the file upload page at https://the-in...
+[2025-05-31 00:23:24] [AI] Parsing/Interpreting original step 1: "Navigate to the file upload page at https://the-internet.herokuapp.com..."
+[2025-05-31 00:23:24] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 00:23:25] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 00:23:25] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 00:23:25] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 00:23:30] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748651010577r0.395910214312181&wxhr=true&t=1748651010684&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 00:23:30] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 00:23:31] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 00:23:43] No common consent buttons found or clicked. Continuing...
+[2025-05-31 00:23:43] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 00:23:44] [Action] navigate successful.
+[2025-05-31 00:23:44] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:23:44] Step 2: Locate the file input element...
+[2025-05-31 00:23:44] [AI] Parsing/Interpreting original step 2: "Locate the file input element..."
+[2025-05-31 00:23:44] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 00:23:44] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 00:23:44] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 00:23:44] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]...
+[2025-05-31 00:23:44] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1], Value: N/A
+[2025-05-31 00:23:44] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 00:23:44] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 00:23:44] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:23:44] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 00:23:44] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:23:44] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:23:44] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:44] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:44] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1])
+[2025-05-31 00:23:44] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 00:23:44] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 00:23:44] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 00:23:44] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 00:23:44] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:23:44] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:23:44] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"xpath:(//*[self::a or self::button or self::input[@type='button'] or sel...
+[2025-05-31 00:23:48] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:23:48] [AI] Reasoning: The input element with the id 'file-upload' is the file input element on the page. IDs are unique within a page, so this should be a reliable selector.
+[2025-05-31 00:23:48] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:23:48] Scrolling element into view before clicking.
+[2025-05-31 00:23:48] Click successful.
+[2025-05-31 00:23:48] [Action] click successful.
+[2025-05-31 00:23:48] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:23:48] Step 3: Select a valid file from your local system...
+[2025-05-31 00:23:48] [AI] Parsing/Interpreting original step 3: "Select a valid file from your local system..."
+[2025-05-31 00:23:48] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 00:23:48] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 00:23:48] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 00:23:48] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]...
+[2025-05-31 00:23:48] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1], Value: N/A
+[2025-05-31 00:23:48] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 00:23:48] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 00:23:48] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:23:48] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 00:23:48] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:23:48] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:23:48] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:48] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:48] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1])
+[2025-05-31 00:23:48] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 00:23:48] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 00:23:48] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 00:23:48] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 00:23:48] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:23:48] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:23:48] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"xpath:(//*[self::a or self::button or self::input[@type='button'] or sel...
+[2025-05-31 00:23:52] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:23:52] [AI] Reasoning: The input element with id 'file-upload' is the file input field where a user can select a file from their local system. This is the most direct and reliable way to select this element.
+[2025-05-31 00:23:52] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:23:52] Scrolling element into view before clicking.
+[2025-05-31 00:23:52] Click successful.
+[2025-05-31 00:23:52] [Action] click successful.
+[2025-05-31 00:23:52] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:23:52] Step 4: Click on the 'Upload' button...
+[2025-05-31 00:23:52] [AI] Parsing/Interpreting original step 4: "Click on the 'Upload' button..."
+[2025-05-31 00:23:52] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 00:23:52] [Action] click: Upload...
+[2025-05-31 00:23:52] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:23:52] [Action] click: Upload...
+[2025-05-31 00:23:52] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:23:52] Attempting to click on element identified by: "Upload"
+[2025-05-31 00:23:52] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 00:23:52] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:23:52] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 00:23:52] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:23:52] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:23:52] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:52] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:23:52] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 00:23:52] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 00:23:52] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:23:52] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:23:52] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:23:52] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Upload\",\n  \"descriptiveTerm\": \"Upload\",\n  \"pageUrl\": \"https://...
+[2025-05-31 00:23:56] [AI] Suggested: #file-submit (css, confidence: 1)
+[2025-05-31 00:23:56] [AI] Reasoning: The 'Upload' button is likely the input element with id 'file-submit'. This is a unique id, so the selector should be robust and maintainable.
+[2025-05-31 00:23:56] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:23:56] Scrolling element into view before clicking.
+[2025-05-31 00:23:56] Click successful.
+[2025-05-31 00:23:56] [Action] click successful.
+[2025-05-31 00:23:56] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:23:56] Test case 683a4be9f4cb96b688444b3a finished. Status: passed, Duration: 31952ms
+[2025-05-31 00:23:56] Starting test case: 683a4833f4cb96b688444ab0
+[2025-05-31 00:23:56] [AI] Resetting context for new test case 683a4833f4cb96b688444ab0.
+[2025-05-31 00:23:56] Step 1: Navigate to https://the-internet.herokuapp.com/upl...
+[2025-05-31 00:23:56] [AI] Parsing/Interpreting original step 1: "Navigate to https://the-internet.herokuapp.com/upload..."
+[2025-05-31 00:23:56] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 00:23:56] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 00:23:56] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 00:23:56] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 00:23:56] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 00:23:57] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 00:24:09] No common consent buttons found or clicked. Continuing...
+[2025-05-31 00:24:09] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 00:24:10] [Action] navigate successful.
+[2025-05-31 00:24:10] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:24:10] Step 2: Click the 'Choose File' or 'Browse' button...
+[2025-05-31 00:24:10] [AI] Parsing/Interpreting original step 2: "Click the 'Choose File' or 'Browse' button..."
+[2025-05-31 00:24:10] [Step] Executing (Attempt 0): click on "Choose File"
+[2025-05-31 00:24:10] [Action] click: Choose File...
+[2025-05-31 00:24:10] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:24:10] [Action] click: Choose File...
+[2025-05-31 00:24:10] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 00:24:10] Attempting to click on element identified by: "Choose File"
+[2025-05-31 00:24:10] [handleClick Verbose] Original Selector: "Choose File"
+[2025-05-31 00:24:10] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:24:10] [handleClick Verbose] Core Selector Value for Check: "Choose File"
+[2025-05-31 00:24:10] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:24:10] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:24:10] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:10] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:10] [findElementWithFallbacks] Looking for: "Choose File" (Choose File)
+[2025-05-31 00:24:10] [tryFindElementImmediate] Using CSS method for: "Choose File"
+[2025-05-31 00:24:10] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:24:10] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:24:10] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:24:10] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Choose File\",\n  \"descriptiveTerm\": \"Choose File\",\n  \"pageUrl\": ...
+[2025-05-31 00:24:14] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:24:14] [AI] Reasoning: The input element with id 'file-upload' is the most likely target for the 'Choose File' action. IDs are unique within a page, making them reliable selectors.
+[2025-05-31 00:24:14] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:24:14] Scrolling element into view before clicking.
+[2025-05-31 00:24:14] Click successful.
+[2025-05-31 00:24:14] [Action] click successful.
+[2025-05-31 00:24:14] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:24:14] Step 3: Select a sample file from the system file explorer...
+[2025-05-31 00:24:14] [AI] Parsing/Interpreting original step 3: "Select a sample file from the system file explorer..."
+[2025-05-31 00:24:14] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 00:24:14] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 00:24:14] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 00:24:14] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]...
+[2025-05-31 00:24:14] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1], Value: N/A
+[2025-05-31 00:24:14] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:24:14] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:24:14] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:24:14] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:24:14] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:24:14] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:24:14] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:14] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:14] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1])
+[2025-05-31 00:24:14] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:24:14] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 00:24:14] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 00:24:14] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 00:24:14] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:24:14] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:24:14] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"xpath:(//*[self::a or self::button or self::input[@type='button'] or sel...
+[2025-05-31 00:24:18] [AI] Suggested: #file-upload (css, confidence: 1)
+[2025-05-31 00:24:18] [AI] Reasoning: The 'file-upload' input is the most likely element for selecting a file from the system file explorer. The selector is based on the ID of the input, which is typically unique on the page, making it a reliable choice.
+[2025-05-31 00:24:18] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:24:18] Scrolling element into view before clicking.
+[2025-05-31 00:24:18] Click successful.
+[2025-05-31 00:24:18] [Action] click successful.
+[2025-05-31 00:24:18] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:24:18] Step 4: Click the 'Upload' button...
+[2025-05-31 00:24:18] [AI] Parsing/Interpreting original step 4: "Click the 'Upload' button..."
+[2025-05-31 00:24:18] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 00:24:18] [Action] click: Upload...
+[2025-05-31 00:24:18] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:24:18] [Action] click: Upload...
+[2025-05-31 00:24:18] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 00:24:18] Attempting to click on element identified by: "Upload"
+[2025-05-31 00:24:18] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 00:24:18] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 00:24:18] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 00:24:18] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 00:24:18] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 00:24:18] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:18] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 00:24:18] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 00:24:18] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 00:24:18] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 00:24:18] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-05-31 00:24:18] [DOM Capture] Captured 736 characters of DOM context
+[2025-05-31 00:24:18] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"Upload\",\n  \"descriptiveTerm\": \"Upload\",\n  \"pageUrl\": \"https://...
+[2025-05-31 00:24:22] [AI] Suggested: #file-submit (css, confidence: 1)
+[2025-05-31 00:24:22] [AI] Reasoning: The 'Upload' button is likely to be the input element with id 'file-submit'. Using id as a selector is the most reliable method as ids are unique to each element.
+[2025-05-31 00:24:22] [AI] ✓ Successfully found element using AI suggestion
+[2025-05-31 00:24:22] Scrolling element into view before clicking.
+[2025-05-31 00:24:22] Click successful.
+[2025-05-31 00:24:22] [Action] click successful.
+[2025-05-31 00:24:22] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-05-31 00:24:22] Test case 683a4833f4cb96b688444ab0 finished. Status: passed, Duration: 26039ms
+[2025-05-31 00:24:22] Cleaning up browser...
+[2025-05-31 00:24:24] Browser closed successfully.
+[2025-05-31 01:09:47] AI Optimization Enabled: false
+[2025-05-31 01:09:47] Initializing browser...
+[2025-05-31 01:09:49] Browser initialized successfully.
+[2025-05-31 01:09:49] Starting test case: 683a4be9f4cb96b688444b3a
+[2025-05-31 01:09:49] [AI] Resetting context for new test case 683a4be9f4cb96b688444b3a.
+[2025-05-31 01:09:49] Step 1: Navigate to the file upload page at https://the-in...
+[2025-05-31 01:09:50] [AI] Parsing/Interpreting original step 1: "Navigate to the file upload page at https://the-internet.herokuapp.com..."
+[2025-05-31 01:09:50] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 01:09:50] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 01:09:50] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 01:09:50] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 01:09:55] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748653795443r0.21165232775333231&wxhr=true&t=1748653795574&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 01:09:56] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 01:09:56] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 01:10:08] No common consent buttons found or clicked. Continuing...
+[2025-05-31 01:10:08] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 01:10:09] [Action] navigate successful.
+[2025-05-31 01:10:09] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 01:10:09] Step 2: Locate the file input element...
+[2025-05-31 01:10:09] [AI] Parsing/Interpreting original step 2: "Locate the file input element..."
+[2025-05-31 01:10:09] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 01:10:09] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 01:10:09] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 01:10:09] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]...
+[2025-05-31 01:10:09] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:09] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:09] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:10:09] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:09] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:10:09] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:10:09] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:10:09] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:10:09] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1])
+[2025-05-31 01:10:09] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:09] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:09] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 01:10:09] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 01:10:09] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:10:12] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]")]"
+[2025-05-31 01:10:14] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:10:14] [Action] Error in click: Element not found...
+[2025-05-31 01:10:14] [Action] click failed: Element not found...
+[2025-05-31 01:10:14] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:10:14] Step 2 failed: Element not found...
+[2025-05-31 01:10:14] Test case 683a4be9f4cb96b688444b3a finished. Status: failed, Duration: 24854ms
+[2025-05-31 01:10:14] Cleaning up browser...
+[2025-05-31 01:10:16] Browser closed successfully.
+[2025-05-31 01:12:39] AI Optimization Enabled: true
+[2025-05-31 01:12:39] Initializing browser...
+[2025-05-31 01:12:41] Browser initialized successfully.
+[2025-05-31 01:12:42] Starting test case: 683a4be9f4cb96b688444b3a
+[2025-05-31 01:12:42] [AI] Resetting context for new test case 683a4be9f4cb96b688444b3a.
+[2025-05-31 01:12:42] Step 1: Navigate to the file upload page at https://the-in...
+[2025-05-31 01:12:42] [AI] Parsing/Interpreting original step 1: "Navigate to the file upload page at https://the-internet.herokuapp.com..."
+[2025-05-31 01:12:42] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 01:12:42] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 01:12:42] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 01:12:43] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 01:12:47] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748653967423r0.4997591742530604&wxhr=true&t=1748653967438&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 01:12:48] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 01:12:48] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 01:13:00] No common consent buttons found or clicked. Continuing...
+[2025-05-31 01:13:00] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 01:13:02] [Action] navigate successful.
+[2025-05-31 01:13:02] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 01:13:02] Step 2: Locate the file input element...
+[2025-05-31 01:13:02] [AI] Parsing/Interpreting original step 2: "Locate the file input element..."
+[2025-05-31 01:13:02] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 01:13:02] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 01:13:02] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 01:13:02] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]...
+[2025-05-31 01:13:02] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:02] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:02] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:02] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:02] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:02] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:02] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:02] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:02] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1])
+[2025-05-31 01:13:02] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:02] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:02] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 01:13:02] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 01:13:02] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"
+[2025-05-31 01:13:04] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]")]"
+[2025-05-31 01:13:06] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:13:06] [Action] Error in click: Element not found...
+[2025-05-31 01:13:06] [Action] click failed: Element not found...
+[2025-05-31 01:13:06] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:13:06] [AI] Step 2 failed (Action: "click", Target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]"). Attempting AI suggestion (1/2).
+[2025-05-31 01:13:06] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:13:06] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:13:06] [AI] Requesting selector suggestion for target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the file input element")] | //*[@aria-label="Locate the file input element"] | //*[contains(normalize-space(@placeholder), "Locate the file input element")])[1]", descriptive: "xpath:(//*[self::a or self::button or self::input[@type='button'] or s"
+[2025-05-31 01:13:11] [AI] Received selector suggestion: "#file-upload" (Strategy: css, Confidence: 1, Reasoning: The file input element has a unique id 'file-upload' which is the most reliable way to locate an element.)
+[2025-05-31 01:13:11] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:13:11] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:13:11] [Step] Executing (Attempt 1): click on "#file-upload"
+[2025-05-31 01:13:11] [Action] click: #file-upload...
+[2025-05-31 01:13:11] Dispatching action: click, Target: #file-upload, Value: N/A
+[2025-05-31 01:13:11] [Action] click: #file-upload...
+[2025-05-31 01:13:11] Attempting to click on element identified by: "#file-upload"
+[2025-05-31 01:13:11] [handleClick Verbose] Original Selector: "#file-upload"
+[2025-05-31 01:13:11] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:11] [handleClick Verbose] Core Selector Value for Check: "#file-upload"
+[2025-05-31 01:13:11] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:11] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:11] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:11] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:11] [findElementWithFallbacks] Looking for: "#file-upload" (#file-upload)
+[2025-05-31 01:13:11] [tryFindElementImmediate] Using CSS method for: "#file-upload"
+[2025-05-31 01:13:11] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:13:11] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:13:11] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:13:11] Scrolling element into view before clicking.
+[2025-05-31 01:13:11] Click successful.
+[2025-05-31 01:13:11] [Action] click successful.
+[2025-05-31 01:13:11] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:13:11] Step 3: Select a valid file from your local system...
+[2025-05-31 01:13:11] [AI] Parsing/Interpreting original step 3: "Select a valid file from your local system..."
+[2025-05-31 01:13:11] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 01:13:11] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 01:13:11] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 01:13:11] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]...
+[2025-05-31 01:13:11] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:11] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:11] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:11] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:11] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:11] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:11] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:11] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:11] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1])
+[2025-05-31 01:13:11] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:11] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:11] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 01:13:11] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 01:13:11] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"
+[2025-05-31 01:13:13] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]")]"
+[2025-05-31 01:13:15] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:13:15] [Action] Error in click: Element not found...
+[2025-05-31 01:13:15] [Action] click failed: Element not found...
+[2025-05-31 01:13:15] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:13:15] [AI] Step 3 failed (Action: "click", Target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]"). Attempting AI suggestion (1/2).
+[2025-05-31 01:13:15] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:13:15] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:13:15] [AI] Requesting selector suggestion for target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a valid file from your local system")] | //*[@aria-label="Select a valid file from your local system"] | //*[contains(normalize-space(@placeholder), "Select a valid file from your local system")])[1]", descriptive: "xpath:(//*[self::a or self::button or self::input[@type='button'] or s"
+[2025-05-31 01:13:20] [AI] Received selector suggestion: "#file-upload" (Strategy: css, Confidence: 1, Reasoning: The 'file-upload' id is unique and directly associated with the file input element, which is used to select a file from the local system. This selector is robust and should not easily break.)
+[2025-05-31 01:13:20] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:13:20] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:13:20] [Step] Executing (Attempt 1): click on "#file-upload"
+[2025-05-31 01:13:20] [Action] click: #file-upload...
+[2025-05-31 01:13:20] Dispatching action: click, Target: #file-upload, Value: N/A
+[2025-05-31 01:13:20] [Action] click: #file-upload...
+[2025-05-31 01:13:20] Attempting to click on element identified by: "#file-upload"
+[2025-05-31 01:13:20] [handleClick Verbose] Original Selector: "#file-upload"
+[2025-05-31 01:13:20] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:20] [handleClick Verbose] Core Selector Value for Check: "#file-upload"
+[2025-05-31 01:13:20] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:20] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:20] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:20] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:20] [findElementWithFallbacks] Looking for: "#file-upload" (#file-upload)
+[2025-05-31 01:13:20] [tryFindElementImmediate] Using CSS method for: "#file-upload"
+[2025-05-31 01:13:20] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:13:20] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:13:20] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:13:20] Scrolling element into view before clicking.
+[2025-05-31 01:13:20] Click successful.
+[2025-05-31 01:13:20] [Action] click successful.
+[2025-05-31 01:13:20] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:13:20] Step 4: Click on the 'Upload' button...
+[2025-05-31 01:13:20] [AI] Parsing/Interpreting original step 4: "Click on the 'Upload' button..."
+[2025-05-31 01:13:20] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 01:13:20] [Action] click: Upload...
+[2025-05-31 01:13:20] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 01:13:21] [Action] click: Upload...
+[2025-05-31 01:13:21] Attempting to click on element identified by: "Upload"
+[2025-05-31 01:13:21] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 01:13:21] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:21] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 01:13:21] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:21] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:21] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:21] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:21] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 01:13:21] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 01:13:21] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 01:13:21] [findElementWithFallbacks] Trying id: "#Upload"
+[2025-05-31 01:13:23] [findElementWithFallbacks] Trying class: ".Upload"
+[2025-05-31 01:13:25] [findElementWithFallbacks] Trying name: "[name="Upload"]"
+[2025-05-31 01:13:27] [findElementWithFallbacks] Trying data-testid: "[data-testid="Upload"]"
+[2025-05-31 01:13:29] [findElementWithFallbacks] Trying aria-label: "[aria-label="Upload"]"
+[2025-05-31 01:13:31] [findElementWithFallbacks] Timeout reached after 10000ms
+[2025-05-31 01:13:31] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:13:31] [Action] Error in click: Element not found...
+[2025-05-31 01:13:31] [Action] click failed: Element not found...
+[2025-05-31 01:13:31] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:13:32] [AI] Step 4 failed (Action: "click", Target: "Upload"). Attempting AI suggestion (1/2).
+[2025-05-31 01:13:32] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:13:32] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:13:32] [AI] Requesting selector suggestion for target: "Upload", descriptive: "Upload"
+[2025-05-31 01:13:36] [AI] Received selector suggestion: "#file-submit" (Strategy: css, Confidence: 1, Reasoning: The 'Upload' button has a unique id 'file-submit', which is the most reliable attribute to use for selection. IDs are unique within a page, so using the id ensures that the correct element will be selected.)
+[2025-05-31 01:13:36] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-submit)..."
+[2025-05-31 01:13:36] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-submit)..."
+[2025-05-31 01:13:36] [Step] Executing (Attempt 1): click on "#file-submit"
+[2025-05-31 01:13:36] [Action] click: #file-submit...
+[2025-05-31 01:13:36] Dispatching action: click, Target: #file-submit, Value: N/A
+[2025-05-31 01:13:36] [Action] click: #file-submit...
+[2025-05-31 01:13:36] Attempting to click on element identified by: "#file-submit"
+[2025-05-31 01:13:36] [handleClick Verbose] Original Selector: "#file-submit"
+[2025-05-31 01:13:36] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:13:36] [handleClick Verbose] Core Selector Value for Check: "#file-submit"
+[2025-05-31 01:13:36] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:13:36] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:13:36] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:36] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:13:36] [findElementWithFallbacks] Looking for: "#file-submit" (#file-submit)
+[2025-05-31 01:13:36] [tryFindElementImmediate] Using CSS method for: "#file-submit"
+[2025-05-31 01:13:36] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:13:36] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:13:36] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:13:36] Scrolling element into view before clicking.
+[2025-05-31 01:13:36] Click successful.
+[2025-05-31 01:13:36] [Action] click successful.
+[2025-05-31 01:13:36] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:13:36] Test case 683a4be9f4cb96b688444b3a finished. Status: passed, Duration: 54721ms
+[2025-05-31 01:13:36] Cleaning up browser...
+[2025-05-31 01:13:38] Browser closed successfully.
+[2025-05-31 01:17:08] AI Optimization Enabled: true
+[2025-05-31 01:17:08] Initializing browser...
+[2025-05-31 01:17:12] Browser initialized successfully.
+[2025-05-31 01:17:12] Starting test case: 683a4833f4cb96b688444ab0
+[2025-05-31 01:17:12] [AI] Resetting context for new test case 683a4833f4cb96b688444ab0.
+[2025-05-31 01:17:12] Step 1: Navigate to https://the-internet.herokuapp.com/upl...
+[2025-05-31 01:17:13] [AI] Parsing/Interpreting original step 1: "Navigate to https://the-internet.herokuapp.com/upload..."
+[2025-05-31 01:17:13] [Step] Executing (Attempt 0): navigate on "https://the-internet.herokuapp.com/upload"
+[2025-05-31 01:17:13] [Action] navigate: https://the-internet.herokuapp...
+[2025-05-31 01:17:13] Dispatching action: navigate, Target: https://the-internet.herokuapp.com/upload, Value: N/A
+[2025-05-31 01:17:13] Navigating to https://the-internet.herokuapp.com/upload
+[2025-05-31 01:17:18] [Navigation Request Failed] URL: https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fupload&u=oeu1748654237836r0.8692793352736582&wxhr=true&t=1748654237851&f=298349752,318188263, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-05-31 01:17:47] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired).
+[2025-05-31 01:17:47] Navigation to https://the-internet.herokuapp.com/upload complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-05-31 01:17:59] No common consent buttons found or clicked. Continuing...
+[2025-05-31 01:17:59] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-05-31 01:18:01] [Action] navigate successful.
+[2025-05-31 01:18:01] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-05-31 01:18:01] Step 2: Click the 'Choose File' or 'Browse' button...
+[2025-05-31 01:18:01] [AI] Parsing/Interpreting original step 2: "Click the 'Choose File' or 'Browse' button..."
+[2025-05-31 01:18:01] [Step] Executing (Attempt 0): click on "Choose File"
+[2025-05-31 01:18:01] [Action] click: Choose File...
+[2025-05-31 01:18:01] Dispatching action: click, Target: Choose File, Value: N/A
+[2025-05-31 01:18:01] [Action] click: Choose File...
+[2025-05-31 01:18:01] Attempting to click on element identified by: "Choose File"
+[2025-05-31 01:18:01] [handleClick Verbose] Original Selector: "Choose File"
+[2025-05-31 01:18:01] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:01] [handleClick Verbose] Core Selector Value for Check: "Choose File"
+[2025-05-31 01:18:01] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:01] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:01] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:01] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:01] [findElementWithFallbacks] Looking for: "Choose File" (Choose File)
+[2025-05-31 01:18:01] [tryFindElementImmediate] Using CSS method for: "Choose File"
+[2025-05-31 01:18:01] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 01:18:01] [findElementWithFallbacks] Trying id: "#Choose File"
+[2025-05-31 01:18:03] [findElementWithFallbacks] Trying class: ".Choose File"
+[2025-05-31 01:18:05] [findElementWithFallbacks] Trying name: "[name="Choose File"]"
+[2025-05-31 01:18:07] [findElementWithFallbacks] Trying data-testid: "[data-testid="Choose File"]"
+[2025-05-31 01:18:09] [findElementWithFallbacks] Trying aria-label: "[aria-label="Choose File"]"
+[2025-05-31 01:18:11] [findElementWithFallbacks] Timeout reached after 10000ms
+[2025-05-31 01:18:11] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:18:11] [Action] Error in click: Element not found...
+[2025-05-31 01:18:11] [Action] click failed: Element not found...
+[2025-05-31 01:18:11] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:18:11] [AI] Step 2 failed (Action: "click", Target: "Choose File"). Attempting AI suggestion (1/2).
+[2025-05-31 01:18:11] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:18:11] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:18:11] [AI] Requesting selector suggestion for target: "Choose File", descriptive: "Choose File"
+[2025-05-31 01:18:17] [AI] Received selector suggestion: "#file-upload" (Strategy: css, Confidence: 1, Reasoning: The 'Choose File' button is typically associated with an input field of type 'file'. In the provided DOM, there is an input element with id 'file-upload' and type 'file', which is likely the target element. Using id as a selector is a robust strategy as ids are unique per page.)
+[2025-05-31 01:18:17] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:18:17] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:18:17] [Step] Executing (Attempt 1): click on "#file-upload"
+[2025-05-31 01:18:17] [Action] click: #file-upload...
+[2025-05-31 01:18:17] Dispatching action: click, Target: #file-upload, Value: N/A
+[2025-05-31 01:18:17] [Action] click: #file-upload...
+[2025-05-31 01:18:17] Attempting to click on element identified by: "#file-upload"
+[2025-05-31 01:18:17] [handleClick Verbose] Original Selector: "#file-upload"
+[2025-05-31 01:18:17] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:17] [handleClick Verbose] Core Selector Value for Check: "#file-upload"
+[2025-05-31 01:18:17] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:17] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:17] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:17] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:17] [findElementWithFallbacks] Looking for: "#file-upload" (#file-upload)
+[2025-05-31 01:18:17] [tryFindElementImmediate] Using CSS method for: "#file-upload"
+[2025-05-31 01:18:17] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:18:17] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:18:17] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:18:17] Scrolling element into view before clicking.
+[2025-05-31 01:18:17] Click successful.
+[2025-05-31 01:18:17] [Action] click successful.
+[2025-05-31 01:18:17] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:18:17] Step 3: Select a sample file from the system file explorer...
+[2025-05-31 01:18:17] [AI] Parsing/Interpreting original step 3: "Select a sample file from the system file explorer..."
+[2025-05-31 01:18:17] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-05-31 01:18:17] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-05-31 01:18:17] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-05-31 01:18:17] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]...
+[2025-05-31 01:18:17] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:17] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:17] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:17] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:17] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:17] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:17] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:17] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:17] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1])
+[2025-05-31 01:18:17] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:17] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:17] [tryFindElementImmediate] $x method not available, using document.evaluate fallback
+[2025-05-31 01:18:17] [tryFindElementImmediate] XPath result was not an element
+[2025-05-31 01:18:17] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"
+[2025-05-31 01:18:19] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]")]"
+[2025-05-31 01:18:21] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:18:21] [Action] Error in click: Element not found...
+[2025-05-31 01:18:21] [Action] click failed: Element not found...
+[2025-05-31 01:18:21] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:18:21] [AI] Step 3 failed (Action: "click", Target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]"). Attempting AI suggestion (1/2).
+[2025-05-31 01:18:21] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:18:21] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:18:21] [AI] Requesting selector suggestion for target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Select a sample file from the system file explorer")] | //*[@aria-label="Select a sample file from the system file explorer"] | //*[contains(normalize-space(@placeholder), "Select a sample file from the system file explorer")])[1]", descriptive: "xpath:(//*[self::a or self::button or self::input[@type='button'] or s"
+[2025-05-31 01:18:25] [AI] Received selector suggestion: "#file-upload" (Strategy: css, Confidence: 1, Reasoning: The 'file-upload' input element is the one that triggers the system file explorer when clicked. It has a unique id which makes it a robust selector.)
+[2025-05-31 01:18:25] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:18:25] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-upload)..."
+[2025-05-31 01:18:25] [Step] Executing (Attempt 1): click on "#file-upload"
+[2025-05-31 01:18:25] [Action] click: #file-upload...
+[2025-05-31 01:18:25] Dispatching action: click, Target: #file-upload, Value: N/A
+[2025-05-31 01:18:25] [Action] click: #file-upload...
+[2025-05-31 01:18:25] Attempting to click on element identified by: "#file-upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Original Selector: "#file-upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:25] [handleClick Verbose] Core Selector Value for Check: "#file-upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:25] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:25] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:25] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:25] [findElementWithFallbacks] Looking for: "#file-upload" (#file-upload)
+[2025-05-31 01:18:25] [tryFindElementImmediate] Using CSS method for: "#file-upload"
+[2025-05-31 01:18:25] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:18:25] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:18:25] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:18:25] Scrolling element into view before clicking.
+[2025-05-31 01:18:25] Click successful.
+[2025-05-31 01:18:25] [Action] click successful.
+[2025-05-31 01:18:25] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:18:25] Step 4: Click the 'Upload' button...
+[2025-05-31 01:18:25] [AI] Parsing/Interpreting original step 4: "Click the 'Upload' button..."
+[2025-05-31 01:18:25] [Step] Executing (Attempt 0): click on "Upload"
+[2025-05-31 01:18:25] [Action] click: Upload...
+[2025-05-31 01:18:25] Dispatching action: click, Target: Upload, Value: N/A
+[2025-05-31 01:18:25] [Action] click: Upload...
+[2025-05-31 01:18:25] Attempting to click on element identified by: "Upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Original Selector: "Upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:25] [handleClick Verbose] Core Selector Value for Check: "Upload"
+[2025-05-31 01:18:25] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:25] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:25] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:25] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:25] [findElementWithFallbacks] Looking for: "Upload" (Upload)
+[2025-05-31 01:18:25] [tryFindElementImmediate] Using CSS method for: "Upload"
+[2025-05-31 01:18:25] [tryFindElementImmediate] CSS query result: not found
+[2025-05-31 01:18:25] [findElementWithFallbacks] Trying id: "#Upload"
+[2025-05-31 01:18:28] [findElementWithFallbacks] Trying class: ".Upload"
+[2025-05-31 01:18:30] [findElementWithFallbacks] Trying name: "[name="Upload"]"
+[2025-05-31 01:18:32] [findElementWithFallbacks] Trying data-testid: "[data-testid="Upload"]"
+[2025-05-31 01:18:34] [findElementWithFallbacks] Trying aria-label: "[aria-label="Upload"]"
+[2025-05-31 01:18:36] [findElementWithFallbacks] Timeout reached after 10000ms
+[2025-05-31 01:18:36] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-05-31 01:18:36] [Action] Error in click: Element not found...
+[2025-05-31 01:18:36] [Action] click failed: Element not found...
+[2025-05-31 01:18:36] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-05-31 01:18:36] [AI] Step 4 failed (Action: "click", Target: "Upload"). Attempting AI suggestion (1/2).
+[2025-05-31 01:18:36] [AI] Capturing DOM context for suggestion...
+[2025-05-31 01:18:36] [AI] Captured DOM context (length: 1358). Preview: <body><div class="row"><div id="flash-messages" class="large-12 columns"></div></div><div class="row...
+[2025-05-31 01:18:36] [AI] Requesting selector suggestion for target: "Upload", descriptive: "Upload"
+[2025-05-31 01:18:40] [AI] Received selector suggestion: "#file-submit" (Strategy: css, Confidence: 1, Reasoning: The 'Upload' button has a unique id 'file-submit'. Using id as a selector is the most reliable approach as ids are supposed to be unique per page.)
+[2025-05-31 01:18:40] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-submit)..."
+[2025-05-31 01:18:40] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #file-submit)..."
+[2025-05-31 01:18:40] [Step] Executing (Attempt 1): click on "#file-submit"
+[2025-05-31 01:18:40] [Action] click: #file-submit...
+[2025-05-31 01:18:40] Dispatching action: click, Target: #file-submit, Value: N/A
+[2025-05-31 01:18:40] [Action] click: #file-submit...
+[2025-05-31 01:18:40] Attempting to click on element identified by: "#file-submit"
+[2025-05-31 01:18:40] [handleClick Verbose] Original Selector: "#file-submit"
+[2025-05-31 01:18:40] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-05-31 01:18:40] [handleClick Verbose] Core Selector Value for Check: "#file-submit"
+[2025-05-31 01:18:40] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-05-31 01:18:40] [handleClick Verbose] Page URL: https://the-internet.herokuapp.com/upload
+[2025-05-31 01:18:40] [handleClick Verbose] Context: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:40] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://the-internet.herokuapp.com/upload)
+[2025-05-31 01:18:40] [findElementWithFallbacks] Looking for: "#file-submit" (#file-submit)
+[2025-05-31 01:18:40] [tryFindElementImmediate] Using CSS method for: "#file-submit"
+[2025-05-31 01:18:40] [tryFindElementImmediate] CSS query result: found
+[2025-05-31 01:18:40] [tryFindElementImmediate] ✓ Element found and visible
+[2025-05-31 01:18:40] [findElementWithFallbacks] ✓ Found element immediately
+[2025-05-31 01:18:40] Scrolling element into view before clicking.
+[2025-05-31 01:18:40] Click successful.
+[2025-05-31 01:18:40] [Action] click successful.
+[2025-05-31 01:18:40] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-05-31 01:18:40] Test case 683a4833f4cb96b688444ab0 finished. Status: passed, Duration: 87992ms
+[2025-05-31 01:18:40] Cleaning up browser...
+[2025-05-31 01:18:42] Browser closed successfully.
