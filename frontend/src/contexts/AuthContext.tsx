@@ -51,10 +51,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>(initialState);
   const navigate = useNavigate();
 
-  // Only check for token on initial mount, not on every auth change
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('AuthProvider initialized, token exists:', !!token);
+    console.log('[AuthContext] Initializing - Document readyState:', document.readyState);
+    console.log('[AuthContext] Initializing - Token from localStorage:', token ? `Exists (length: ${token.length})` : 'null');
     
     if (token) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -64,11 +64,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Listen for storage changes (token removal by axios interceptor)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
+      console.log('[AuthContext] Storage event detected:', 
+        JSON.stringify({ key: e.key, oldValue: e.oldValue, newValue: e.newValue }, null, 2)
+      );
       if (e.key === 'token' && e.newValue === null && state.isAuthenticated) {
-        console.log('Token removed from storage, updating auth state');
+        console.warn('[AuthContext] Token was removed from localStorage by an external event while authenticated. Logging out.');
         setState(prev => ({
           ...prev,
           user: null,
@@ -134,11 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('Login API successful, user:', user.email, 'Role:', user.systemRole);
       
-      // Set token and headers first
       localStorage.setItem('token', token);
+      const storedTokenCheck = localStorage.getItem('token');
+      console.log('[AuthContext] After login, token set in localStorage. Read-back check:', storedTokenCheck ? `Exists (length: ${storedTokenCheck.length})` : 'null');
+      
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      // Update state
       setState(prev => ({
         ...prev,
         user,
@@ -151,7 +154,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Auth state updated, navigating to dashboard...');
       console.log('State after login:', { user: user.email, token: !!token, isAuthenticated: true });
       
-      // Use setTimeout to ensure state update has been processed and React has re-rendered
       setTimeout(() => {
         console.log('Attempting navigation to dashboard...');
         navigate('/dashboard');
@@ -185,6 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Register API successful, user:', user.email, 'Role:', user.systemRole);
       
       localStorage.setItem('token', token);
+      const storedTokenCheck = localStorage.getItem('token');
+      console.log('[AuthContext] After register, token set in localStorage. Read-back check:', storedTokenCheck ? `Exists (length: ${storedTokenCheck.length})` : 'null');
+      
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setState(prev => ({
@@ -196,7 +201,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error: null,
       }));
       
-      // Use setTimeout to ensure state update has been processed
       setTimeout(() => {
         navigate('/dashboard');
       }, 200);
