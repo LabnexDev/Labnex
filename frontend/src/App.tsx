@@ -30,6 +30,7 @@ import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import LandingPage from './pages/LandingPage';
+import { SystemRoleType } from './types/roles';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,14 +41,16 @@ const queryClient = new QueryClient({
   },
 });
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
   const { user, isLoading, isAuthenticated } = useAuth();
 
   console.log('PrivateRoute check:', { 
     isLoading, 
     isAuthenticated, 
     hasUser: !!user,
-    userEmail: user?.email 
+    userEmail: user?.email,
+    userRole: user?.systemRole,
+    adminOnlyRequired: adminOnly
   });
 
   if (isLoading) {
@@ -64,7 +67,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  console.log('PrivateRoute: User authenticated, rendering protected content');
+  if (adminOnly && user.systemRole !== SystemRoleType.ADMIN) {
+    console.log('PrivateRoute: Admin access required, but user is not admin. Redirecting to login (or a Forbidden page later).');
+    // For now, redirect to dashboard. Later, this could be a /forbidden page or back to login with a message.
+    return <Navigate to="/dashboard" replace />; 
+  }
+
+  console.log('PrivateRoute: User authenticated and authorized, rendering protected content');
   return <Layout>{children}</Layout>;
 }
 

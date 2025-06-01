@@ -154,16 +154,37 @@ export const getMe = async (req: Request, res: Response) => {
       console.log('getMe: No user in request');
       return res.status(401).json({ message: 'Not authenticated' });
     }
-    console.log('getMe called, req.user:', req.user);
-    const user = await User.findById(req.user.id).select('-password');
-    if (!user) {
-      console.log('getMe: User not found for id:', req.user.id);
+    console.log('getMe called, req.user (from token):', req.user);
+
+    // req.user from token already has id, name, email, systemRole.
+    // We just need to ensure the user still exists and fetch fresh, non-sensitive data.
+    const userFromDb = await User.findById(req.user.id).select('-password');
+
+    if (!userFromDb) {
+      console.log('getMe: User not found in DB for id:', req.user.id);
       return res.status(401).json({ message: 'User not found' });
     }
-    console.log('getMe: User found, sending response');
+
+    // The systemRole is already in req.user (from the JWT).
+    // We trust the JWT for the role for this /me endpoint, as it's refreshed on login.
+    // If a more robust role check directly from DB is needed here, we'd query Role model.
+    // For now, let's use the role from the validated token.
+    const systemRole = req.user.systemRole;
+
+    console.log('getMe: User found, systemRole from token:', systemRole);
+    
     res.json({ 
       success: true,
-      data: { user }
+      data: { 
+        user: {
+          id: userFromDb._id,
+          name: userFromDb.name,
+          email: userFromDb.email,
+          avatar: userFromDb.avatar,
+          emailNotifications: userFromDb.emailNotifications,
+          systemRole: systemRole, // Include systemRole from the token
+        } 
+      }
     });
   } catch (error: any) {
     console.error('getMe error:', error);

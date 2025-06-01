@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
+import { SystemRoleType } from '../types/roles';
 
 export interface User {
   _id: string;
@@ -8,6 +9,7 @@ export interface User {
   email: string;
   avatar?: string;
   emailNotifications: boolean;
+  systemRole?: SystemRoleType | null;
 }
 
 interface LoginCredentials {
@@ -84,7 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = async () => {
     try {
       console.log('Fetching user data...');
-      const response = await axiosInstance.get<{ success: boolean; data: { user: User } }>('/auth/me');
+      const response = await axiosInstance.get<{ 
+        success: boolean; 
+        data: { 
+          user: User
+        } 
+      }>('/auth/me');
       const token = localStorage.getItem('token');
       
       console.log('User data fetched successfully:', response.data.data.user);
@@ -116,10 +123,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Starting login process...');
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await axiosInstance.post<{ success: boolean; data: { user: User; token: string } }>('/auth/login', credentials);
+      const response = await axiosInstance.post<{ 
+        success: boolean; 
+        data: { 
+          user: User;
+          token: string 
+        }
+      }>('/auth/login', credentials);
       const { user, token } = response.data.data;
       
-      console.log('Login API successful, user:', user.email);
+      console.log('Login API successful, user:', user.email, 'Role:', user.systemRole);
       
       // Set token and headers first
       localStorage.setItem('token', token);
@@ -160,8 +173,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Starting registration process...');
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await axiosInstance.post<{ success: boolean; data: { user: User; token: string } }>('/auth/register', credentials);
+      const response = await axiosInstance.post<{ 
+        success: boolean; 
+        data: { 
+          user: User;
+          token: string 
+        } 
+      }>('/auth/register', credentials);
       const { user, token } = response.data.data;
+
+      console.log('Register API successful, user:', user.email, 'Role:', user.systemRole);
       
       localStorage.setItem('token', token);
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
