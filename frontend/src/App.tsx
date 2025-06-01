@@ -77,6 +77,26 @@ function AppRoutes() {
   }, []);
 
   useEffect(() => {
+    let intendedPath = '';
+    // Check if the path is in location.search like "?/login"
+    if (location.search.startsWith('?/') && (location.pathname === '/' || location.pathname === appBasename || location.pathname === appBasename + '/')) {
+      intendedPath = location.search.substring(1); // Removes the initial '?'
+      console.log(`[App.tsx] Detected path in location.search: "${intendedPath}"`);
+      
+      // Clear the search to prevent re-processing and clean up URL
+      // Using navigate with replace: true and current pathname but empty search
+      navigate(location.pathname, { replace: true, state: location.state }); 
+
+      // Prepend slash if missing, as navigate expects paths like '/login'
+      if (!intendedPath.startsWith('/')) {
+        intendedPath = '/' + intendedPath;
+      }
+      
+      console.log(`[App.tsx] Navigating to path from location.search: "${intendedPath}"`);
+      navigate(intendedPath, { replace: true });
+      return; // Exit early as we've handled this specific case
+    }
+
     const sessionPath = sessionStorage.getItem('spa_redirect_path');
     const sessionSearch = sessionStorage.getItem('spa_redirect_search');
 
@@ -100,14 +120,18 @@ function AppRoutes() {
 
       const fullRedirectTarget = pathToNavigate + (sessionSearch || '');
 
-      if (location.pathname === '/') {
-        console.log(`[App.tsx] SPA Redirect: Navigating from SPA root ("${location.pathname}") to internal path: "${fullRedirectTarget}" (original sessionPath: "${sessionPath}", basename: "${appBasename}")`);
+      // The original condition "location.pathname === '/'" might be too restrictive with basename
+      // Let's check if the current path is essentially the base path or root.
+      const isAtBasePath = location.pathname === '/' || location.pathname === appBasename || location.pathname === appBasename + '/';
+
+      if (isAtBasePath) {
+        console.log(`[App.tsx] SPA Redirect: Navigating from SPA base ("${location.pathname}") to internal path: "${fullRedirectTarget}" (original sessionPath: "${sessionPath}", basename: "${appBasename}")`);
         navigate(fullRedirectTarget, { replace: true });
       } else {
-        console.warn(`[App.tsx] SPA Redirect: Current SPA path is "${location.pathname}", not root. Aborting session redirect to "${fullRedirectTarget}".`);
+        console.warn(`[App.tsx] SPA Redirect: Current SPA path is "${location.pathname}", not base. Aborting session redirect to "${fullRedirectTarget}".`);
       }
     }
-  }, [navigate, location.pathname, appBasename]);
+  }, [navigate, location.pathname, location.search, appBasename]);
 
   return (
     <Routes>
