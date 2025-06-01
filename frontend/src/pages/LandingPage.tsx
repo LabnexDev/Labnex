@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './LandingPage.css';
-import { addWaitlistEntry } from '../../api/statsApi';
+import { addWaitlistEntry } from '../api/statsApi';
 
 // Import background components
 import OrbBackground from '../components/visual/OrbBackground';
