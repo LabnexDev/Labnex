@@ -31,6 +31,7 @@ import { Toaster } from 'react-hot-toast';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import LandingPage from './pages/LandingPage';
 import { SystemRoleType } from './types/roles';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -147,6 +148,10 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<LandingPage />} />
+      <Route
+        path="/admin/dashboard"
+        element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
+      />
       <Route
         path="/dashboard"
         element={<PrivateRoute><Dashboard /></PrivateRoute>}
