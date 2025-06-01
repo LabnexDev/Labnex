@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { SystemRoleType } from '../models/roleModel';
 import cookieParser from 'cookie-parser';
 
-interface JwtPayload {
+export interface JwtPayload {
   id: string;
   name: string;
   email: string;

@@ -4,11 +4,10 @@ import { TestRun } from '../models/TestRun';
 import { Project } from '../models/Project';
 import { Role } from '../models/roleModel';
 import OpenAI from 'openai';
+import { JwtPayload } from '../middleware/auth';
 
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
+  user?: JwtPayload;
 }
 
 // Initialize OpenAI (assuming you have this setup already)
@@ -19,7 +18,7 @@ const openai = new OpenAI({
 export const generateTestCase = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -103,7 +102,7 @@ Example format:
 export const optimizeTestSuite = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -111,7 +110,7 @@ export const optimizeTestSuite = async (req: AuthRequest, res: Response) => {
     const { codeChanges } = req.body;
 
     // Check project access
-    const hasAccess = await checkProjectAccess(projectId, currentUser._id);
+    const hasAccess = await checkProjectAccess(projectId, currentUser.id);
     if (!hasAccess) {
       const projectExists = await Project.findById(projectId);
       if (!projectExists) {
@@ -215,7 +214,7 @@ Limit selection to 50% of total test cases for efficiency.`;
 export const analyzeFailure = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -231,7 +230,7 @@ export const analyzeFailure = async (req: AuthRequest, res: Response) => {
     }
 
     // Check access
-    const hasAccess = await checkProjectAccess(testRun.project._id, currentUser._id);
+    const hasAccess = await checkProjectAccess(testRun.project._id, currentUser.id);
     if (!hasAccess) {
       return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this project' });
     }
@@ -341,7 +340,7 @@ Respond with a JSON object containing:
 
 export const interpretTestStep = async (req: AuthRequest, res: Response) => {
   const currentUser = req.user;
-  if (!currentUser?._id) {
+  if (!currentUser?.id) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
@@ -416,7 +415,7 @@ Respond with ONLY the converted command. No explanations or additional text.`;
 
 export const suggestAlternative = async (req: AuthRequest, res: Response) => {
   const currentUser = req.user;
-  if (!currentUser?._id) {
+  if (!currentUser?.id) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
@@ -474,7 +473,7 @@ If you cannot suggest a clear alternative, you can respond with the original ste
 export const getDynamicSelectorSuggestion = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -627,9 +626,6 @@ Please respond with a JSON object containing:
 
 // Helper function to check project access
 async function checkProjectAccess(projectId: any, userId: string): Promise<boolean> {
-  const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: userId });
-  if (projectForOwnerCheck) return true;
-
-  const userRoleInProject = await Role.findOne({ projectId, userId });
-  return !!userRoleInProject;
+  const userRoles = await Role.find({ userId, projectId });
+  return userRoles.length > 0;
 }

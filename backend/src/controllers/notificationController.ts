@@ -4,13 +4,11 @@ import { Role, RoleType, SystemRoleType } from '../models/roleModel';
 import { Project, IProject } from '../models/Project';
 import { User } from '../models/User';
 import mongoose, { Schema, Document } from 'mongoose';
+import { JwtPayload } from '../middleware/auth';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-    name?: string;
-  };
+  user?: JwtPayload;
 }
 
 // Get all notifications for the current user
@@ -20,7 +18,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const userId = req.user._id;
+    const userId = req.user.id;
     console.log('Getting notifications for user:', userId);
 
     const notifications = await Notification.find({ userId })
@@ -44,7 +42,7 @@ export const createProjectInvite = async (req: AuthRequest, res: Response) => {
     }
 
     const { userId, projectId, roleType } = req.body;
-    const senderId = req.user._id;
+    const senderId = req.user.id;
     console.log('Creating project invite:', { userId, projectId, roleType, senderId });
 
     // Check if project exists
@@ -75,10 +73,10 @@ export const createProjectInvite = async (req: AuthRequest, res: Response) => {
 // Accept a project invite
 export const acceptProjectInvite = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || !req.user._id) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    const userId = req.user._id;
+    const userId = req.user.id;
     const { notificationId } = req.params;
 
     // Fetch the notification and ensure it includes assignedRoleType
@@ -157,10 +155,10 @@ export const acceptProjectInvite = async (req: AuthRequest, res: Response) => {
 // Reject a project invite
 export const rejectProjectInvite = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || !req.user._id) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    const userId = req.user._id;
+    const userId = req.user.id;
     const { notificationId } = req.params;
 
     const notification = await Notification.findOne({
@@ -230,7 +228,7 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
     }
 
     const { notificationId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
     console.log('Marking notification as read:', { notificationId, userId });
 
     const notification = await Notification.findOne({
@@ -257,11 +255,11 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 // Mark all notifications as read
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const userId = req.user._id;
+    const userId = req.user.id;
     console.log('Marking all notifications as read for user:', userId);
 
     await Notification.updateMany(
@@ -280,12 +278,12 @@ export const markAllAsRead = async (req: AuthRequest, res: Response) => {
 // Delete a specific notification for the current user
 export const deleteNotification = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { notificationId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.id;
     console.log('Deleting notification:', { notificationId, userId });
 
     const result = await Notification.deleteOne({

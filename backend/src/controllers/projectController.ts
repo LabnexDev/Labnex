@@ -2,12 +2,11 @@ import { Request, Response } from 'express';
 import { Project } from '../models/Project';
 import { TestCase } from '../models/TestCase';
 import { Role, RoleType, SystemRoleType } from '../models/roleModel';
+import { JwtPayload } from '../middleware/auth';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
+  user?: JwtPayload;
 }
 
 export const createProject = async (req: AuthRequest, res: Response) => {
@@ -17,7 +16,7 @@ export const createProject = async (req: AuthRequest, res: Response) => {
     console.log('Request user:', req.user);
 
     const { name, description, projectCode: rawProjectCode } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -94,15 +93,15 @@ export const createProject = async (req: AuthRequest, res: Response) => {
 export const getProjects = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    console.log('Getting projects for user:', currentUser._id);
+    console.log('Getting projects for user:', currentUser.id);
 
     // Get all projects where user is owner or member
     const projects = await Project.find({
-      $or: [{ owner: currentUser._id }, { members: currentUser._id }]
+      $or: [{ owner: currentUser.id }, { members: currentUser.id }]
     })
     .populate('owner', 'name email')
     .populate('members', 'name email')
@@ -122,7 +121,7 @@ export const getProjects = async (req: AuthRequest, res: Response) => {
           testCaseCount,
           recentTestCases,
           memberCount: project.members.length,
-          isOwner: project.owner._id.toString() === currentUser._id.toString()
+          isOwner: project.owner._id.toString() === currentUser.id.toString()
         };
       })
     );
@@ -139,17 +138,17 @@ export const getProject = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    console.log('Getting project:', { id, userId: currentUser._id });
+    console.log('Getting project:', { id, userId: currentUser.id });
 
     const project = await Project.findOne({
       _id: id,
       $or: [
-        { owner: currentUser._id },
-        { members: currentUser._id },
+        { owner: currentUser.id },
+        { members: currentUser.id },
       ],
     }).populate('owner', 'name email')
       .populate('members', 'name email');
@@ -188,16 +187,16 @@ export const updateProject = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { name, description, isActive } = req.body;
-    console.log('Updating project:', { id, userId: currentUser._id, name, description, isActive });
+    console.log('Updating project:', { id, userId: currentUser.id, name, description, isActive });
 
     const project = await Project.findOne({
       _id: id,
-      owner: currentUser._id,
+      owner: currentUser.id,
     });
 
     if (!project) {
@@ -229,15 +228,15 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    console.log('Deleting project:', { id, userId: currentUser._id });
+    console.log('Deleting project:', { id, userId: currentUser.id });
 
     const project = await Project.findOne({
       _id: id,
-      owner: currentUser._id,
+      owner: currentUser.id,
     });
 
     if (!project) {
@@ -263,14 +262,15 @@ export const deleteProject = async (req: AuthRequest, res: Response) => {
 export const getDashboardData = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    if (!currentUser?.id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
+    const userId = currentUser.id;
 
-    console.log('Getting dashboard data for user:', currentUser._id);
+    console.log('Getting dashboard data for user:', userId);
 
     const allUserProjects = await Project.find({
-      $or: [{ owner: currentUser._id }, { members: currentUser._id }]
+      $or: [{ owner: userId }, { members: userId }]
     })
     .populate('owner', 'name email') // Populate owner for isOwner check and display
     .populate('members', 'name email') // Populate members for memberCount consistency

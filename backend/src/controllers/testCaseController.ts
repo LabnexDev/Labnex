@@ -2,18 +2,17 @@ import { Request, Response } from 'express';
 import { TestCase, ITestCase } from '../models/TestCase';
 import { Project } from '../models/Project';
 import { Role, RoleType } from '../models/roleModel';
+import { JwtPayload } from '../middleware/auth';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
+  user?: JwtPayload;
 }
 
 export const createTestCase = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -21,24 +20,16 @@ export const createTestCase = async (req: AuthRequest, res: Response) => {
     const projectId = req.params.projectId;
 
     // --- Updated Permission Check ---
-    // 1. Check if user is project owner
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
 
     let hasAccess = !!projectForOwnerCheck;
-    let projectToUse = projectForOwnerCheck; // Store the fetched project
+    let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      // 2. If not owner, check if user has an active role in the project
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
-        // Optional: Further check roleType if specific permissions are needed
-        // For now, any role implies membership and basic access for test case creation.
-        // Example: if (![RoleType.TESTER, RoleType.TEST_MANAGER, RoleType.PROJECT_OWNER].includes(userRoleInProject.type)) {
-        //   return res.status(403).json({ message: 'Forbidden: Insufficient role privileges for this action' });
-        // }
         hasAccess = true;
-        // If access is granted via role, we need to fetch the project document if not already fetched as owner
-        projectToUse = await Project.findById(projectId); 
+        projectToUse = await Project.findById(projectId);
       }
     }
 
@@ -51,7 +42,6 @@ export const createTestCase = async (req: AuthRequest, res: Response) => {
     }
 
     if (!projectToUse) {
-      // This should ideally not be reached if hasAccess is true, but as a safeguard:
       console.error('Project document missing after access check for projectId:', projectId);
       return res.status(404).json({ message: 'Project not found (internal error after access check)' });
     }
@@ -63,7 +53,7 @@ export const createTestCase = async (req: AuthRequest, res: Response) => {
       steps,
       expectedResult,
       project: projectId,
-      createdBy: currentUser._id,
+      createdBy: currentUser.id,
     });
 
     res.status(201).json(testCase);
@@ -75,19 +65,19 @@ export const createTestCase = async (req: AuthRequest, res: Response) => {
 export const getTestCases = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const projectId = req.params.projectId;
 
     // --- Updated Permission Check ---
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
         hasAccess = true;
         projectToUse = await Project.findById(projectId);
@@ -121,19 +111,19 @@ export const getTestCases = async (req: AuthRequest, res: Response) => {
 export const getTestCase = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { projectId, testCaseId } = req.params;
 
     // --- Updated Permission Check ---
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
         hasAccess = true;
         projectToUse = await Project.findById(projectId);
@@ -172,7 +162,7 @@ export const getTestCase = async (req: AuthRequest, res: Response) => {
 export const updateTestCase = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -180,17 +170,13 @@ export const updateTestCase = async (req: AuthRequest, res: Response) => {
     const { title, description, steps, expectedResult, status, priority } = req.body;
 
     // --- Updated Permission Check ---
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
-        // Add more specific role checks here if needed for updates, e.g.
-        // if (![RoleType.TESTER, RoleType.TEST_MANAGER, RoleType.PROJECT_OWNER].includes(userRoleInProject.type)) {
-        //   return res.status(403).json({ message: 'Forbidden: Insufficient role privileges to update test cases.' });
-        // }
         hasAccess = true;
         projectToUse = await Project.findById(projectId);
       }
@@ -262,26 +248,25 @@ export const updateTestCase = async (req: AuthRequest, res: Response) => {
 export const deleteTestCase = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { projectId, testCaseId } = req.params;
 
     // --- Updated Permission Check ---
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
-        // Add more specific role checks here if needed for deletion, e.g.
-        // if (![RoleType.TEST_MANAGER, RoleType.PROJECT_OWNER].includes(userRoleInProject.type)) {
-        //   return res.status(403).json({ message: 'Forbidden: Insufficient role privileges to delete test cases.' });
-        // }
-        hasAccess = true;
-        projectToUse = await Project.findById(projectId);
+        if (userRoleInProject.type === RoleType.PROJECT_OWNER || userRoleInProject.type === RoleType.TEST_MANAGER) {
+            hasAccess = true;
+        } else {
+            hasAccess = false;
+        }
       }
     }
 
@@ -319,7 +304,7 @@ export const deleteTestCase = async (req: AuthRequest, res: Response) => {
 export const updateTestCaseStatus = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -332,17 +317,13 @@ export const updateTestCaseStatus = async (req: AuthRequest, res: Response) => {
     }
 
     // --- Updated Permission Check ---
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
-        // Add more specific role checks here if needed for status updates, e.g.
-        // if (![RoleType.TESTER, RoleType.TEST_MANAGER, RoleType.PROJECT_OWNER].includes(userRoleInProject.type)) {
-        //   return res.status(403).json({ message: 'Forbidden: Insufficient role privileges to update test case status.' });
-        // }
         hasAccess = true;
         projectToUse = await Project.findById(projectId);
       }
