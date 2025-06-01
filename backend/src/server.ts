@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 import { connectDB } from './config/database';
 import authRoutes from './routes/auth';
 import projectRoutes from './routes/projectRoutes';
@@ -19,6 +20,7 @@ import myTaskRoutes from './routes/myTaskRoutes';
 import testRunnerRoutes from './routes/testRunnerRoutes';
 import aiRoutes from './routes/aiRoutes';
 import statsRoutes from './routes/statsRoutes';
+import adminRoutes from './routes/adminRoutes';
 import { setupWebSocket } from './utils/websocket';
 import { createServer } from 'http';
 
@@ -38,6 +40,7 @@ app.use(cors({
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -53,6 +56,7 @@ app.use('/api/snippets', codeSnippetRoutes);
 app.use('/api/tasks', myTaskRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', testRunnerRoutes);
 
 // Health check endpoint

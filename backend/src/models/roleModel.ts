@@ -30,24 +30,25 @@ const roleSchema = new Schema<IRole>(
     type: {
       type: String,
       enum: Object.values(RoleType),
-      required: true
+      // Required if systemRole is not present
+      required: function(this: IRole) {
+        return !this.systemRole;
+      }
     },
     systemRole: {
       type: String,
       enum: Object.values(SystemRoleType),
-      required: function() {
-        // Only required for system roles (ADMIN)
-        // @ts-ignore
-        return this.type === RoleType.ADMIN;
+      // Required if type is not present
+      required: function(this: IRole) {
+        return !this.type;
       }
     },
     projectId: {
       type: Schema.Types.ObjectId,
       ref: 'Project',
-      required: function() {
-        // Required for all non-system roles
-        // @ts-ignore
-        return this.type !== RoleType.ADMIN;
+      // Required if type is present and systemRole is not (i.e., it's a project-specific role)
+      required: function(this: IRole) {
+        return !!this.type && !this.systemRole;
       }
     },
     userId: {

@@ -1,65 +1,73 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { SystemRoleType } from '../models/roleModel';
+import cookieParser from 'cookie-parser';
 
 interface JwtPayload {
   id: string;
+  name: string;
+  email: string;
+  systemRole: SystemRoleType | null;
 }
 
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        _id: string;
-      };
+      user?: JwtPayload;
     }
   }
 }
 
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   console.log(`Auth middleware: Attempting to authenticate path: ${req.path}`);
-  try {
-    console.log('Auth middleware: Request received');
-    console.log('Auth middleware: Headers:', req.headers);
-    console.log('Auth middleware: Checking authorization header');
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+  let token: string | undefined;
 
-    if (!token) {
-      console.log('Auth middleware: No token provided');
-      return res.status(401).json({ message: 'No token provided' });
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+    console.log('Auth middleware: Token found in cookie.');
+  } else {
+    const authHeader = req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
+      console.log('Auth middleware: Token found in Authorization header.');
     }
+  }
 
+  if (!token) {
+    console.log('Auth middleware: No token provided in cookie or Authorization header');
+    return res.status(401).json({ message: 'No token, authorization denied' });
+  }
+
+  try {
     console.log('Auth middleware: Verifying token');
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-      // Option 1: Exit the process (safer for production)
-      // process.exit(1);
-      // Option 2: Throw an error to be caught by a global error handler (if you have one)
-      // throw new Error('JWT_SECRET is not defined.');
-      // Option 3: For now, returning an error response. Consider a more robust shutdown for unrecoverable errors.
       return res.status(500).json({ message: 'Server configuration error: JWT_SECRET not set.' });
     }
+
     const decoded = jwt.verify(token, secret) as JwtPayload;
-    console.log('Auth middleware: Token verified, user id:', decoded.id);
+    console.log('Auth middleware: Token verified, decoded payload:', decoded);
 
-    const user = await User.findById(decoded.id);
-    console.log('Auth middleware: User lookup result:', user ? 'User found' : 'User not found');
-
-    if (!user) {
-      console.log('Auth middleware: User not found in database');
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    // Set the user ID as _id to match the model
-    req.user = { _id: user._id.toString() };
-    console.log('Auth middleware: User authenticated successfully, user:', req.user);
+    req.user = decoded;
+    
+    console.log('Auth middleware: User authenticated successfully, req.user:', req.user);
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ message: 'Token is not valid' });
     }
-    res.status(401).json({ message: 'Please authenticate' });
+    res.status(401).json({ message: 'Authentication failed' });
   }
+};
+
+// Middleware to authorize admin users
+export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user || req.user.systemRole !== SystemRoleType.ADMIN) {
+    console.log('Authorization failed: User is not an admin. User:', req.user);
+    return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  }
+  console.log('Admin authorization successful for user:', req.user.email);
+  next();
 }; 

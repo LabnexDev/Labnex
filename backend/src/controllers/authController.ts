@@ -1,17 +1,24 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { User, IUser } from '../models/User';
+import { Role, SystemRoleType } from '../models/roleModel';
 
-const generateToken = (id: string) => {
-  console.log('Generating token for user id:', id);
+const generateToken = (user: { id: string; name: string; email: string; systemRole: SystemRoleType | null }) => {
+  console.log('Generating token for user:', user.email, 'with role:', user.systemRole);
+  const payload = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    systemRole: user.systemRole,
+  };
   const token = jwt.sign(
-    { id },
+    payload,
     process.env.JWT_SECRET || 'your-secret-key',
     {
       expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     } as jwt.SignOptions
   );
-  console.log('Token generated successfully');
+  console.log('Token generated successfully for user:', user.email);
   return token;
 };
 
@@ -19,21 +26,39 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user
     const user = await User.create({
       name,
       email,
       password,
     });
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Create a default system role for the new user
+    const userRole = await Role.create({
+      userId: user._id,
+      systemRole: SystemRoleType.ADMIN, // TEMPORARILY SET TO ADMIN FOR FIRST ADMIN CREATION
+    });
+    console.log('Default system role created for new user:', user.email, 'Role:', userRole.systemRole);
+
+    // Generate token with user details and role
+    const token = generateToken({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      systemRole: userRole.systemRole as SystemRoleType, // Use the role we just created
+    });
+
+    // Set token in HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000,
+    });
 
     res.status(201).json({
       success: true,
@@ -43,12 +68,18 @@ export const register = async (req: Request, res: Response) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
+          systemRole: userRole.systemRole as SystemRoleType, // Include role in response
         },
-        token,
+        // Token is no longer sent in the body
       },
     });
   } catch (error: any) {
-    res.status(400).json({ message: error.message });
+    console.error('Registration error:', error); // Added more specific logging
+    // Check for duplicate key error for roles if the partial index isn't working as expected
+    if (error.code === 11000 && error.keyPattern && error.keyPattern["userId"] === 1 && error.keyPattern["systemRole"] === 1) {
+      return res.status(400).json({ message: 'User registration failed: Could not assign default role. This user might already have a system role.' });
+    }
+    res.status(400).json({ message: error.message || 'User registration failed' });
   }
 };
 
@@ -71,11 +102,33 @@ export const login = async (req: Request, res: Response) => {
       console.log('Login failed: Invalid password');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    console.log('Password verified successfully');
+    console.log('Password verified successfully for user:', user.email);
 
-    // Generate token
-    const token = generateToken(user._id);
-    console.log('Login successful, sending response');
+    // Fetch user's system role
+    let systemRole: SystemRoleType | null = null;
+    const roleDoc = await Role.findOne({ userId: user._id, systemRole: { $exists: true } });
+    if (roleDoc) {
+      systemRole = roleDoc.systemRole as SystemRoleType;
+    }
+    console.log('User system role determined as:', systemRole);
+
+    // Generate token with user details and role
+    const token = generateToken({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      systemRole: systemRole,
+    });
+
+    // Set token in HttpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+      sameSite: 'lax', // Or 'strict' or 'none' depending on your needs with cross-domain requests
+      maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000, // e.g., 7 days
+    });
+
+    console.log('Login successful, token cookie set for user:', user.email);
 
     res.json({
       success: true,
@@ -85,8 +138,8 @@ export const login = async (req: Request, res: Response) => {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
+          systemRole: systemRole,
         },
-        token,
       },
     });
   } catch (error: any) {
@@ -102,9 +155,9 @@ export const getMe = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Not authenticated' });
     }
     console.log('getMe called, req.user:', req.user);
-    const user = await User.findById(req.user._id).select('-password');
+    const user = await User.findById(req.user.id).select('-password');
     if (!user) {
-      console.log('getMe: User not found for id:', req.user._id);
+      console.log('getMe: User not found for id:', req.user.id);
       return res.status(401).json({ message: 'User not found' });
     }
     console.log('getMe: User found, sending response');
