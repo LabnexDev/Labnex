@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
 import bcrypt from 'bcryptjs';
+import { JwtPayload } from '../middleware/auth';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
+  user?: JwtPayload;
 }
 
 // Search users by email or name
@@ -15,7 +14,7 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
     const { query } = req.query;
     const currentUser = req.user;
 
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -25,7 +24,7 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
 
     // Search for users by email or name, excluding the current user
     const users = await User.find({
-      _id: { $ne: currentUser._id },
+      _id: { $ne: currentUser.id },
       $or: [
         { email: { $regex: query, $options: 'i' } },
         { name: { $regex: query, $options: 'i' } }
@@ -45,7 +44,7 @@ export const searchUsers = async (req: AuthRequest, res: Response) => {
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -53,14 +52,14 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 
     // Check if email is already taken by another user
     if (email) {
-      const existingUser = await User.findOne({ email, _id: { $ne: currentUser._id } });
+      const existingUser = await User.findOne({ email, _id: { $ne: currentUser.id } });
       if (existingUser) {
         return res.status(400).json({ message: 'Email is already taken' });
       }
     }
 
     const user = await User.findByIdAndUpdate(
-      currentUser._id,
+      currentUser.id,
       { name, email },
       { new: true }
     ).select('-password');
@@ -80,13 +79,13 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 export const updatePassword = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(currentUser._id);
+    const user = await User.findById(currentUser.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -113,14 +112,14 @@ export const updatePassword = async (req: AuthRequest, res: Response) => {
 export const updateNotificationPreferences = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { emailNotifications } = req.body;
 
     const user = await User.findByIdAndUpdate(
-      currentUser._id,
+      currentUser.id,
       { emailNotifications },
       { new: true }
     ).select('-password');

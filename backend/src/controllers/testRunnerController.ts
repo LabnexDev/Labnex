@@ -5,12 +5,11 @@ import { Project } from '../models/Project';
 import { Role } from '../models/roleModel';
 import WebSocket from 'ws';
 import { BrowserTestExecutor } from '../services/testAutomation/browserTestExecutor';
+import { JwtPayload } from '../middleware/auth';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
+  user?: JwtPayload;
 }
 
 // Store active WebSocket connections for real-time updates
@@ -19,7 +18,7 @@ const activeConnections = new Map<string, WebSocket[]>();
 export const createTestRun = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -27,12 +26,12 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
     const { testCases, parallel = 4, environment = 'staging', aiOptimization = false, suite, timeout } = req.body;
 
     // Check project access (following existing pattern from testCaseController)
-    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser._id });
+    const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
     let hasAccess = !!projectForOwnerCheck;
     let projectToUse = projectForOwnerCheck;
 
     if (!hasAccess) {
-      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser._id });
+      const userRoleInProject = await Role.findOne({ projectId, userId: currentUser.id });
       if (userRoleInProject) {
         hasAccess = true;
         projectToUse = await Project.findById(projectId);
@@ -87,7 +86,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
         duration: 0,
         startedAt: new Date(),
       })),
-      startedBy: currentUser._id,
+      startedBy: currentUser.id,
     });
 
     // Start the test execution asynchronously
@@ -107,7 +106,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
 export const getTestRun = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -123,7 +122,7 @@ export const getTestRun = async (req: AuthRequest, res: Response) => {
     }
 
     // Check access to the project
-    const hasAccess = await checkProjectAccess((testRun.project as any)._id, currentUser._id);
+    const hasAccess = await checkProjectAccess((testRun.project as any)._id, currentUser.id);
     if (!hasAccess) {
       return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this project' });
     }
@@ -138,7 +137,7 @@ export const getTestRun = async (req: AuthRequest, res: Response) => {
 export const getTestRunResults = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -156,7 +155,7 @@ export const getTestRunResults = async (req: AuthRequest, res: Response) => {
     }
 
     // Check access
-    const hasAccess = await checkProjectAccess((testRun.project as any)._id, currentUser._id);
+    const hasAccess = await checkProjectAccess((testRun.project as any)._id, currentUser.id);
     if (!hasAccess) {
       return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this project' });
     }
@@ -194,7 +193,7 @@ export const getTestRunResults = async (req: AuthRequest, res: Response) => {
 export const cancelTestRun = async (req: AuthRequest, res: Response) => {
   try {
     const currentUser = req.user;
-    if (!currentUser?._id) {
+    if (!currentUser?.id) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
@@ -206,7 +205,7 @@ export const cancelTestRun = async (req: AuthRequest, res: Response) => {
     }
 
     // Check access
-    const hasAccess = await checkProjectAccess(testRun.project, currentUser._id);
+    const hasAccess = await checkProjectAccess(testRun.project, currentUser.id);
     if (!hasAccess) {
       return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this project' });
     }

@@ -42,7 +42,7 @@ export const checkPermission = (requiredPermission: Permission) => {
       if (!req.user) {
         return res.status(401).json({ message: 'User not authenticated for permission check' });
       }
-      const userId = req.user._id;
+      const userId = req.user.id;
 
       // Get user's role for the project
       const role = await Role.findOne({ projectId, userId });
@@ -72,7 +72,7 @@ export const isProjectOwner = async (req: Request, res: Response, next: NextFunc
     if (!req.user) {
       return res.status(401).json({ message: 'User not authenticated for project ownership check' });
     }
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     const role = await Role.findOne({
       projectId,
