@@ -52,7 +52,7 @@ export const register = async (req: Request, res: Response) => {
       systemRole: userRole.systemRole as SystemRoleType, // Use the role we just created
     });
 
-    // Set token in HttpOnly cookie
+    // Set token in HttpOnly cookie (good for web, but client also needs it for immediate use if not relying solely on cookies for API calls)
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -70,7 +70,7 @@ export const register = async (req: Request, res: Response) => {
           avatar: user.avatar,
           systemRole: userRole.systemRole as SystemRoleType, // Include role in response
         },
-        // Token is no longer sent in the body
+        token: token,
       },
     });
   } catch (error: any) {
@@ -140,6 +140,7 @@ export const login = async (req: Request, res: Response) => {
           avatar: user.avatar,
           systemRole: systemRole,
         },
+        token: token,
       },
     });
   } catch (error: any) {
