@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './LandingPage.css';
+import { addWaitlistEntry } from '../../api/statsApi';
 
 // Import background components
 import OrbBackground from '../components/visual/OrbBackground';
@@ -94,14 +95,25 @@ const LandingPage: React.FC = () => {
     setIsSubmitted(false);
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (emailRegex.test(email)) {
       setIsEmailValid(true);
-      setIsSubmitted(true);
-      console.log('Waitlist Email Submitted:', email); // Placeholder for backend integration
-      // Here you would typically send the email to a backend or service
+      console.log('Attempting to submit waitlist email:', email);
+      try {
+        const response = await addWaitlistEntry(email);
+        if (response.success) {
+          setIsSubmitted(true);
+          console.log('Waitlist Email Submitted Successfully:', email);
+        } else {
+          console.error('Failed to add to waitlist:', response.message);
+          setIsEmailValid(false);
+        }
+      } catch (error) {
+        console.error('Error submitting waitlist email:', error);
+        setIsEmailValid(false);
+      }
     } else {
       setIsEmailValid(false);
     }
