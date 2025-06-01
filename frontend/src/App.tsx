@@ -45,14 +45,19 @@ const queryClient = new QueryClient({
 function PrivateRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
   const { user, isLoading, isAuthenticated } = useAuth();
 
-  console.log('PrivateRoute check:', { 
-    isLoading, 
-    isAuthenticated, 
-    hasUser: !!user,
-    userEmail: user?.email,
-    userRole: user?.systemRole,
-    adminOnlyRequired: adminOnly
-  });
+  console.log(
+    'PrivateRoute check:', 
+    JSON.stringify({
+      isLoading,
+      isAuthenticated,
+      hasUser: !!user,
+      userId: user?._id,
+      userEmail: user?.email,
+      userSystemRole: user?.systemRole,
+      adminOnlyRequired: adminOnly,
+      pathname: window.location.pathname + window.location.search
+    }, null, 2)
+  );
 
   if (isLoading) {
     console.log('PrivateRoute: Still loading, showing spinner');
