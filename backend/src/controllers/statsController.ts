@@ -7,6 +7,10 @@ import { User } from '../models/User';
 // import { AICommand } from '../models/AICommand';
 import { CodeSnippet } from '../models/CodeSnippet';
 import { WaitlistEntry } from '../models/WaitlistEntry';
+import { Resend } from 'resend';
+
+// Instantiate Resend with API Key from environment variable
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Fetch platform statistics
 export const getPlatformStats = async (req: Request, res: Response) => {
@@ -61,6 +65,36 @@ export const addWaitlistEntry = async (req: Request, res: Response) => {
 
     const newEntry = new WaitlistEntry({ email });
     await newEntry.save();
+
+    // Send welcome email after successfully saving to waitlist
+    try {
+      const emailHtmlContent = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #4F46E5;">🎉 You're on the Labnex Waitlist!</h2>
+          <p>Hi there,</p>
+          <p>Thanks for signing up for the Labnex waitlist! We're thrilled to have you interested in revolutionizing the development and testing workflow.</p>
+          <p>You're now officially on the list, and we'll be in touch as soon as your early access account is ready. We're working hard to get Labnex into your hands.</p>
+          <p>In the meantime, you can learn more about our vision at <a href="https://labnexdev.github.io/Labnex" style="color: #4F46E5; text-decoration: none;">labnexdev.github.io/Labnex</a>.</p>
+          <p>Stay tuned!</p>
+          <p>Best regards,<br>The Labnex Team</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;"/>
+          <p style="font-size: 0.8em; color: #777;">If you did not request to join this waitlist, please ignore this email.</p>
+        </div>
+      `;
+
+      await resend.emails.send({
+        from: 'Labnex Waitlist <onboarding@resend.dev>', // Using your Resend provided email
+        to: email,
+        subject: '🎉 You\'re on the Labnex Waitlist!',
+        html: emailHtmlContent,
+      });
+      console.log(`Welcome email sent successfully to ${email} via Resend.`);
+
+    } catch (emailError) {
+      console.error(`Failed to send welcome email to ${email}:`, emailError);
+      // Do not send error back to client for email failure, as waitlist entry was successful.
+      // The primary operation (adding to waitlist) succeeded.
+    }
 
     res.status(201).json({
       success: true,
