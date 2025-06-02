@@ -13,7 +13,7 @@ export const sendEmail = async ({
   to, 
   subject, 
   html, 
-  from = 'Labnex Onboarding <onboarding@resend.dev>' 
+  from = 'Labnex Notifications <notifications@labnex.echoaisite.online>' 
 }: EmailOptions): Promise<void> => {
   if (!process.env.RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set. Skipping email sending.');
@@ -33,17 +33,27 @@ export const sendEmail = async ({
   }
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from,
       to,
       subject,
       html,
     });
-    console.log(`Email sent successfully to ${to} with subject "${subject}"`);
-  } catch (error) {
-    console.error(`Failed to send email to ${to}:`, error);
-    // Decide if this error should be re-thrown or handled (e.g., logged to an error tracking service)
-    // For now, re-throwing to make it visible during development if sending fails.
-    throw error;
+
+    if (error) {
+      console.error(`Resend API returned an error for ${to}:`, error);
+      // throw new Error(`Resend API Error: ${error.message}`); // Optionally rethrow
+      return; // Stop further processing if Resend itself reported an error in the response object
+    }
+
+    console.log(`Email sent successfully via Resend to ${to} with subject "${subject}". Resend ID: ${data?.id}`);
+  } catch (error: any) { // Catching 'any' to inspect the error object more broadly
+    console.error(`Failed to send email to ${to} due to an exception:`, error);
+    // Log the full error object if possible, or specific properties
+    if (error.response && error.response.data) {
+      console.error('Resend error response data:', error.response.data);
+    }
+    // Decide if this error should be re-thrown or handled
+    // throw error; // Re-throwing to see it clearly in Render logs for now
   }
 }; 
