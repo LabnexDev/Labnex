@@ -184,7 +184,7 @@ export const addWaitlistEntry = async (req: Request, res: Response) => {
       `;
 
       await resend.emails.send({
-        from: 'Labnex Waitlist <onboarding@resend.dev>', // Using your Resend provided email
+        from: 'Labnex Waitlist <noreply@labnex.echoaisite.online>', // Using your Resend provided email
         to: email,
         subject: '🎉 You\'re on the Labnex Waitlist!',
         html: emailHtmlContent,
