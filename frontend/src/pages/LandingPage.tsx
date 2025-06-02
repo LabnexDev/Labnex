@@ -23,6 +23,12 @@ import FinalCTA from '../components/landing/FinalCTA';
 // Import visual components
 import AIResponseBox from '../components/visual/AIResponseBox';
 
+// Import Page Components for Modals
+import PrivacyPolicyPage from './PrivacyPolicy';
+import TermsOfServicePage from './TermsOfService';
+import SupportPage from './Support';
+import ContactPage from './Contact';
+
 // Common Button
 import { Button } from '../components/common/Button';
 
@@ -262,72 +268,28 @@ const LandingPage: React.FC = () => {
 
       {/* Info Modal for Privacy, Terms, Support, Contact */}
       {isInfoModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300">
-          <div className="relative bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-xl p-8 max-w-2xl w-full shadow-xl transform transition-transform duration-300 scale-100 max-h-[80vh] overflow-y-auto">
-            <button onClick={handleCloseInfoModal} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 p-4">
+          <div className="relative bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-xl shadow-xl transform transition-transform duration-300 scale-100 max-w-3xl w-full max-h-[90vh]">
+            <button 
+              onClick={handleCloseInfoModal} 
+              className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors z-10 p-2 rounded-full hover:bg-white/10"
+              aria-label="Close modal"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            {infoModalType === 'privacy' && (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-4">Privacy Policy</h2>
-                <p className="text-slate-400 mb-4">
-                  At Labnex, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your information.
-                </p>
-                <p className="text-slate-400 mb-4">
-                  This page is a placeholder. Full details on our privacy practices will be updated soon as we prepare for launch.
-                </p>
-                <p className="text-slate-400 mb-6">
-                  For inquiries, please contact us at labnexcontact@gmail.com.
-                </p>
-              </>
-            )}
-            {infoModalType === 'terms' && (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-4">Terms of Service</h2>
-                <p className="text-slate-400 mb-4">
-                  These Terms of Service govern your use of Labnex services. By accessing our platform, you agree to these terms.
-                </p>
-                <p className="text-slate-400 mb-4">
-                  This page is a placeholder. Full terms will be updated soon as we prepare for launch.
-                </p>
-                <p className="text-slate-400 mb-6">
-                  For inquiries, please contact us at labnexcontact@gmail.com.
-                </p>
-              </>
-            )}
-            {infoModalType === 'support' && (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-4">Support</h2>
-                <p className="text-slate-400 mb-4">
-                  We're here to help with any questions or issues you may have about Labnex.
-                </p>
-                <p className="text-slate-400 mb-4">
-                  This page is a placeholder. Full support resources will be available soon as we prepare for launch.
-                </p>
-                <p className="text-slate-400 mb-6">
-                  For immediate inquiries, please contact us at labnexcontact@gmail.com.
-                </p>
-              </>
-            )}
-            {infoModalType === 'contact' && (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-4">Contact Us</h2>
-                <p className="text-slate-400 mb-4">
-                  Have questions about Labnex? Want to learn more or get involved?
-                </p>
-                <p className="text-slate-400 mb-4">
-                  This page is a placeholder. Full contact details and forms will be available soon as we prepare for launch.
-                </p>
-                <p className="text-slate-400 mb-6">
-                  For now, reach out to us at labnexcontact@gmail.com.
-                </p>
-              </>
-            )}
-            <Button onClick={handleCloseInfoModal} variant="primary" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300 mt-4">
-              Close
-            </Button>
+            
+            {/* Scrollable Content Area - The page components themselves handle their own styling including background and padding */}
+            <div className="overflow-y-auto max-h-[calc(90vh-0rem)] rounded-xl"> {/* Adjusted max-h, pages have their own bg & padding */}
+              {infoModalType === 'privacy' && <PrivacyPolicyPage />}
+              {infoModalType === 'terms' && <TermsOfServicePage />}
+              {infoModalType === 'support' && <SupportPage />}
+              {infoModalType === 'contact' && <ContactPage />}
+            </div>
+            
+            {/* Removed the generic modal title and close button from here as pages render their own titles */}
+            {/* The close button is now absolutely positioned at the top right of the modal container */}
           </div>
         </div>
       )}

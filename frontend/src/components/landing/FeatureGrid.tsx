@@ -1,5 +1,6 @@
 import React from 'react';
 import SectionWrapper from './SectionWrapper';
+import { useNavigate } from 'react-router-dom';
 
 interface Feature {
   id: number;
@@ -12,6 +13,7 @@ interface Feature {
 }
 
 const FeatureGrid: React.FC = () => {
+  const navigate = useNavigate();
   const features: Feature[] = [
     {
       id: 1,
@@ -171,7 +173,18 @@ const FeatureGrid: React.FC = () => {
 
               {/* Learn More Link */}
               <div className="pt-4 border-t border-white/10">
-                <button onClick={() => window.dispatchEvent(new CustomEvent('openComingSoonModal', { detail: { feature: feature.title } }))} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm font-medium group/button">
+                <button 
+                  onClick={() => {
+                    if (feature.id === 1) {
+                      navigate('/features/project-management');
+                    } else if (feature.id === 2) {
+                      navigate('/features/test-case-management');
+                    } else {
+                      window.dispatchEvent(new CustomEvent('openComingSoonModal', { detail: { feature: feature.title } }));
+                    }
+                  }}
+                  className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm font-medium group/button"
+                >
                   Learn more
                   <svg className="w-4 h-4 transition-transform group-hover/button:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

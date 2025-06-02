@@ -104,6 +104,11 @@ export const login = async (req: Request, res: Response) => {
     }
     console.log('Password verified successfully for user:', user.email);
 
+    // Update lastLoginAt timestamp
+    user.lastLoginAt = new Date();
+    await user.save();
+    console.log('User lastLoginAt updated:', user.lastLoginAt);
+
     // Fetch user's system role
     let systemRole: SystemRoleType | null = null;
     const roleDoc = await Role.findOne({ userId: user._id, systemRole: { $exists: true } });

@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   avatar?: string;
   emailNotifications: boolean;
+  lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -39,6 +40,10 @@ const userSchema = new Schema<IUser>(
     emailNotifications: {
       type: Boolean,
       default: true,
+    },
+    lastLoginAt: {
+      type: Date,
+      required: false,
     },
   },
   {

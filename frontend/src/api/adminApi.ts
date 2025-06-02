@@ -64,4 +64,40 @@ export const approveWaitlistUser = async (email: string): Promise<ApprovedUserDa
   } else {
     throw new Error((response.data as AdminActionErrorResponse).message || 'Failed to approve waitlist user');
   }
+};
+
+// Interfaces for User Engagement Statistics
+export interface UserEngagementStat {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string; // ISO date string
+  lastLoginAt?: string; // ISO date string, optional
+  systemRole: SystemRoleType | null;
+  projectsOwned: number;
+  tasksCreated: number;
+  testCasesCreated: number;
+  notesCreated: number;
+  snippetsCreated: number;
+}
+
+interface GetUserEngagementStatsSuccessResponse {
+  success: true;
+  data: UserEngagementStat[];
+}
+
+/**
+ * Fetches user engagement statistics.
+ * Requires admin privileges.
+ */
+export const getUserEngagementStats = async (): Promise<UserEngagementStat[]> => {
+  const response = await axiosInstance.get<GetUserEngagementStatsSuccessResponse | AdminActionErrorResponse>(
+    '/admin/user-engagement-stats'
+  );
+  if (response.data.success) {
+    // Ensure data is UserEngagementStat[] before returning
+    return (response.data as GetUserEngagementStatsSuccessResponse).data;
+  } else {
+    throw new Error((response.data as AdminActionErrorResponse).message || 'Failed to fetch user engagement stats');
+  }
 }; 

@@ -45,4 +45,12 @@ export const updatePassword = async (data: UpdatePasswordData) => {
 export const updateNotificationPreferences = async (data: UpdateNotificationPreferencesData) => {
   const response = await axiosInstance.put<{ user: User }>('/users/notifications', data);
   return response.data;
+};
+
+// Delete own account
+export const deleteMyAccount = async (password: string): Promise<{ message: string }> => {
+  const response = await axiosInstance.delete<{ message: string }>('/users/me', {
+    data: { currentPassword: password }, // Send password in the data property for DELETE requests
+  });
+  return response.data;
 }; 

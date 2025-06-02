@@ -4,7 +4,8 @@ import { authorizeAdmin } from '../middleware/auth'; // Assuming authorizeAdmin 
 import {
   getWaitlistEntries,
   approveWaitlistUser,
-  createNewUser
+  createNewUser,
+  getUserEngagementStats
 } from '../controllers/adminController';
 
 const router = Router();
@@ -34,6 +35,15 @@ router.post(
   auth,
   authorizeAdmin,
   createNewUser
+);
+
+// Get user engagement statistics
+// GET /api/admin/user-engagement-stats
+router.get(
+  '/user-engagement-stats',
+  auth,
+  authorizeAdmin,
+  getUserEngagementStats
 );
 
 export default router; 

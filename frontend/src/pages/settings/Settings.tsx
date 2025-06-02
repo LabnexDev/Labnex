@@ -6,6 +6,7 @@ import {
   updateProfile, 
   updatePassword, 
   updateNotificationPreferences, 
+  deleteMyAccount, // Added deleteMyAccount import
   type User, // Import User type
   type UpdateProfileData, 
   type UpdatePasswordData, 
@@ -16,7 +17,7 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'; // Added LoadingSpinner import
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate for navigation
 import { CogIcon } from '@heroicons/react/24/outline'; // Example icon for integrations
 
 // Custom Toggle Switch Component
@@ -58,9 +59,10 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ id, checked, onChange, labe
 };
 
 const Settings: React.FC = () => {
-  const { user, isLoading: isUserLoading } = useAuth();
+  const { user, logout, isLoading: isUserLoading } = useAuth();
   const queryClient = useQueryClient();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [formData, setFormData] = useState({
@@ -71,6 +73,11 @@ const Settings: React.FC = () => {
     confirmPassword: '',
   });
   const [passwordError, setPasswordError] = useState('');
+
+  // State for account deletion modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deletePasswordError, setDeletePasswordError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -123,6 +130,18 @@ const Settings: React.FC = () => {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to update notification preferences.');
+    },
+  });
+
+  const deleteAccountMutation = useMutation<{ message: string }, Error, string>({
+    mutationFn: (password: string) => deleteMyAccount(password),
+    onSuccess: (data) => {
+      toast.success(data.message || 'Account deleted successfully.');
+      logout();
+      navigate('/login', { replace: true });
+    },
+    onError: (error: any) => {
+      setDeletePasswordError(error.response?.data?.message || 'Failed to delete account. Please check your password.');
     },
   });
 
@@ -180,6 +199,28 @@ const Settings: React.FC = () => {
   
   const handleNotificationToggle = (checked: boolean) => {
     notificationPrefsMutation.mutate({ emailNotifications: checked });
+  };
+
+  const openDeleteModal = () => {
+    setDeletePassword('');
+    setDeletePasswordError('');
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletePassword('');
+    setDeletePasswordError('');
+  };
+
+  const handleDeleteAccountConfirm = async () => {
+    if (!deletePassword) {
+      setDeletePasswordError('Password is required to confirm deletion.');
+      return;
+    }
+    setDeletePasswordError(''); // Clear previous errors
+    deleteAccountMutation.mutate(deletePassword);
+    // onSuccess or onError in deleteAccountMutation will handle the rest (toast, logout, redirect, or error message)
   };
 
   if (isUserLoading) {
@@ -381,6 +422,113 @@ const Settings: React.FC = () => {
         {/* Add more notification preferences here as needed */}
       </section>
 
+      {/* Delete Account Section */}
+      <section className="card p-6 sm:p-8 border-red-500/50 dark:border-red-500/30">
+        <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-1">Delete Account</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+          Permanently delete your Labnex account and all associated data. This action cannot be undone.
+        </p>
+        <Button variant="danger" onClick={openDeleteModal} disabled={deleteAccountMutation.isPending}>
+          Delete My Account
+        </Button>
+      </section>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        title="Confirm Account Deletion"
+        footer={(
+          <>
+            <Button 
+              variant="danger" 
+              onClick={handleDeleteAccountConfirm} 
+              isLoading={deleteAccountMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              Confirm Deletion
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={closeDeleteModal} 
+              disabled={deleteAccountMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+          </>
+        )}
+      >
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          This action is permanent and cannot be undone. All your projects, tasks, test cases, notes, and snippets will be deleted.
+        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Please type your current password to confirm.
+        </p>
+        <Input
+          type="password"
+          name="deletePassword"
+          value={deletePassword}
+          onChange={(e) => {
+            setDeletePassword(e.target.value);
+            if (deletePasswordError) setDeletePasswordError('');
+          }}
+          placeholder="Current Password"
+          className={`w-full ${deletePasswordError ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-500 dark:focus:border-blue-500'}`}
+          disabled={deleteAccountMutation.isPending}
+          autoFocus
+        />
+        {deletePasswordError && <p className="text-red-500 text-xs mt-1">{deletePasswordError}</p>}
+      </Modal>
+
+    </div>
+  );
+};
+
+// Modal Component (can be moved to a separate file later if preferred)
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer }) => {
+  if (!isOpen) return null;
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 p-4" aria-labelledby="modal-title" role="dialog" aria-modal="true" onClick={onClose}>
+      <div className="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md transform transition-transform duration-300 scale-100 p-6 sm:p-8" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 -mr-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800">
+            <span className="sr-only">Close modal</span>
+            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-300 space-y-4">
+          {children}
+        </div>
+        {footer && (
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-700 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            {footer}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -6,6 +6,13 @@ import crypto from 'crypto'; // For generating random passwords
 import { sendEmail } from '../utils/emailService'; // Added import
 import { getAccountCreationEmailHtml } from '../utils/emailTemplates'; // Added import
 
+// Import additional models for engagement stats
+import { Project } from '../models/Project';
+import { Task } from '../models/Task';
+import { TestCase } from '../models/TestCase';
+import { Note } from '../models/Note';
+import { CodeSnippet } from '../models/CodeSnippet';
+
 // Helper function to generate a random password
 const generateRandomPassword = (length: number = 12): string => {
   return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
@@ -179,5 +186,51 @@ export const createNewUser = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Failed to assign role. User with this email might already have a system role. User creation rolled back.'});
     }
     res.status(500).json({ success: false, message: 'Server error while creating user' });
+  }
+};
+
+/**
+ * @desc    Get user engagement statistics
+ * @route   GET /api/admin/user-engagement-stats
+ * @access  Private/Admin
+ */
+export const getUserEngagementStats = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({}).select('-password').lean(); // .lean() for plain JS objects
+    const engagementStats = [];
+
+    for (const user of users) {
+      const userId = user._id;
+
+      // Get system role
+      const roleDoc = await Role.findOne({ userId: userId, systemRole: { $exists: true } }).lean();
+
+      // Get counts of various items
+      const projectsOwnedCount = await Project.countDocuments({ owner: userId });
+      const tasksCreatedCount = await Task.countDocuments({ createdBy: userId });
+      const testCasesCreatedCount = await TestCase.countDocuments({ createdBy: userId });
+      const notesCreatedCount = await Note.countDocuments({ userId: userId });
+      const snippetsCreatedCount = await CodeSnippet.countDocuments({ userId: userId });
+
+      engagementStats.push({
+        id: userId,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
+        systemRole: roleDoc ? roleDoc.systemRole : null,
+        projectsOwned: projectsOwnedCount,
+        tasksCreated: tasksCreatedCount,
+        testCasesCreated: testCasesCreatedCount,
+        notesCreated: notesCreatedCount,
+        snippetsCreated: snippetsCreatedCount,
+      });
+    }
+
+    res.json({ success: true, data: engagementStats });
+
+  } catch (error: any) {
+    console.error('Error fetching user engagement stats:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching user engagement stats' });
   }
 }; 

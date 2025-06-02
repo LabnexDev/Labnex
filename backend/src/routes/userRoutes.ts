@@ -1,6 +1,6 @@
 import express from 'express';
 import { auth } from '../middleware/auth';
-import { searchUsers, updateProfile, updatePassword, updateNotificationPreferences } from '../controllers/userController';
+import { searchUsers, updateProfile, updatePassword, updateNotificationPreferences, deleteMyAccount } from '../controllers/userController';
 
 const router = express.Router();
 
@@ -15,5 +15,8 @@ router.put('/password', auth, updatePassword);
 
 // Update notification preferences
 router.put('/notifications', auth, updateNotificationPreferences);
+
+// Delete own account
+router.delete('/me', auth, deleteMyAccount);
 
 export default router; 

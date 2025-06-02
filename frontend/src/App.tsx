@@ -32,6 +32,8 @@ import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/
 import LandingPage from './pages/LandingPage';
 import { SystemRoleType } from './types/roles';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeaturePage';
+import TestCaseManagementFeaturePage from './pages/features/TestCaseManagementFeaturePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -153,6 +155,8 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<LandingPage />} />
+      <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
+      <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route
         path="/admin/dashboard"
         element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
