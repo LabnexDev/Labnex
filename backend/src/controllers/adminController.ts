@@ -3,6 +3,8 @@ import { User, IUser } from '../models/User';
 import { WaitlistEntry, IWaitlistEntry } from '../models/WaitlistEntry';
 import { Role, SystemRoleType, IRole } from '../models/roleModel';
 import crypto from 'crypto'; // For generating random passwords
+import { sendEmail } from '../utils/emailService'; // Added import
+import { getAccountCreationEmailHtml } from '../utils/emailTemplates'; // Added import
 
 // Helper function to generate a random password
 const generateRandomPassword = (length: number = 12): string => {
@@ -46,10 +48,19 @@ export const approveWaitlistUser = async (req: Request, res: Response) => {
     if (user) {
       // User already exists, remove from waitlist and inform admin
       await WaitlistEntry.deleteOne({ email });
+      
+      // Fetch the existing user's role
+      const existingUserRole = await Role.findOne({ userId: user._id });
+      
       return res.status(200).json({ 
         success: true, 
         message: 'User already exists. Removed from waitlist.', 
-        data: { id: user._id, name: user.name, email: user.email, systemRole: req.user?.systemRole } // Assuming role might be known or fetched
+        data: { 
+          id: user._id, 
+          name: user.name, 
+          email: user.email, 
+          systemRole: existingUserRole?.systemRole || SystemRoleType.USER // Use fetched role or fallback
+        }
       });
     }
 
@@ -73,20 +84,38 @@ export const approveWaitlistUser = async (req: Request, res: Response) => {
     // Remove from waitlist
     await WaitlistEntry.deleteOne({ _id: waitlistEntry._id });
 
-    console.log(`User ${email} approved from waitlist. Password (dev only): ${generatedPassword}`);
-    // IMPORTANT: In a real scenario, you would not log the password.
-    // You would email it or have a password reset flow.
+    // Send account creation email
+    const loginUrl = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL}/login` : 'https://labnexdev.github.io/Labnex/login'; // Define login URL
+    const emailHtml = getAccountCreationEmailHtml({
+      userName: user.name,
+      email: user.email,
+      temporaryPassword: generatedPassword,
+      loginUrl,
+    });
 
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: '🚀 Your Labnex Account is Ready!',
+        html: emailHtml,
+      });
+      console.log(`Account creation email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error(`Failed to send account creation email to ${user.email}:`, emailError);
+      // Potentially notify admin that email failed, but user was still created.
+      // For now, the main operation succeeded.
+    }
+    
+    // Update the response message to the admin
     res.status(201).json({
       success: true,
-      message: 'User created successfully from waitlist entry.',
+      message: 'User created successfully from waitlist entry. Account details emailed to user.',
       data: {
         id: user._id,
         name: user.name,
         email: user.email,
         systemRole: userRole.systemRole,
-        // Advise admin about the generated password (in a real app, this would be an email to user)
-        generatedPasswordInfo: 'A random password was generated. Inform the user or use a password reset flow.'
+        // No longer sending generatedPasswordInfo directly, as email is sent.
       },
     });
 
