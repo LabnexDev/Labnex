@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useModal } from '../contexts/ModalContext';
 import './LandingPage.css';
-import { addWaitlistEntry } from '../api/statsApi';
 
 // Import background components
 import OrbBackground from '../components/visual/OrbBackground';
@@ -23,12 +22,6 @@ import FinalCTA from '../components/landing/FinalCTA';
 
 // Import visual components
 import AIResponseBox from '../components/visual/AIResponseBox';
-
-// Import Page Components for Modals
-import PrivacyPolicyPage from './PrivacyPolicy';
-import TermsOfServicePage from './TermsOfService';
-import SupportPage from './Support';
-import ContactPage from './Contact';
 
 // Common Button
 import { Button } from '../components/common/Button';

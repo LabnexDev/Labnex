@@ -92,24 +92,19 @@ const ComingSoonModalContent: React.FC<{ closeModal: () => void; payload: ModalP
 
 const InfoModalContent: React.FC<{ closeModal: () => void; payload: ModalPayload | null }> = ({ payload }) => {
   const pageType = payload?.infoPageType;
-  let pageTitle = 'Information';
   let ContentComponent: React.ElementType | null = null;
 
   switch (pageType) {
     case 'privacy':
-      pageTitle = 'Privacy Policy';
       ContentComponent = PrivacyPolicyPage;
       break;
     case 'terms':
-      pageTitle = 'Terms of Service';
       ContentComponent = TermsOfServicePage;
       break;
     case 'support':
-      pageTitle = 'Support Center';
       ContentComponent = SupportPage;
       break;
     case 'contact':
-      pageTitle = 'Contact Us';
       ContentComponent = ContactPage;
       break;
     default:
