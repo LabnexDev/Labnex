@@ -102,9 +102,10 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.DirectMessages, // Required for DMs
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.GuildMembers
     ],
-    partials: [Partials.Channel], // Required to receive DMs
+    partials: [Partials.Channel],
 });
 console.log('[labnexAI.bot.ts] Discord client initialized.');
 
@@ -172,6 +173,7 @@ client.once(Events.ClientReady, readyClient => {
 //**********************************************************************
 import { handleInteractionCreateEvent, updateInteractionCounters } from './events/interactionCreateHandler';
 import { handleMessageCreateEvent } from './events/messageCreateHandler';
+import { handleGuildMemberAddEvent } from './events/guildMemberAdd';
 
 //**********************************************************************
 // SLASH COMMAND (INTERACTION) HANDLER
@@ -190,6 +192,14 @@ client.on(Events.MessageCreate, async message => {
     const counters = await handleMessageCreateEvent(message, client, messagesReceivedFromDiscord, messagesSentToUser);
     messagesReceivedFromDiscord = counters.updatedMessagesReceived;
     messagesSentToUser = counters.updatedMessagesSent;
+});
+
+//**********************************************************************
+// NEW MEMBER JOIN HANDLER
+//**********************************************************************
+client.on(Events.GuildMemberAdd, async member => {
+    console.log(`[labnexAI.bot.ts] Event: GuildMemberAdd - ${member.user.tag} joined ${member.guild.name}`);
+    await handleGuildMemberAddEvent(member);
 });
 
 // Bot login
