@@ -36,6 +36,8 @@ import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeat
 import TestCaseManagementFeaturePage from './pages/features/TestCaseManagementFeaturePage';
 import NotesAndSnippetsFeaturePage from './pages/features/NotesAndSnippetsFeaturePage';
 import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelopmentPlatformFeaturePage';
+import DiscordAIIntegrationFeaturePage from './pages/features/DiscordAIIntegrationFeaturePage';
+import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -161,6 +163,8 @@ function AppRoutes() {
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />
       <Route path="/features/modern-development-platform" element={<ModernDevelopmentPlatformFeaturePage />} />
+      <Route path="/features/discord-ai-integration" element={<DiscordAIIntegrationFeaturePage />} />
+      <Route path="/features/cli-automation" element={<CLIAutomationFeaturePage />} />
       <Route
         path="/admin/dashboard"
         element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
