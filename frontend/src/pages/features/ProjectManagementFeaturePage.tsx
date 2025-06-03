@@ -7,10 +7,10 @@ import OrbBackground from '../../components/visual/OrbBackground'; // Assuming s
 // Relevant icons for Project Management
 import {
   FolderOpenIcon,
-  ListBulletIcon,
-  ChartBarIcon,
-  UsersIcon,
-  ClockIcon,
+  // ListBulletIcon, // Unused
+  // ChartBarIcon, // Unused
+  // UsersIcon, // Unused
+  // ClockIcon, // Unused
   CheckCircleIcon,
   LightBulbIcon,
   WrenchScrewdriverIcon,
