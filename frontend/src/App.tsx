@@ -34,6 +34,8 @@ import { SystemRoleType } from './types/roles';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeaturePage';
 import TestCaseManagementFeaturePage from './pages/features/TestCaseManagementFeaturePage';
+import NotesAndSnippetsFeaturePage from './pages/features/NotesAndSnippetsFeaturePage';
+import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelopmentPlatformFeaturePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -157,6 +159,8 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
+      <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />
+      <Route path="/features/modern-development-platform" element={<ModernDevelopmentPlatformFeaturePage />} />
       <Route
         path="/admin/dashboard"
         element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
