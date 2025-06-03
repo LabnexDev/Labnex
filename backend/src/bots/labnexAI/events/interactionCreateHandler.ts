@@ -14,6 +14,10 @@ import {
 import { handleAddNoteSlashCommand, handleListNotesSlashCommand } from '../commands/noteCommands';
 import { handleAddSnippetSlashCommand, handleListSnippetsSlashCommand } from '../commands/snippetCommands';
 import { execute as handleSendEmbedCommand } from '../commands/sendEmbedCommand';
+// Imports for new pre-formatted embed commands
+import { execute as handleSendRulesCommand } from '../commands/sendrules';
+import { execute as handleSendInfoCommand } from '../commands/sendinfo';
+import { execute as handleSendWelcomeCommand } from '../commands/sendwelcome';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -161,6 +165,12 @@ export async function handleInteractionCreateEvent(
         await handleListSnippetsSlashCommand(interaction);
     } else if (commandName === 'sendembed') {
         await handleSendEmbedCommand(interaction as CommandInteraction<'cached'>);
+    } else if (commandName === 'sendrules') {
+        await handleSendRulesCommand(interaction as CommandInteraction<'cached'>);
+    } else if (commandName === 'sendinfo') {
+        await handleSendInfoCommand(interaction as CommandInteraction<'cached'>);
+    } else if (commandName === 'sendwelcome') {
+        await handleSendWelcomeCommand(interaction as CommandInteraction<'cached'>);
     } else {
         console.log(`[interactionCreateHandler.ts] Unrecognized slash command: ${commandName}`);
         await interactionReply("Sorry, I don't recognize that command.", true);

@@ -140,6 +140,20 @@ const commands = [
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator) // Restrict to server administrators at API level
         .setDMPermission(false), // Disable in DMs
 
+    // New Pre-formatted Embed Commands
+    new SlashCommandBuilder().setName('sendrules')
+        .setDescription('Sends the Labnex server rules embed.')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+        .setDMPermission(false),
+    new SlashCommandBuilder().setName('sendinfo')
+        .setDescription('Sends the Labnex server information embed.')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+        .setDMPermission(false),
+    new SlashCommandBuilder().setName('sendwelcome')
+        .setDescription('Sends the Labnex welcome embed for new members.')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+        .setDMPermission(false),
+
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN);
