@@ -72,6 +72,7 @@ const FeatureGrid: React.FC = () => {
       title: "Notes & Code Snippets",
       description: "Capture ideas, code snippets, and notes. Keep them organized and accessible via both web interface and Discord.",
       category: "Productivity",
+      badge: "Core Feature",
       benefits: ["Note organization", "Code snippet management", "Cross-platform access"],
       icon: (
         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +85,7 @@ const FeatureGrid: React.FC = () => {
       title: "Modern Development Platform",
       description: "Built with modern technologies including React, Node.js, and MongoDB for reliable performance and scalability.",
       category: "Platform",
-      badge: "Beta",
+      badge: "Core Platform",
       benefits: ["Modern tech stack", "Responsive design", "Secure authentication"],
       icon: (
         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,6 +180,14 @@ const FeatureGrid: React.FC = () => {
                       navigate('/features/project-management');
                     } else if (feature.id === 2) {
                       navigate('/features/test-case-management');
+                    } else if (feature.id === 3) {
+                      navigate('/features/discord-ai-integration');
+                    } else if (feature.id === 4) {
+                      navigate('/features/cli-automation');
+                    } else if (feature.id === 5) {
+                      navigate('/features/notes-and-snippets');
+                    } else if (feature.id === 6) {
+                      navigate('/features/modern-development-platform');
                     } else {
                       window.dispatchEvent(new CustomEvent('openComingSoonModal', { detail: { feature: feature.title } }));
                     }

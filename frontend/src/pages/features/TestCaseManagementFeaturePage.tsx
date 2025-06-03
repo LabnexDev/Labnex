@@ -169,15 +169,18 @@ const TestCaseManagementFeaturePage: React.FC = () => {
           </div>
 
           <div className="mt-16 text-center">
-            <p className="text-lg text-slate-300 mb-6">Elevate your quality assurance with Labnex.</p>
+            <p className="text-lg text-slate-300 mb-6">Ready to elevate your quality assurance with Labnex?</p>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
-              className="px-8 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
+              className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
-              Join Waitlist & Guide Our QA Tools
+              Join the Waitlist
             </button>
-            <p className="text-sm text-slate-500 mt-4">
-              Or, <button onClick={() => navigate(-1)} className="text-teal-400 hover:underline">explore other upcoming features</button>.
+            <p className="text-slate-400 mt-6">
+              Have feedback or suggestions? <a href="mailto:labnexcontact@gmail.com" className="text-cyan-400 hover:underline">We'd love to hear from you!</a>
+            </p>
+            <p className="text-sm text-slate-500 mt-3">
+              Or, <button onClick={() => navigate(-1)} className="text-cyan-400 hover:underline">explore other Labnex features</button>.
             </p>
           </div>
         </div>

@@ -177,15 +177,18 @@ const ProjectManagementFeaturePage: React.FC = () => {
 
           {/* Call to Action / Next Steps */}
           <div className="mt-16 text-center">
-            <p className="text-lg text-slate-300 mb-6">Help shape the future of project management in Labnex!</p>
+            <p className="text-lg text-slate-300 mb-6">Ready to take control of your projects with Labnex?</p>
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
+              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
-              Join the Waitlist & Share Feedback
+              Sign Up for Early Access
             </button>
-            <p className="text-sm text-slate-500 mt-4">
-              Or, <button onClick={() => navigate(-1)} className="text-purple-400 hover:underline">explore other upcoming features</button>.
+            <p className="text-slate-400 mt-6">
+              Have feedback or suggestions? <a href="mailto:labnexcontact@gmail.com" className="text-emerald-400 hover:underline">We'd love to hear from you!</a>
+            </p>
+            <p className="text-sm text-slate-500 mt-3">
+              Or, <button onClick={() => navigate(-1)} className="text-emerald-400 hover:underline">explore other Labnex features</button>.
             </p>
           </div>
         </div>
