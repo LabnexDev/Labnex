@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground';
 import OrbBackground from '../../components/visual/OrbBackground';
+import { useModal } from '../../contexts/ModalContext';
 
 // Relevant icons for CLI Automation
 import {
@@ -26,6 +27,7 @@ interface BenefitDetail {
 
 const CLIAutomationFeaturePage: React.FC = () => {
   const navigate = useNavigate();
+  const { openModal } = useModal();
 
   const benefits: BenefitDetail[] = [
     {
@@ -182,7 +184,7 @@ const CLIAutomationFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Ready to automate your development process with Labnex CLI?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} // Or link to docs/download
+              onClick={() => openModal('waitlist')}
               className="px-8 py-4 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
               Join Waitlist for CLI Updates

@@ -39,6 +39,8 @@ import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelop
 import DiscordAIIntegrationFeaturePage from './pages/features/DiscordAIIntegrationFeaturePage';
 import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage';
 import TechStackFeaturePage from './pages/features/TechStackFeaturePage';
+import { ModalProvider } from './contexts/ModalContext';
+import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -307,15 +309,18 @@ function AppContent() {
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </Router>
+    <ModalProvider>
+      <Router basename={import.meta.env.BASE_URL}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+        <GlobalModalRenderer />
+      </Router>
+    </ModalProvider>
   );
 }
 

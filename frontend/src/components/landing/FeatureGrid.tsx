@@ -1,6 +1,7 @@
 import React from 'react';
 import SectionWrapper from './SectionWrapper';
 import { useNavigate } from 'react-router-dom';
+import { useModal } from '../../contexts/ModalContext';
 
 interface Feature {
   id: number;
@@ -14,6 +15,7 @@ interface Feature {
 
 const FeatureGrid: React.FC = () => {
   const navigate = useNavigate();
+  const { openModal } = useModal();
   const features: Feature[] = [
     {
       id: 1,
@@ -189,7 +191,7 @@ const FeatureGrid: React.FC = () => {
                     } else if (feature.id === 6) {
                       navigate('/features/modern-development-platform');
                     } else {
-                      window.dispatchEvent(new CustomEvent('openComingSoonModal', { detail: { feature: feature.title } }));
+                      openModal('comingSoon', { featureName: feature.title });
                     }
                   }}
                   className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors duration-300 text-sm font-medium group/button"
@@ -214,7 +216,7 @@ const FeatureGrid: React.FC = () => {
           <p className="text-slate-400 mb-6 leading-relaxed">
             Join early adopters building better software with Labnex.
           </p>
-          <button onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <button onClick={() => openModal('waitlist')} className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             Start Building Today
           </button>
         </div>

@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <a
-              href="https://discord.gg/Kx5HrvMB"
+              href="https://discord.gg/4jPvtrF4"
               target="_blank"
               rel="noopener noreferrer"
               title="Join our Discord server"

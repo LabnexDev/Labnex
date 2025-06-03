@@ -1,8 +1,11 @@
 import React from 'react';
 import { Button } from '../common/Button';
 import SectionWrapper from './SectionWrapper';
+import { useModal } from '../../contexts/ModalContext';
 
 const FinalCTA: React.FC = () => {
+  const { openModal } = useModal();
+
   return (
     <SectionWrapper 
       backgroundType="gradient"
@@ -42,7 +45,7 @@ const FinalCTA: React.FC = () => {
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300" />
               <Button 
-                onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
+                onClick={() => openModal('waitlist')}
                 variant="primary"
                 size="lg" 
                 className="relative px-8 py-4 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl border border-white/10 shadow-xl transition-all duration-300 hover:scale-[1.02]"
@@ -57,7 +60,7 @@ const FinalCTA: React.FC = () => {
             </div>
             
             <Button 
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
+              onClick={() => openModal('waitlist')}
               variant="secondary"
               size="lg" 
               className="px-8 py-4 text-lg font-semibold bg-white/5 backdrop-blur-md border border-white/10 text-slate-200 hover:bg-white/10 hover:text-white rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02]"
@@ -110,10 +113,10 @@ const FinalCTA: React.FC = () => {
         <div className="mt-16 text-center">
           <div className="flex flex-wrap justify-center items-center gap-8 text-slate-500 text-sm">
             {[
-              { text: "Privacy Policy", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'privacy' } })) },
-              { text: "Terms of Service", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'terms' } })) },
-              { text: "Support", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'support' } })) },
-              { text: "Contact", action: () => window.dispatchEvent(new CustomEvent('openInfoModal', { detail: { type: 'contact' } })) }
+              { text: "Privacy Policy", action: () => openModal('info', { infoPageType: 'privacy' }) },
+              { text: "Terms of Service", action: () => openModal('info', { infoPageType: 'terms' }) },
+              { text: "Support", action: () => openModal('info', { infoPageType: 'support' }) },
+              { text: "Contact", action: () => openModal('info', { infoPageType: 'contact' }) }
             ].map((link, index) => (
               <button key={index} onClick={link.action} className="hover:text-slate-300 transition-colors duration-300">
                 {link.text}

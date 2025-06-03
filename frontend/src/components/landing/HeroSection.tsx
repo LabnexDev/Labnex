@@ -1,7 +1,10 @@
 import React from 'react';
 import { Button } from '../common/Button';
+import { useModal } from '../../contexts/ModalContext';
 
 const HeroSection: React.FC = () => {
+  const { openModal } = useModal();
+
   const scrollToId = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -58,7 +61,7 @@ const HeroSection: React.FC = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-300" />
             
             <Button 
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} 
+              onClick={() => openModal('waitlist')}
               variant="primary"
               size="lg" 
               className="relative px-8 py-4 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl border border-white/10 shadow-xl transition-all duration-300 hover:scale-[1.02]"

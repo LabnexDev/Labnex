@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useModal } from '../contexts/ModalContext';
 import './LandingPage.css';
 import { addWaitlistEntry } from '../api/statsApi';
 
@@ -60,79 +61,11 @@ export interface AIPowerItem {
 }
 
 const LandingPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [isEmailValid, setIsEmailValid] = useState(true);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false);
-  const [comingSoonFeature, setComingSoonFeature] = useState('');
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [infoModalType, setInfoModalType] = useState('');
-
-  useEffect(() => {
-    const handleOpenModal = () => setIsModalOpen(true);
-    window.addEventListener('openWaitlistModal', handleOpenModal);
-    const handleOpenComingSoonModal = (event: CustomEvent) => {
-      setComingSoonFeature(event.detail.feature || 'This Feature');
-      setIsComingSoonModalOpen(true);
-    };
-    window.addEventListener('openComingSoonModal', handleOpenComingSoonModal as EventListener);
-    const handleOpenInfoModal = (event: CustomEvent) => {
-      setInfoModalType(event.detail.type || '');
-      setIsInfoModalOpen(true);
-    };
-    window.addEventListener('openInfoModal', handleOpenInfoModal as EventListener);
-    return () => {
-      window.removeEventListener('openWaitlistModal', handleOpenModal);
-      window.removeEventListener('openComingSoonModal', handleOpenComingSoonModal as EventListener);
-      window.removeEventListener('openInfoModal', handleOpenInfoModal as EventListener);
-    };
-  }, []);
+  const { openModal } = useModal();
 
   const handleWaitlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEmail('');
-    setIsEmailValid(true);
-    setIsSubmitted(false);
-  };
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (emailRegex.test(email)) {
-      setIsEmailValid(true);
-      console.log('Attempting to submit waitlist email:', email);
-      try {
-        const response = await addWaitlistEntry(email);
-        if (response.success) {
-          setIsSubmitted(true);
-          console.log('Waitlist Email Submitted Successfully:', email);
-        } else {
-          console.error('Failed to add to waitlist:', response.message);
-          setIsEmailValid(false);
-        }
-      } catch (error) {
-        console.error('Error submitting waitlist email:', error);
-        setIsEmailValid(false);
-      }
-    } else {
-      setIsEmailValid(false);
-    }
-  };
-
-  const handleCloseComingSoonModal = () => {
-    setIsComingSoonModalOpen(false);
-    setComingSoonFeature('');
-  };
-
-  const handleCloseInfoModal = () => {
-    setIsInfoModalOpen(false);
-    setInfoModalType('');
+    openModal('waitlist');
   };
 
   // Data for WorkflowSteps component
@@ -210,89 +143,7 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Waitlist Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300">
-          <div className="relative bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-xl p-8 max-w-md w-full shadow-xl transform transition-transform duration-300 scale-100">
-            <button onClick={handleCloseModal} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="text-2xl font-bold text-white mb-4">Join the Labnex Waitlist</h2>
-            <p className="text-slate-400 mb-6">Be the first to experience Labnex. Enter your email to get early access.</p>
-            {!isSubmitted ? (
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
-                <div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className={`w-full px-4 py-2 bg-slate-800/80 border ${isEmailValid ? 'border-slate-700' : 'border-red-500'} rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                  />
-                  {!isEmailValid && <p className="text-red-400 text-sm mt-1">Please enter a valid email address.</p>}
-                </div>
-                <Button type="submit" variant="primary" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300">
-                  Join Waitlist
-                </Button>
-              </form>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-emerald-400 font-medium mb-4">Thanks for joining! We'll notify you soon.</p>
-                <Button onClick={handleCloseModal} variant="secondary" className="bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all duration-300">
-                  Got it
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Coming Soon Modal */}
-      {isComingSoonModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300">
-          <div className="relative bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-xl p-8 max-w-md w-full shadow-xl transform transition-transform duration-300 scale-100">
-            <button onClick={handleCloseComingSoonModal} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="text-2xl font-bold text-white mb-4">{comingSoonFeature} - Coming Soon</h2>
-            <p className="text-slate-400 mb-6">We are still in development, and this feature is not yet available. Join our waitlist to be notified when it's ready!</p>
-            <Button onClick={handleCloseComingSoonModal} variant="primary" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300">
-              Got it
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Info Modal for Privacy, Terms, Support, Contact */}
-      {isInfoModalOpen && (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-300 p-4">
-          <div className="relative bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-xl shadow-xl transform transition-transform duration-300 scale-100 max-w-3xl w-full max-h-[90vh]">
-            <button 
-              onClick={handleCloseInfoModal} 
-              className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors z-10 p-2 rounded-full hover:bg-white/10"
-              aria-label="Close modal"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Scrollable Content Area - The page components themselves handle their own styling including background and padding */}
-            <div className="overflow-y-auto max-h-[calc(90vh-0rem)] rounded-xl"> {/* Adjusted max-h, pages have their own bg & padding */}
-              {infoModalType === 'privacy' && <PrivacyPolicyPage />}
-              {infoModalType === 'terms' && <TermsOfServicePage />}
-              {infoModalType === 'support' && <SupportPage />}
-              {infoModalType === 'contact' && <ContactPage />}
-            </div>
-            
-            {/* Removed the generic modal title and close button from here as pages render their own titles */}
-            {/* The close button is now absolutely positioned at the top right of the modal container */}
-          </div>
-        </div>
-      )}
+      {/* Waitlist Modal JSX has been removed. It is now handled by GlobalModalRenderer. */}
 
       {/* Page Sections - Strategically Arranged for Maximum Impact */}
       <HeroSection />
