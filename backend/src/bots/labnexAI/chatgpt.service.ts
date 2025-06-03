@@ -1,9 +1,102 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import * as fs from 'fs/promises'; // Added for RAG
+import * as path from 'path'; // Added for RAG
 
 dotenv.config();
 
 const openaiApiKey = process.env.OPENAI_API_KEY;
+
+// Cache for RAG
+const documentationCache: { [key: string]: string } = {};
+const documentationFolderPath = path.join(__dirname, '../../../../frontend/public/documentation_md/topics/'); // Adjusted path relative to this file's compiled location in 'dist'
+
+// Function to load documentation into the cache
+async function loadDocumentation(): Promise<void> {
+    console.log('[loadDocumentation] Attempting to load documentation from:', documentationFolderPath);
+    const filesToLoad = [
+        'getting-started.md', 'cli-usage.md', 'introduction.md', 'website-usage.md',
+        'faq.md', 'developer-guide.md', 'api-reference.md', 'bot-note-snippet.md',
+        'discord-bot-usage.md', 'bot-commands.md', 'user-settings.md', 'notes-snippets.md',
+        'test-case-management.md', 'task-management.md', 'project-management.md',
+        'dashboard.md', 'discord-linking.md', 'account-creation.md', 'advanced-topics.md'
+    ];
+
+    for (const fileName of filesToLoad) {
+        try {
+            const filePath = path.join(documentationFolderPath, fileName);
+            const content = await fs.readFile(filePath, 'utf-8');
+            const key = path.basename(fileName, '.md');
+            documentationCache[key] = content;
+            console.log(`[loadDocumentation] Loaded ${fileName} into cache as ${key}.`);
+        } catch (error: any) {
+            console.error(`[loadDocumentation] Error loading ${fileName}:`, error.message);
+        }
+    }
+    if (Object.keys(documentationCache).length > 0) {
+        console.log('[loadDocumentation] Documentation loaded successfully. Cache size:', Object.keys(documentationCache).length);
+    } else {
+        console.warn('[loadDocumentation] No documentation was loaded. Please check paths and file permissions.');
+    }
+}
+
+// Load documentation when the module starts
+loadDocumentation().catch(error => {
+    console.error("[loadDocumentation] Critical error during initial documentation load:", error);
+});
+
+// Function to find relevant documentation based on keywords
+function findRelevantDocumentation(query: string): string | null {
+    if (Object.keys(documentationCache).length === 0) {
+        console.warn("[findRelevantDocumentation] Documentation cache is empty. Cannot search.");
+        return null;
+    }
+
+    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 2); // Simple tokenizer, ignore small words
+    if (queryWords.length === 0) {
+        return null;
+    }
+
+    let bestMatchContent: string | null = null;
+    let maxMatches = 0;
+
+    console.log(`[findRelevantDocumentation] Searching for query: "${query}", using words: ${queryWords.join(', ')}`);
+
+    for (const key in documentationCache) {
+        const content = documentationCache[key];
+        const contentLower = content.toLowerCase();
+        let currentMatches = 0;
+
+        for (const word of queryWords) {
+            if (contentLower.includes(word)) {
+                currentMatches++;
+            }
+        }
+
+        // Prioritize documents with more matches
+        if (currentMatches > maxMatches) {
+            maxMatches = currentMatches;
+            bestMatchContent = content;
+            console.log(`[findRelevantDocumentation] New best match: ${key} with ${currentMatches} matches.`);
+        }
+    }
+
+    // Only return content if there's a reasonable number of matches (e.g., > 1 or a certain percentage)
+    // This threshold might need tuning.
+    if (maxMatches > 1) { // Let's say we need at least 2 keyword matches
+        console.log(`[findRelevantDocumentation] Found relevant doc with ${maxMatches} matches. Returning content.`);
+        // We could potentially return a snippet here instead of the full document for very long docs.
+        // For now, returning full content, truncated if too long for the LLM context.
+        const MAX_DOC_LENGTH_FOR_CONTEXT = 3000; // Characters, adjust as needed
+        if (bestMatchContent && bestMatchContent.length > MAX_DOC_LENGTH_FOR_CONTEXT) {
+            return bestMatchContent.substring(0, MAX_DOC_LENGTH_FOR_CONTEXT) + "... (content truncated)";
+        }
+        return bestMatchContent;
+    }
+
+    console.log("[findRelevantDocumentation] No sufficiently relevant documentation found.");
+    return null;
+}
 
 if (!openaiApiKey) {
     console.warn('Warning: OPENAI_API_KEY is not set. ChatGPT functionality will be disabled.');
@@ -100,19 +193,48 @@ export async function askChatGPT(question: string, conversationHistory?: OpenAI.
         return "I'm sorry, but my connection to the OpenAI service is not configured. Please tell my administrator.";
     }
 
-    // Add a system message to guide the AI. This should be refined.
-    const systemMessage = `You are Labnex AI, a helpful assistant for the Labnex test case management application. 
-    Your goal is to answer user questions about how to use Labnex, its features, and best practices for test management. 
-    Be concise and helpful. If you don't know the answer, say so. Do not make up features that don't exist. 
+    let relevantDocContent = findRelevantDocumentation(question);
+
+    // Base system message
+    let systemMessageContent = `You are Labnex AI, a helpful assistant for the Labnex test case management application. 
+    Your goal is to answer user questions about how to use Labnex, its features, and best practices for test management.`;
+
+    // Dynamically add to system message if relevant docs are found
+    if (relevantDocContent) {
+        systemMessageContent += `\n\nRelevant Information from Labnex Documentation (use this to answer the user's current question if applicable):
+---
+${relevantDocContent}
+---
+When answering, if you use this information, you can subtly indicate it comes from Labnex's resources, but avoid phrases like 'According to the documentation I found...'. Instead, integrate the information naturally. If the provided information doesn't directly answer the question, rely on your general knowledge.`;
+    } else {
+        systemMessageContent += `
+    You have access to and should refer to the official Labnex documentation for detailed information. Key documentation topics include:
+    - Introduction to Labnex, Getting Started, Account Creation
+    - Project Management, Test Case Management, Task Management
+    - Dashboard, Website Usage, User Settings
+    - CLI Usage, API Reference, Developer Guide
+    - Discord Bot Usage, Bot Commands, Discord Linking
+    - Notes & Snippets, FAQ, and Advanced Topics.
+    When a user's question can be answered using this documentation, prioritize information from it.`;
+    }
+    
+    systemMessageContent += `
+    Be concise and helpful. If you don't know the answer or the information isn't in the documentation, say so. Do not make up features that don't exist. 
     Refer to Labnex components and concepts accurately. For example, users create 'Projects', then 'Test Cases' within those projects. 
     Test cases have 'steps', 'expected results', 'status' (e.g., pass, fail, pending), and 'priority' (e.g., LOW, MEDIUM, HIGH).
     Labnex supports team collaboration through project invites and roles (e.g., PROJECT_OWNER, TESTER).
     The UI has a dashboard, project details pages, test case lists, and a notification center.
+
+    You should also be able to discuss:
+    - The Labnex CLI: its commands, installation, and common use cases.
+    - Current waitlist status for new features or access, if applicable (you may need to state if this information is not available to you).
+    - General development status or roadmap insights for Labnex, if this information is publicly available or provided to you.
+
     When reviewing conversation history, if a previous turn involved listing items (e.g., projects, notes, tasks) and the user asks a follow-up question like "What do you think about the first one?" or "Tell me more about [item from the list]", use the prior assistant message from the history to understand which item they are referring to.
     Provide insightful and relevant comments if the user asks for your opinion on their project or plans based on the context.`;
 
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-        { role: "system", content: systemMessage }
+        { role: "system", content: systemMessageContent }
     ];
 
     if (conversationHistory) {
@@ -250,317 +372,209 @@ export async function getIntentAndEntitiesFromQuery(
 ): Promise<NLUResponse | null> {
     if (!openai) {
         console.error("[getIntentAndEntitiesFromQuery] OpenAI service not configured.");
-        // Return a specific structure or throw an error that can be handled upstream
-        return {
-            intent: "error",
-            entities: { "error_message": "OpenAI service not configured." },
-            original_query: query
-        };
+        return null;
     }
 
-    const systemPrompt = `
-Your task is to act as a Natural Language Understanding (NLU) engine for the Labnex Discord Bot.
-Analyze the user's query and identify their primary intent and any relevant entities.
-Return the output as a JSON object with the following structure:
-{
-  "intent": "PRIMARY_INTENT",
-  "entities": {
-    "entity_name_1": "value_1",
-    "entity_name_2": "value_2"
-  },
-  "original_query": "The user's original unaltered query"
-}
+    // System prompt for intent extraction, designed for JSON mode
+    const systemPromptIntentExtraction = `
+    You are an NLU (Natural Language Understanding) engine for Labnex AI, a Discord bot assistant for the Labnex platform. 
+    Your task is to analyze the user's query and determine their intent and any relevant entities. 
+    The Labnex platform involves features like Projects, Test Cases, Tasks, Notes, and Code Snippets. 
+    Users can link their Discord accounts to their Labnex accounts.
+    
+    Respond ONLY with a JSON object matching the NLUResponse interface:
+    { "intent": "string", "entities": { "key": "value" }, "confidence": number, "processed_query": "string", "original_query": "string", "answer_suggestion": "string (optional)" }
 
-Primary Intents to recognize:
-- "create_task": User wants to create a new task.
-  - Entities: "project_name", "task_title", "task_description", "priority", "due_date"
-- "list_tasks": User wants to list tasks, possibly for a specific project.
-  - Entities: "project_name", "status", "priority"
-- "get_task_details": User wants to see details for a specific task.
-  - Entities: "task_identifier" (This could be a task ID like "TSK-123" or a partial title like "login button fix")
-- "update_task_status": User wants to change the status of a task.
-  - Entities: "task_identifier", "new_status"
-- "create_project": User wants to create a new project (this might be a multi-step NLU interaction or a direct command).
-  - Entities: "project_name", "project_description", "project_code" (less common for NLU, more for setup command)
-- "list_projects": User wants to list their projects.
-  - Entities: None typically, but could have filters like "active" if supported.
-- "get_project_details": User wants details for a specific project.
-  - Entities: "project_identifier" (name or ID)
-- "add_note": User wants to add a note.
-  - Entities: "note_title", "note_content", "project_name" (optional, for associating note with project)
-- "list_notes": User wants to list notes.
-  - Entities: "project_name" (optional filter)
-- "create_snippet": User wants to create a code snippet.
-  - Entities: "snippet_title", "snippet_language", "snippet_code", "project_name" (optional)
-- "list_snippets": User wants to list code snippets.
-  - Entities: "language" (optional filter), "project_name" (optional filter)
-- "create_test_case": User wants to create a new test case.
-  - Entities: "project_name" (or "project_identifier"), "test_case_title", "test_case_description", "test_case_steps", "expected_result", "priority"
-- "update_test_case_status": User wants to change the status of a test case.
-  - Entities: "test_case_identifier" (name or ID), "new_status" (e.g., "Pass", "Fail", "Pending"), "project_identifier" (optional, if user specifies it)
-- "list_test_cases": User wants to list test cases for a specific project.
-  - Entities: "project_identifier" (name or ID of the project)
-- "update_test_case_priority": User wants to change the priority of a test case.
-  - Entities: "test_case_identifier" (name or ID), "new_priority" (e.g., "High", "Medium", "Low"), "project_identifier" (optional)
-- "general_question": User is asking a general question about Labnex, test management, or seeking advice.
-  - Entities: None specifically, the whole query is the question.
-- "get_nlu_capabilities": User is asking what they can say or what the bot can do.
-  - Entities: None.
-- "link_discord_account": User wants to link their Discord account to their Labnex account.
-  - Entities: None typically.
+    If the query is ambiguous or you cannot confidently determine a specific Labnex-related intent, classify it as "general_question".
+    If it's a general question the Labnex AI assistant (a separate LLM call) should answer, you can optionally provide an "answer_suggestion" if the answer is straightforward based on the query itself, otherwise omit it.
+    
+    Available intents and their typical entities:
+    [
+      {
+        "intent": "LINK_ACCOUNT",
+        "description": "User wants to link their Discord account to their Labnex account.",
+        "example_queries": ["link my account", "how do I connect to Labnex?", "authorize my user"],
+        "entities": {}
+      },
+      {
+        "intent": "CREATE_PROJECT",
+        "description": "User wants to create a new project. Often includes a name or topic.",
+        "example_queries": ["create a new project for e-commerce site", "start project called Mobile App", "new project about API testing"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The name or topic of the project." }
+        }
+      },
+      {
+        "intent": "LIST_PROJECTS",
+        "description": "User wants to see a list of their projects.",
+        "example_queries": ["list my projects", "show all projects", "what projects do I have?"],
+        "entities": {}
+      },
+      {
+        "intent": "GET_PROJECT_DETAILS",
+        "description": "User wants more information about a specific project.",
+        "example_queries": ["details for project Phoenix", "tell me about my E-commerce App", "what's the status of Project X?"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The name of the project they are asking about." }
+        }
+      },
+      {
+        "intent": "CREATE_TEST_CASE",
+        "description": "User wants to create a new test case, often specifying a project and title or topic.",
+        "example_queries": ["new test case for login in Phoenix project", "add test for user registration in E-commerce App", "create a test about payment processing"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The project to add the test case to.", "optional": true },
+          "test_case_title": { "type": "string", "description": "The title or topic of the test case." }
+        }
+      },
+      {
+        "intent": "CREATE_TASK",
+        "description": "User wants to create a new task, often specifying a project and title.",
+        "example_queries": ["create task: fix login bug for project Phoenix", "new task for E-commerce App: update payment gateway", "add a task to implement SSO"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The project for the task. If not specified, might refer to a recent project in conversation.", "optional": true },
+          "task_title": { "type": "string", "description": "The title or summary of the task." },
+          "priority": { "type": "string", "description": "(e.g., LOW, MEDIUM, HIGH)", "optional": true },
+          "description": { "type": "string", "description": "A more detailed description of the task.", "optional": true }
+        }
+      },
+      {
+        "intent": "GET_TASK_DETAILS",
+        "description": "User wants details about a specific task, often identified by a reference ID or title within a project context.",
+        "example_queries": ["what are the details for task #123?", "tell me more about the 'fix login bug' task in project Phoenix", "show task TSK-5"],
+        "entities": {
+          "task_reference": { "type": "string", "description": "The reference ID (e.g., #123, TSK-5) or title of the task." },
+          "project_name": { "type": "string", "description": "The project context for the task, if specified.", "optional": true }
+        }
+      },
+      {
+        "intent": "LIST_TASKS",
+        "description": "User wants to list tasks, often for a specific project or with filters like status or assignee.",
+        "example_queries": ["list tasks for project Phoenix", "show my tasks in E-commerce App", "what are the open tasks?", "tasks assigned to me"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The project whose tasks are to be listed.", "optional": true },
+          "status": { "type": "string", "description": "(e.g., TO_DO, IN_PROGRESS, DONE)", "optional": true },
+          "assignee": { "type": "string", "description": "(e.g., 'me', user ID, user name)", "optional": true }
+        }
+      },
+      {
+        "intent": "UPDATE_TASK_STATUS",
+        "description": "User wants to update the status of a task.",
+        "example_queries": ["update task #123 to done", "mark 'fix login bug' as in progress in project Phoenix", "change status of TSK-5 to completed"],
+        "entities": {
+          "task_reference": { "type": "string", "description": "The reference ID or title of the task." },
+          "new_status": { "type": "string", "description": "The new status (e.g., TO_DO, IN_PROGRESS, DONE)." },
+          "project_name": { "type": "string", "description": "The project context for the task, if specified.", "optional": true }
+        }
+      },
+      {
+        "intent": "ADD_NOTE",
+        "description": "User wants to add a new note, usually providing the content and optionally a project.",
+        "example_queries": ["add a note: remember to check API limits for project Phoenix", "new note for E-commerce App - UI feedback session", "note to self: research testing tools"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The project to associate the note with.", "optional": true },
+          "note_content": { "type": "string", "description": "The actual content of the note." }
+        }
+      },
+      {
+        "intent": "LIST_NOTES",
+        "description": "User wants to list their notes, possibly filtered by project.",
+        "example_queries": ["list my notes", "show notes for project Phoenix", "what notes do I have for E-commerce App?"],
+        "entities": {
+          "project_name": { "type": "string", "description": "The project whose notes are to be listed.", "optional": true }
+        }
+      },
+      {
+        "intent": "CREATE_SNIPPET",
+        "description": "User wants to create a new code snippet.",
+        "example_queries": ["save this code as 'login_helper'", "create snippet for python: def foo(): pass", "new js snippet named 'utils'"],
+        "entities": {
+          "snippet_name": { "type": "string", "description": "The name for the code snippet.", "optional": true },
+          "language": { "type": "string", "description": "The programming language of the snippet.", "optional": true },
+          "code_content": { "type": "string", "description": "The actual code content. May be extracted from a code block or subsequent message." }
+        }
+      },
+      {
+        "intent": "LIST_SNIPPETS",
+        "description": "User wants to list their saved code snippets.",
+        "example_queries": ["show my snippets", "list all code snippets", "what snippets do I have?"],
+        "entities": {
+          "language": { "type": "string", "description": "Filter snippets by programming language.", "optional": true }
+        }
+      },
+      {
+        "intent": "CHANGE_ROLE",
+        "description": "User wants to change their assigned role in Labnex (e.g., from Tester to Developer or vice-versa). This is a direct request to modify their user profile settings related to their role.",
+        "example_queries": [
+          "I want to change my role",
+          "Can I switch to be a developer?",
+          "Update my role to tester",
+          "Set me as a developer",
+          "I'm not a tester anymore, I'm a dev",
+          "Need to change my user role"
+        ],
+        "entities": {
+          "new_role": {
+            "type": "string",
+            "description": "The desired new role (e.g., 'tester', 'developer'). This might not always be present if the user is just expressing desire to change without specifying the new role yet.",
+            "optional": true
+          }
+        }
+      },
+      {
+        "intent": "GENERAL_QUESTION",
+        "description": "User is asking a general question, wants to chat, or the intent is not one of the specific Labnex actions above.",
+        "example_queries": ["hello", "how are you?", "what is Labnex?", "tell me a joke", "what can you do?"],
+        "entities": {}
+      }
+    ]
+    Consider the conversation history if provided. For example, if the user says "the first one" after the bot listed some projects, the NLU should try to resolve that to a specific project name if possible in the entities or processed_query.
+    If the user provides code in a markdown block, and the intent seems to be CREATE_SNIPPET, extract the code content.
+    Be robust. If a specific entity (e.g. project_name) is not found for an intent that usually has it, that's okay, the intent can still be valid.
+    The \"processed_query\" field can be the original query, or a version of it that's been slightly cleaned or contextualized (e.g., resolving \"it\" or \"that one\").
+    Confidence should be between 0.0 and 1.0.
+    Ensure the output is a single, valid JSON object. No extra text, explanations, or markdown.
+    `;
 
-Entity Extraction:
-- "project_name" or "project_identifier": Extract the name or ID of a project.
-- "task_identifier": Extract the name or ID of a task.
-- "test_case_identifier": Extract the name or ID of a test case. Quotes around names should be removed by you before populating the entity.
-- "new_status": For task and test case status updates, extract the desired new status. You MUST normalize common synonyms to one of "Pass", "Fail", or "Pending".
-    - For "Pass": "done", "passed", "complete", "ok", "good", "successful"
-    - For "Fail": "failed", "broken", "error", "bad", "unsuccessful", "not working"
-    - For "Pending": "waiting", "in progress", "todo", "hold", "on hold", "pending review", "needs review"
-  If a status is ambiguous or not one of the recognized synonyms, extract it as provided by the user, and the bot application will handle clarification.
-- "new_priority": For test case priority updates, extract the desired new priority. You MUST normalize common synonyms to one of "High", "Medium", or "Low".
-    - For "High": "hi", "urgent", "critical"
-    - For "Medium": "med", "normal", "standard"
-    - For "Low": "lo", "deferred", "later"
-  If a priority is ambiguous or not recognized, extract it as provided by the user for bot clarification.
+    const userMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+    if (conversationHistory) {
+        userMessages.push(...conversationHistory);
+    }
+    userMessages.push({ role: "user", content: query });
+    
+    const rawResponse = await callOpenAICompletion(
+        systemPromptIntentExtraction,
+        query, // Pass query directly as userPrompt, system prompt already has instructions to use conversation history
+        "gpt-4o-mini", // Using a model known for good instruction following and JSON mode
+        0.2, // Lower temperature for more deterministic NLU output
+        300, // Max tokens for the NLU JSON response
+        { type: "json_object" },
+        conversationHistory // Pass full history for context
+    );
 
-Example Queries and Expected JSON Output:
-
-Example for listing projects:
-Query: "list my projects"
-{
-  "intent": "list_projects",
-  "entities": {},
-  "original_query": "list my projects"
-}
-
-Example for creating a task:
-Query: "Create a task to fix the login button in the WebApp project."
-{
-  "intent": "create_task",
-  "entities": {
-    "task_title": "fix the login button",
-    "project_name": "WebApp"
-  },
-  "original_query": "Create a task to fix the login button in the WebApp project."
-}
-
-Example for creating a project (advanced, might be multi-step in reality for bot):
-Query: "Create a new project called 'Omega Initiative' code OMEGA with description 'Top secret planning'"
-{
-  "intent": "create_project",
-  "entities": {
-    "project_name": "Omega Initiative",
-    "project_code": "OMEGA",
-    "project_description": "Top secret planning"
-  },
-  "original_query": "Create a new project called 'Omega Initiative' code OMEGA with description 'Top secret planning'"
-}
-
-Example for initiating test case creation:
-Query: "create a test case"
-{
-  "intent": "create_test_case",
-  "entities": {},
-  "original_query": "create a test case"
-}
-
-Example for creating a test case with project pre-filled:
-Query: "create a new test case for project Alpha"
-{
-  "intent": "create_test_case",
-  "entities": {
-    "project_name": "Alpha"
-  },
-  "original_query": "create a new test case for project Alpha"
-}
-
-Example for creating a test case with full details (advanced, might be multi-step in reality for bot):
-Query: "Create a test case for 'User Login' in project 'Phoenix'. Steps: 1. Enter username 2. Enter password 3. Click login. Expected result: User is logged in. Priority: High."
-{
-  "intent": "create_test_case",
-  "entities": {
-    "project_name": "Phoenix",
-    "test_case_title": "User Login",
-    "test_case_steps": "1. Enter username 2. Enter password 3. Click login.",
-    "expected_result": "User is logged in.",
-    "priority": "High"
-  },
-  "original_query": "Create a test case for 'User Login' in project 'Phoenix'. Steps: 1. Enter username 2. Enter password 3. Click login. Expected result: User is logged in. Priority: High."
-}
-
-Example for updating a test case status:
-Query: "mark the 'Login Page' test case as passed"
-{
-  "intent": "update_test_case_status",
-  "entities": {
-    "test_case_identifier": "Login Page",
-    "new_status": "Pass"
-  },
-  "original_query": "mark the 'Login Page' test case as passed"
-}
-
-Query: "set test case Login Bug Fix to failed in project SecureLogin"
-{
-  "intent": "update_test_case_status",
-  "entities": {
-    "test_case_identifier": "Login Bug Fix",
-    "new_status": "Fail",
-    "project_identifier": "SecureLogin"
-  },
-  "original_query": "set test case Login Bug Fix to failed in project SecureLogin"
-}
-
-Query: "change 'Password Reset' to pending"
-{
-  "intent": "update_test_case_status",
-  "entities": {
-    "test_case_identifier": "Password Reset",
-    "new_status": "Pending"
-  },
-  "original_query": "change 'Password Reset' to pending"
-}
-
-Query: "mark test case User Profile Display as complete"
-{
-  "intent": "update_test_case_status",
-  "entities": {
-    "test_case_identifier": "User Profile Display",
-    "new_status": "Pass"
-  },
-  "original_query": "mark test case User Profile Display as complete"
-}
-
-Example for listing test cases:
-Query: "Show me all test cases for the AuraTest project"
-{
-  "intent": "list_test_cases",
-  "entities": {
-    "project_identifier": "AuraTest"
-  },
-  "original_query": "Show me all test cases for the AuraTest project"
-}
-
-Query: "List test cases for AuraTest"
-{
-  "intent": "list_test_cases",
-  "entities": {
-    "project_identifier": "AuraTest"
-  },
-  "original_query": "List test cases for AuraTest"
-}
-
-Example for updating test case priority:
-Query: "Update the priority of test case 'Session Timeout' to high"
-{
-  "intent": "update_test_case_priority",
-  "entities": {
-    "test_case_identifier": "Session Timeout",
-    "new_priority": "High"
-  },
-  "original_query": "Update the priority of test case 'Session Timeout' to high"
-}
-
-Query: "set priority of 'Login Test' to low in project 'WebApp'"
-{
-  "intent": "update_test_case_priority",
-  "entities": {
-    "test_case_identifier": "Login Test",
-    "new_priority": "Low",
-    "project_identifier": "WebApp"
-  },
-  "original_query": "set priority of 'Login Test' to low in project 'WebApp'"
-}
-
-Example for asking a general question:
-Query: "How do I invite a team member to my project?"
-{
-  "intent": "general_question",
-  "entities": {},
-  "original_query": "How do I invite a team member to my project?",
-  "answer_suggestion": "You can invite team members to your project by going to the project settings page and using the 'Invite Members' feature. You'll typically need their email address."
-}
-
-Example for "get_nlu_capabilities":
-Query: "What can I ask?"
-{
-  "intent": "get_nlu_capabilities",
-  "entities": {},
-  "original_query": "What can I ask?"
-}
-
-Example for linking Discord account:
-Query: "link my discord account"
-{
-  "intent": "link_discord_account",
-  "entities": {},
-  "original_query": "link my discord account"
-}
-Query: "How do I connect my discord?"
-{
-  "intent": "link_discord_account",
-  "entities": {},
-  "original_query": "How do I connect my discord?"
-}
-`; // System message ends here
-
-    console.log("[getIntentAndEntitiesFromQuery] System Prompt for NLU:", systemPrompt);
-
-    try {
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini", // Using a more capable model might be beneficial for structured JSON output
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: query }
-            ],
-            temperature: 0.2, // Low temperature for more deterministic NLU output
-            max_tokens: 500,  // Max tokens for the JSON response
-            response_format: { type: "json_object" } // Request JSON response from capable models
-        });
-
-        const responseContent = completion.choices[0]?.message?.content;
-
-        if (responseContent) {
-            try {
-                const parsedResponse = JSON.parse(responseContent) as NLUResponse;
-                // Ensure original_query is always present, even if model omits it
-                if (!parsedResponse.original_query) {
-                    parsedResponse.original_query = query;
-                }
-                console.log("[getIntentAndEntitiesFromQuery] Successfully parsed NLU response:", parsedResponse);
-                return parsedResponse;
-            } catch (parseError: any) {
-                console.error("[getIntentAndEntitiesFromQuery] Error parsing JSON response from OpenAI:", parseError.message);
-                console.error("[getIntentAndEntitiesFromQuery] Raw OpenAI response:", responseContent);
-                return {
-                    intent: "nlu_parse_error",
-                    entities: { "error_message": "Failed to parse NLU response from AI.", "raw_response": responseContent },
-                    original_query: query
-                };
+    if (rawResponse && !rawResponse.startsWith("Error:")) {
+        try {
+            const parsedResponse = JSON.parse(rawResponse) as NLUResponse;
+            // Ensure original_query is always populated
+            if (!parsedResponse.original_query) {
+                parsedResponse.original_query = query;
             }
+            // Basic validation of the parsed structure
+            if (parsedResponse.intent && typeof parsedResponse.entities === 'object') {
+                return parsedResponse;
+            }
+            console.warn("[getIntentAndEntitiesFromQuery] Parsed JSON does not match NLUResponse structure:", parsedResponse);
+            return { intent: "general_question", entities: {}, original_query: query, confidence: 0.3, processed_query: query, answer_suggestion: "I had a little trouble understanding that, could you rephrase?" };    
+        } catch (e) {
+            console.error("[getIntentAndEntitiesFromQuery] Error parsing NLU JSON response:", e);
+            console.error("[getIntentAndEntitiesFromQuery] Raw response was:", rawResponse);
+            // Fallback to general_question if JSON parsing fails
+            return { intent: "general_question", entities: {}, original_query: query, confidence: 0.2, processed_query: query, answer_suggestion: "I had a little trouble understanding your request structure, could you try rephrasing?" };
         }
-        console.error("[getIntentAndEntitiesFromQuery] OpenAI response was empty or malformed.");
-        return {
-            intent: "nlu_error",
-            entities: { "error_message": "OpenAI returned an empty or malformed response for NLU." },
-            original_query: query
-        };
-
-    } catch (error: any) {
-        console.error("[getIntentAndEntitiesFromQuery] Error calling OpenAI API:", error.message);
-        if (error.response) {
-            console.error("[getIntentAndEntitiesFromQuery] OpenAI API Response Error Data:", error.response.data);
-        }
-        let friendlyMessage = "Sorry, I encountered an issue while trying to understand your request with AI.";
-        if (error.message && error.message.includes('insufficient_quota')) {
-            friendlyMessage = "It seems the AI understanding service has run out of capacity. Please notify the administrator.";
-        }
-        return {
-            intent: "nlu_api_error",
-            entities: { "error_message": friendlyMessage, "api_error": error.message },
-            original_query: query
-        };
     }
+    // If rawResponse contains an error string from callOpenAICompletion, or is null
+    console.error("[getIntentAndEntitiesFromQuery] Failed to get valid NLU response from OpenAI. Raw response:", rawResponse);
+    return { intent: "general_question", entities: {}, original_query: query, confidence: 0.1, processed_query: query, answer_suggestion: "I'm having trouble connecting to my understanding circuits right now. Could you try that again in a moment?" };
 } 
 
 // Interface for the structure of a single test case generated by AI

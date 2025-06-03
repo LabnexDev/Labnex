@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SectionWrapper from './SectionWrapper';
+import { useModal } from '../../contexts/ModalContext';
 
 interface SecurityFeature {
   id: string;
@@ -13,6 +14,7 @@ interface SecurityFeature {
 
 const SecurityCompliance: React.FC = () => {
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const { openModal } = useModal();
 
   const securityFeatures: SecurityFeature[] = [
     {
@@ -319,10 +321,14 @@ const SecurityCompliance: React.FC = () => {
             We're transparent about our security practices and happy to discuss our approach.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <button 
+              onClick={() => openModal('info', { infoPageType: 'contact' })}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
               Contact Us
             </button>
-            <button className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 hover:bg-white/15 hover:text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]">
+            <button 
+              onClick={() => openModal('info', { infoPageType: 'support' })}
+              className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 hover:bg-white/15 hover:text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]">
               View Documentation
             </button>
           </div>

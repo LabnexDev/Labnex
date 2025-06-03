@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SectionWrapper from './SectionWrapper';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlatformStats, fetchPlatformHealth } from '../../api/statsApi';
+import { useModal } from '../../contexts/ModalContext';
 
 interface PlatformStats {
   projects: number;
@@ -51,7 +52,8 @@ interface PerformanceMetric {
 
 const PerformanceBenchmarks: React.FC = () => {
   const [animatedValues, setAnimatedValues] = useState<Record<string, number>>({});
-  const [activeCategory, setActiveCategory] = useState<'speed' | 'scale' | 'reliability'>('speed');
+  const [activeCategory, setActiveCategory] = useState<'speed' | 'scale' | 'reliability' | 'all'>('all');
+  const { openModal } = useModal();
 
   const parseResponseTime = (rt: string | null | undefined): number | null => {
     if (!rt) return null;
@@ -522,7 +524,9 @@ const PerformanceBenchmarks: React.FC = () => {
           <p className="text-slate-300 mb-6">
             We're building Labnex with performance in mind, actively optimizing based on real user feedback and usage patterns.
           </p>
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+          <button 
+            onClick={() => openModal('waitlist')}
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             Join Our Beta
           </button>
         </div>

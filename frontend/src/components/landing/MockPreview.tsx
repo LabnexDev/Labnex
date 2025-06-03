@@ -1,7 +1,10 @@
 import React from 'react';
 import './LandingStyles.css';
+import { useModal } from '../../contexts/ModalContext';
 
 const MockPreview: React.FC = () => {
+  const { openModal } = useModal();
+
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-transparent relative">
       {/* Background */}
@@ -130,7 +133,9 @@ const MockPreview: React.FC = () => {
             <span className="text-slate-300 text-lg font-medium">
               Ready to experience this workflow?
             </span>
-            <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+            <button 
+              onClick={() => openModal('waitlist')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
               Get Started
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
