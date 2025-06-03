@@ -175,10 +175,10 @@ const DiscordAIIntegrationFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Ready to bring AI power to your Discord server?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
+              onClick={() => window.open('https://discord.gg/gaCmp8yE', '_blank')}
               className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
-              Get Started with Labnex AI
+              Join our Discord Server
             </button>
             <p className="text-slate-400 mt-6">
               Have feedback or suggestions? <a href="mailto:labnexcontact@gmail.com" className="text-purple-400 hover:underline">We'd love to hear from you!</a>

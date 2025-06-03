@@ -208,7 +208,7 @@ const ModernDevelopmentPlatformFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Interested in the technical foundation of Labnex?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))} // Or link to a tech blog/docs
+              onClick={() => navigate('/features/tech-stack')}
               className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
               Learn More About Our Stack

@@ -38,6 +38,7 @@ import NotesAndSnippetsFeaturePage from './pages/features/NotesAndSnippetsFeatur
 import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelopmentPlatformFeaturePage';
 import DiscordAIIntegrationFeaturePage from './pages/features/DiscordAIIntegrationFeaturePage';
 import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage';
+import TechStackFeaturePage from './pages/features/TechStackFeaturePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -165,6 +166,7 @@ function AppRoutes() {
       <Route path="/features/modern-development-platform" element={<ModernDevelopmentPlatformFeaturePage />} />
       <Route path="/features/discord-ai-integration" element={<DiscordAIIntegrationFeaturePage />} />
       <Route path="/features/cli-automation" element={<CLIAutomationFeaturePage />} />
+      <Route path="/features/tech-stack" element={<TechStackFeaturePage />} />
       <Route
         path="/admin/dashboard"
         element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
