@@ -1,4 +1,4 @@
-import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { REST, Routes, SlashCommandBuilder, ChannelType, PermissionsBitField } from 'discord.js';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -113,7 +113,32 @@ const commands = [
         .addStringOption(option => option.setName('code').setDescription('The code for the snippet').setRequired(true)),
     new SlashCommandBuilder().setName('notes').setDescription('Lists your recent notes.'),
     new SlashCommandBuilder().setName('snippets').setDescription('Lists your recent snippets.'),
-
+    // New Send Embed Command
+    new SlashCommandBuilder().setName('sendembed')
+        .setDescription('Sends an embedded message to a specified channel. (Admin Only)')
+        .addStringOption(option =>
+            option.setName('title')
+                .setDescription('The title of the embed message.')
+                .setRequired(true))
+        .addStringOption(option =>
+            option.setName('description')
+                .setDescription('The main content (description) of the embed message.')
+                .setRequired(true))
+        .addChannelOption(option =>
+            option.setName('channel')
+                .setDescription('The channel to send the embed to. Defaults to current channel.')
+                .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement) // Allow only text-based channels
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('color')
+                .setDescription('Hex color code for the embed (e.g., #0099ff).')
+                .setRequired(false))
+        .addStringOption(option =>
+            option.setName('footer')
+                .setDescription('Footer text for the embed.')
+                .setRequired(false))
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator) // Restrict to server administrators at API level
+        .setDMPermission(false), // Disable in DMs
 
 ].map(command => command.toJSON());
 

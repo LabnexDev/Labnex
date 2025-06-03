@@ -13,6 +13,7 @@ import {
 } from '../commands/taskCommands';
 import { handleAddNoteSlashCommand, handleListNotesSlashCommand } from '../commands/noteCommands';
 import { handleAddSnippetSlashCommand, handleListSnippetsSlashCommand } from '../commands/snippetCommands';
+import { execute as handleSendEmbedCommand } from '../commands/sendEmbedCommand';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -158,6 +159,8 @@ export async function handleInteractionCreateEvent(
         await handleAddSnippetSlashCommand(interaction);
     } else if (commandName === 'snippets') {
         await handleListSnippetsSlashCommand(interaction);
+    } else if (commandName === 'sendembed') {
+        await handleSendEmbedCommand(interaction as CommandInteraction<'cached'>);
     } else {
         console.log(`[interactionCreateHandler.ts] Unrecognized slash command: ${commandName}`);
         await interactionReply("Sorry, I don't recognize that command.", true);
