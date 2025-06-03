@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground';
 import OrbBackground from '../../components/visual/OrbBackground';
+import { useModal } from '../../contexts/ModalContext';
 
 // Relevant icons for Test Case Management
 import { 
@@ -25,6 +26,7 @@ interface BenefitDetail {
 
 const TestCaseManagementFeaturePage: React.FC = () => {
   const navigate = useNavigate();
+  const { openModal } = useModal();
 
   // Define benefits/sub-features for Test Case Management
   // USER: Please review and update the 'status' for each benefit based on current implementation.
@@ -171,7 +173,7 @@ const TestCaseManagementFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Ready to elevate your quality assurance with Labnex?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
+              onClick={() => openModal('waitlist')}
               className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-sky-600 hover:from-cyan-500 hover:to-sky-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
               Join the Waitlist

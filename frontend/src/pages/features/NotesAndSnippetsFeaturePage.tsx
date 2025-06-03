@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground';
 import OrbBackground from '../../components/visual/OrbBackground';
+import { useModal } from '../../contexts/ModalContext';
 
 // Relevant icons for Notes & Snippets
 import {
@@ -28,6 +29,7 @@ interface BenefitDetail {
 
 const NotesAndSnippetsFeaturePage: React.FC = () => {
   const navigate = useNavigate();
+  const { openModal } = useModal();
 
   const benefits: BenefitDetail[] = [
     {
@@ -198,7 +200,7 @@ const NotesAndSnippetsFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Ready to organize your ideas and code with Labnex?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
+              onClick={() => openModal('waitlist')}
               className="px-8 py-4 bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
               Get Started with Labnex

@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground'; // Assuming similar background
 import OrbBackground from '../../components/visual/OrbBackground'; // Assuming similar background
+import { useModal } from '../../contexts/ModalContext'; // Import useModal
 
 // Relevant icons for Project Management
 import {
@@ -29,6 +30,7 @@ interface BenefitDetail {
 
 const ProjectManagementFeaturePage: React.FC = () => {
   const navigate = useNavigate();
+  const { openModal } = useModal(); // Initialize useModal
 
   const benefits: BenefitDetail[] = [
     {
@@ -179,7 +181,7 @@ const ProjectManagementFeaturePage: React.FC = () => {
           <div className="mt-16 text-center">
             <p className="text-lg text-slate-300 mb-6">Ready to take control of your projects with Labnex?</p>
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('openWaitlistModal'))}
+              onClick={() => openModal('waitlist')}
               className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
             >
               Sign Up for Early Access
