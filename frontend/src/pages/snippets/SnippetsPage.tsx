@@ -256,7 +256,7 @@ export const SnippetsPage: React.FC = () => {
                     </div>
                 ) : (
                      !isLoadingSnippets && !snippetsError && (
-                        <div className="text-center py-16 bg-slate-800/40 backdrop-blur-sm rounded-lg shadow-md">
+                        <div className="flex flex-col items-center justify-center text-center py-16 min-h-[60vh] bg-slate-800/40 backdrop-blur-sm rounded-lg shadow-md">
                             <CodeBracketSquareIcon className="h-20 w-20 text-slate-500 mx-auto mb-6" />
                             <h3 className="text-2xl font-semibold text-slate-300">No Snippets Here</h3>
                             <p className="text-slate-400 mt-3 max-w-md mx-auto">
