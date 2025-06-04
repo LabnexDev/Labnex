@@ -17,6 +17,12 @@
   "license": "ISC",
   "dependencies": {
     "@playwright/test": "^1.52.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^4.17.22",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^18.15.11",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
@@ -32,24 +38,18 @@
     "puppeteer": "^24.9.0",
     "puppeteer-core": "^24.9.0",
     "resend": "^4.5.1",
-    "ws": "^8.18.2",
-    "@types/express": "^4.17.22",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.18",
-    "@types/node": "^18.15.11"
+    "ws": "^8.18.2"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
+    "@types/jest": "^29.5.14",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "eslint": "^8.37.0",
-    "jest": "^29.5.0",
+    "jest": "^29.7.0",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.7",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.3.4",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"
   }
