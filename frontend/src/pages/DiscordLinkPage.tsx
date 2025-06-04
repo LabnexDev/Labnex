@@ -14,6 +14,9 @@ const DiscordLinkPage: React.FC = () => {
     const [discordUsername, setDiscordUsername] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log('Current window.location.href:', window.location.href);
+        console.log('Current location.hash:', location.hash);
+
         const hashParams = location.hash.substring(1);
         const queryParams = new URLSearchParams(hashParams);
         const extractedToken = queryParams.get('token');
