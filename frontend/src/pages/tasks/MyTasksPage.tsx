@@ -32,18 +32,24 @@ const MyTasksPage: React.FC = () => {
     const { data: tasksData, isLoading, isError, error, isFetching } = useQuery<{tasks: ITask[], total: number}, Error>({
         queryKey: ['myAssignedTasks', filters, sortBy, sortOrder],
         queryFn: async () => {
-            // Assuming getMyAssignedTasks returns { tasks: ITask[], total: number }
-            // If it only returns ITask[], you might need to adjust this or the backend
+            console.log('[MyTasksPage QueryFn] Fetching with filters:', filters, 'sortBy:', sortBy, 'sortOrder:', sortOrder);
             const result = await getMyAssignedTasks(filters as Record<string,string>, sortBy, sortOrder);
-            // Ensure result is in the expected shape, or adapt
-            if (Array.isArray(result)) { // If API returns array directly
-                return { tasks: result, total: result.length }; // Or fetch total count separately if available
+            console.log('[MyTasksPage QueryFn] Raw result from getMyAssignedTasks:', result);
+            if (Array.isArray(result)) {
+                const processedResult = { tasks: result, total: result.length };
+                console.log('[MyTasksPage QueryFn] Processed result:', processedResult);
+                return processedResult;
             }
-            return result as {tasks: ITask[], total: number}; // Assuming API returns object with tasks and total
+            console.warn('[MyTasksPage QueryFn] Result from getMyAssignedTasks was not an array. This might indicate an issue.', result);
+            return result as {tasks: ITask[], total: number}; 
         },
         placeholderData: keepPreviousData,
     });
     const tasks = tasksData?.tasks;
+
+    console.log('[MyTasksPage] Component Render. isLoading:', isLoading, 'isFetching:', isFetching);
+    console.log('[MyTasksPage] tasksData from useQuery:', tasksData);
+    console.log('[MyTasksPage] Derived tasks array:', tasks);
 
     const { data: projects, isLoading: isLoadingProjects } = useQuery<IProject[], Error>({
         queryKey: ['projectsListForFilter'],
