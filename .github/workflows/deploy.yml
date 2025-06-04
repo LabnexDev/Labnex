@@ -50,7 +50,9 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: ./frontend/dist
+        # Temporarily set the working directory for this step
+        # path: ./frontend/dist  # Comment this out or remove
+        path: frontend/dist      # Try without the leading ./
 
   # Deployment job
   deploy:
