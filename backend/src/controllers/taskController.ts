@@ -438,7 +438,8 @@ export const deleteTask = async (req: Request, res: Response) => {
  */
 export const getMyAssignedTasks = async (req: Request, res: Response) => {
     const { projectId, status, priority, sortBy, sortOrder } = req.query;
-    const userId = (req as any).user._id;
+    // Use id from auth middleware (JwtPayload.id) instead of _id
+    const userId = (req as any).user.id;
 
     try {
         const query: any = { assignedTo: userId };
