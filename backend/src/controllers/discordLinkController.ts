@@ -296,7 +296,7 @@ export const handleDiscordOAuthCallback = async (req: Request, res: Response) =>
         const frontendRedirectParams = new URLSearchParams({
             token: linkTokenRecord.token, // The original token
             discord_id: discordUserId,
-            discord_username: encodeURIComponent(discordUsername)
+            discord_username: discordUsername
         });
         const finalRedirectUrl = `${FRONTEND_DISCORD_LINK_CALLBACK_URL}?${frontendRedirectParams.toString()}`;
         console.log(`[DEBUG] Redirecting to frontend with URL: ${finalRedirectUrl}`);
