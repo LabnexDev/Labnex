@@ -131,6 +131,7 @@ export const login = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000,
+      path: '/',
     });
 
     console.log('Login successful, token cookie set for user:', user.email);

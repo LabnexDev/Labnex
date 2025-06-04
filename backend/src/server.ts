@@ -27,6 +27,7 @@ import { createServer } from 'http';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 //line  
 const app = express();
+app.set('trust proxy', 1); // Trust the first hop from the proxy
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
