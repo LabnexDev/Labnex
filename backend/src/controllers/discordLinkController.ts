@@ -224,13 +224,23 @@ export const initiateDiscordLinkFromWebApp = async (req: Request, res: Response)
 export const handleDiscordOAuthCallback = async (req: Request, res: Response) => {
     const { code, state } = req.query; // Code and state are sent by Discord as query parameters
 
+    // TEMPORARY DEBUG LOGGING:
+    console.log('[DEBUG] Inside handleDiscordOAuthCallback. Checking ENV VARS:');
+    console.log(`[DEBUG] DISCORD_CLIENT_ID: ${process.env.DISCORD_CLIENT_ID}`);
+    console.log(`[DEBUG] DISCORD_CLIENT_SECRET: ${process.env.DISCORD_CLIENT_SECRET ? 'SET' : 'NOT SET'}`); // Avoid logging the actual secret
+    console.log(`[DEBUG] DISCORD_REDIRECT_URI: ${process.env.DISCORD_REDIRECT_URI}`);
+    console.log(`[DEBUG] FRONTEND_URL for callback construction: ${process.env.FRONTEND_URL}`);
+    const calculatedFrontendDiscordLinkCallbackUrl = process.env.FRONTEND_URL ? process.env.FRONTEND_URL + '/users/discord/link' : 'FRONTEND_URL IS NOT SET';
+    console.log(`[DEBUG] FRONTEND_DISCORD_LINK_CALLBACK_URL (calculated): ${calculatedFrontendDiscordLinkCallbackUrl}`);
+    // END TEMPORARY DEBUG LOGGING
+
     if (!code || !state) {
         return res.status(400).json({ message: 'Missing authorization code or state from Discord.' });
     }
 
     const tokenFromState = state as string;
 
-    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !DISCORD_REDIRECT_URI || !FRONTEND_DISCORD_LINK_CALLBACK_URL) {
+    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !DISCORD_REDIRECT_URI || (process.env.FRONTEND_URL && !FRONTEND_DISCORD_LINK_CALLBACK_URL.startsWith('http'))) { // Check if FRONTEND_URL is set before using it to construct FRONTEND_DISCORD_LINK_CALLBACK_URL
         console.error('Discord OAuth2 credentials or frontend redirect URI are not configured.');
         return res.status(500).json({ message: 'Server configuration error.' });
     }
