@@ -181,8 +181,8 @@ const MyTasksPage: React.FC = () => {
                         <div 
                             key={task._id} 
                             className="bg-slate-800/70 backdrop-blur-md border border-slate-700/80 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/40 focus-within:shadow-blue-500/40 focus-within:ring-2 focus-within:ring-blue-500/70 transition-all duration-300 ease-in-out flex flex-col justify-between group relative cursor-pointer"
-                            onClick={() => navigate(`/projects/${typeof task.project === 'object' ? task.project._id : task.project}/tasks`)} // Navigate to project tasks page, not individual task edit
-                            title={`View tasks for project: ${typeof task.project === 'object' ? task.project.name : 'N/A'}`}
+                            onClick={() => navigate(`/projects/${task.project && typeof task.project === 'object' ? task.project._id : task.project}/tasks`)}
+                            title={`View tasks for project: ${task.project && typeof task.project === 'object' ? task.project.name : 'N/A'}`}
                         >
                             <div className="flex-grow">
                                 <div className="flex justify-between items-start mb-3">
@@ -197,12 +197,12 @@ const MyTasksPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <Link 
-                                    to={`/projects/${typeof task.project === 'object' ? task.project._id : task.project}`}
+                                    to={`/projects/${task.project && typeof task.project === 'object' ? task.project._id : task.project}`}
                                     onClick={(e) => e.stopPropagation()} // Prevent card click when clicking project link
                                     className="text-xs text-slate-400 hover:text-sky-400 hover:underline transition-colors duration-150 mb-2 block truncate font-medium"
-                                    title={`Go to project: ${typeof task.project === 'object' ? task.project.name : 'N/A'}`}
+                                    title={`Go to project: ${task.project && typeof task.project === 'object' ? task.project.name : 'N/A'}`}
                                 >
-                                    Project: {typeof task.project === 'object' ? task.project.name : 'Unknown Project'}
+                                    Project: {task.project && typeof task.project === 'object' ? task.project.name : 'Unknown Project'}
                                 </Link>
 
                                 <p className="text-slate-300/80 mb-4 text-sm min-h-[40px] overflow-hidden line-clamp-2 leading-relaxed group-hover:text-slate-200 transition-colors duration-150">{task.description || 'No description provided.'}</p>
@@ -234,7 +234,7 @@ const MyTasksPage: React.FC = () => {
                                     size="sm" 
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevent card navigation
-                                        navigate(`/projects/${typeof task.project === 'object' ? task.project._id : task.project}/tasks`);
+                                        navigate(`/projects/${task.project && typeof task.project === 'object' ? task.project._id : task.project}/tasks`);
                                     }}
                                     className="focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800 shadow-md hover:shadow-lg hover:shadow-sky-500/50"
                                     leftIcon={<EyeIcon className="h-4 w-4" />}
