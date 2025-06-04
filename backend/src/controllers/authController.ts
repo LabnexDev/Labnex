@@ -56,7 +56,7 @@ export const register = async (req: Request, res: Response) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000,
     });
 
@@ -128,9 +128,9 @@ export const login = async (req: Request, res: Response) => {
     // Set token in HttpOnly cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-      sameSite: 'lax', // Or 'strict' or 'none' depending on your needs with cross-domain requests
-      maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000, // e.g., 7 days
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: (process.env.JWT_EXPIRES_IN_SECONDS ? parseInt(process.env.JWT_EXPIRES_IN_SECONDS) : 7 * 24 * 60 * 60) * 1000,
     });
 
     console.log('Login successful, token cookie set for user:', user.email);
