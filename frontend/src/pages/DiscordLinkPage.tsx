@@ -14,7 +14,8 @@ const DiscordLinkPage: React.FC = () => {
     const [discordUsername, setDiscordUsername] = useState<string | null>(null);
 
     useEffect(() => {
-        const queryParams = new URLSearchParams(location.search);
+        const hashParams = location.hash.substring(1);
+        const queryParams = new URLSearchParams(hashParams);
         const extractedToken = queryParams.get('token');
         const extractedDiscordId = queryParams.get('discord_id');
         const extractedDiscordUsername = queryParams.get('discord_username');
@@ -31,7 +32,7 @@ const DiscordLinkPage: React.FC = () => {
         if (extractedDiscordUsername) {
             setDiscordUsername(decodeURIComponent(extractedDiscordUsername));
         }
-    }, [location.search, navigate]);
+    }, [location.hash, navigate]);
 
     const mutation = useMutation({
         mutationFn: linkDiscordAccountApi,
