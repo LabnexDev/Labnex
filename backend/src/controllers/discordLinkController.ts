@@ -67,7 +67,7 @@ export const generateLinkToken = async (req: Request, res: Response) => {
 
 export const linkDiscordAccount = async (req: Request, res: Response) => {
     const { token } = req.body;
-    const labnexUserId = (req as any).user?._id;
+    const labnexUserId = (req as any).user?.id;
 
     if (!token) {
         return res.status(400).json({ message: 'Missing token in request body.' });
@@ -123,7 +123,7 @@ export const linkDiscordAccount = async (req: Request, res: Response) => {
  * @access  Private (Labnex user authenticated by JWT)
  */
 export const getLinkedDiscordAccounts = async (req: Request, res: Response) => {
-    const labnexUserId = (req as any).user?._id;
+    const labnexUserId = (req as any).user?.id;
 
     if (!labnexUserId) {
         // This should not happen if auth middleware is working
@@ -147,7 +147,7 @@ export const getLinkedDiscordAccounts = async (req: Request, res: Response) => {
  * @access  Private (Labnex user authenticated by JWT)
  */
 export const unlinkDiscordAccount = async (req: Request, res: Response) => {
-    const labnexUserId = (req as any).user?._id;
+    const labnexUserId = (req as any).user?.id;
     const { discordUserIdToDelete } = req.params; // Get Discord User ID from URL parameter
 
     if (!labnexUserId) {
@@ -177,7 +177,7 @@ export const unlinkDiscordAccount = async (req: Request, res: Response) => {
 
 // New function to initiate Discord link from the Labnex web application
 export const initiateDiscordLinkFromWebApp = async (req: Request, res: Response) => {
-    const labnexUserId = (req as any).user?._id as string;
+    const labnexUserId = (req as any).user?.id as string;
 
     if (!labnexUserId) {
         return res.status(401).json({ message: 'Authentication required.' });
