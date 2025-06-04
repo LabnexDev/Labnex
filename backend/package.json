@@ -32,16 +32,16 @@
     "puppeteer": "^24.9.0",
     "puppeteer-core": "^24.9.0",
     "resend": "^4.5.1",
-    "ws": "^8.18.2"
+    "ws": "^8.18.2",
+    "@types/express": "^4.17.22",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.18",
+    "@types/node": "^18.15.11"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/cors": "^2.8.18",
-    "@types/express": "^4.17.22",
     "@types/jest": "^29.5.0",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^18.15.11",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
