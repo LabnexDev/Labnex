@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ILinkedDiscordAccount } from '../../api/discordIntegration';
 import { getLinkedDiscordAccountsApi, unlinkDiscordAccountApi } from '../../api/discordIntegration';
+import { getApiBaseUrl } from '../../api/axios';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -68,7 +69,10 @@ const SettingsIntegrationsPage: React.FC = () => {
             <div className="mb-6">
                 <Button 
                     variant="primary"
-                    onClick={() => window.location.href = '/api/integrations/discord/initiate-link'}
+                    onClick={() => {
+                        const baseUrl = getApiBaseUrl();
+                        window.location.href = `${baseUrl}/integrations/discord/initiate-link`;
+                    }}
                     className="flex items-center space-x-2 glowing-button-effect"
                 >
                     <LinkIcon className="h-5 w-5" />

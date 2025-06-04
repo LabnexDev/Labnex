@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Determine the correct API base URL based on environment
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   // Check if we're in production (GitHub Pages deployment)
   const isProduction = import.meta.env.PROD;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
