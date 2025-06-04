@@ -298,7 +298,9 @@ export const handleDiscordOAuthCallback = async (req: Request, res: Response) =>
             discord_id: discordUserId,
             discord_username: encodeURIComponent(discordUsername)
         });
-        res.redirect(`${FRONTEND_DISCORD_LINK_CALLBACK_URL}?${frontendRedirectParams.toString()}`);
+        const finalRedirectUrl = `${FRONTEND_DISCORD_LINK_CALLBACK_URL}?${frontendRedirectParams.toString()}`;
+        console.log(`[DEBUG] Redirecting to frontend with URL: ${finalRedirectUrl}`);
+        res.redirect(finalRedirectUrl);
 
     } catch (error: any) {
         console.error('Error handling Discord OAuth callback:', error.response ? error.response.data : error.message);
