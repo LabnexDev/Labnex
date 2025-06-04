@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
-    base: '/',
+    base: '/Labnex/',
     plugins: [react()],
     define: {
       __PRODUCTION_API_URL__: JSON.stringify(env.VITE_PRODUCTION_API_URL || 'https://labnex-backend.onrender.com')
