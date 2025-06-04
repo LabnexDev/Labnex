@@ -116,8 +116,9 @@ function AppRoutes() {
         intendedPath = '/' + intendedPath;
       }
       
-      console.log(`[App.tsx] Navigating to path from location.search: "${intendedPath}"`);
-      navigate(intendedPath, { replace: true });
+      const finalNavigationPath = intendedPath + location.hash;
+      console.log(`[App.tsx] Navigating to path from location.search: "${intendedPath}" with hash: "${location.hash}" to final path: "${finalNavigationPath}"`);
+      navigate(finalNavigationPath, { replace: true });
       return; // Exit early as we've handled this specific case
     }
 
