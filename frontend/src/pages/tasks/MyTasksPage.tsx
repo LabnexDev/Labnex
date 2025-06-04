@@ -197,7 +197,7 @@ const MyTasksPage: React.FC = () => {
                                 <p className="text-slate-300/80 mb-4 text-sm min-h-[40px] overflow-hidden line-clamp-2 leading-relaxed group-hover:text-slate-200 transition-colors duration-150">{task.description || 'No description provided.'}</p>
                                 
                                 <div className="space-y-1.5 text-xs text-slate-400/90 mb-4 border-t border-slate-700/80 pt-3 mt-3">
-                                    <p><span className="font-semibold text-slate-500">Reporter:</span> {task.createdBy.name}</p>
+                                    <p><span className="font-semibold text-slate-500">Reporter:</span> {task.createdBy?.name || 'Unknown Reporter'}</p>
                                     {task.dueDate && (
                                         <p><span className="font-semibold text-slate-500">Due:</span> {new Date(task.dueDate).toLocaleDateString()}</p>
                                     )}
