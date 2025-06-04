@@ -25,7 +25,9 @@ import {
     generateLinkToken,
     linkDiscordAccount,
     getLinkedDiscordAccounts,
-    unlinkDiscordAccount
+    unlinkDiscordAccount,
+    initiateDiscordLinkFromWebApp,
+    handleDiscordOAuthCallback
 } from '../controllers/discordLinkController';
 
 import {
@@ -69,6 +71,16 @@ const router = express.Router();
 // @desc    Called by the Discord bot to generate a one-time token for account linking.
 // @access  Private (Bot authenticated by secret key in controller)
 router.post('/generate-link-token', generateLinkToken);
+
+// @route   GET /api/integrations/discord/initiate-link
+// @desc    Initiates Discord account linking process from the Labnex web application.
+// @access  Private (Labnex user authenticated by JWT)
+router.get('/initiate-link', auth, initiateDiscordLinkFromWebApp);
+
+// @route   GET /api/integrations/discord/oauth-callback
+// @desc    Handles the OAuth2 callback from Discord after user authorization.
+// @access  Public (but state token is verified)
+router.get('/oauth-callback', handleDiscordOAuthCallback);
 
 // @route   POST /api/integrations/discord/link-account
 // @desc    Links a Labnex user account with a Discord account using a verified token.

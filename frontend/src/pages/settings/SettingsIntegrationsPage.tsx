@@ -7,7 +7,7 @@ import { Card } from '../../components/common/Card';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Modal } from '../../components/common/Modal'; // Assuming a Modal component exists
 import toast from 'react-hot-toast';
-import { TrashIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, UserCircleIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns'; // For formatting dates
 
 const SettingsIntegrationsPage: React.FC = () => {
@@ -64,6 +64,17 @@ const SettingsIntegrationsPage: React.FC = () => {
     return (
         <div className="space-y-6 p-4 md:p-6">
             <h1 className="text-3xl font-semibold text-white">Discord Integrations</h1>
+            
+            <div className="mb-6">
+                <Button 
+                    variant="primary"
+                    onClick={() => window.location.href = '/api/integrations/discord/initiate-link'}
+                    className="flex items-center space-x-2 glowing-button-effect"
+                >
+                    <LinkIcon className="h-5 w-5" />
+                    <span>Link New Discord Account</span>
+                </Button>
+            </div>
             
             <Card className="glassmorphism">
                 <Card.Title>Linked Discord Accounts</Card.Title>

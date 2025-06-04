@@ -1,10 +1,11 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 // import crypto from 'crypto'; // We'll use crypto in the controller/service for token generation
 
 export interface IDiscordLinkToken extends Document {
     token: string;
-    discordUserId: string;
-    discordUsername: string;
+    discordUserId?: string;
+    discordUsername?: string;
+    labnexUserId?: Types.ObjectId;
     expiresAt: Date;
 }
 
@@ -16,11 +17,16 @@ const DiscordLinkTokenSchema: Schema = new Schema({
     },
     discordUserId: { // The Discord user ID this token is for
         type: String,
-        required: true,
+        required: false,
     },
     discordUsername: { // The Discord username#tag this token is for
         type: String,
-        required: true,
+        required: false,
+    },
+    labnexUserId: { // The Labnex user ID this token is for (for web-initiated linking)
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
     },
     expiresAt: {
         type: Date,

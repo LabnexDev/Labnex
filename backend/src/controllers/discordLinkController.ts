@@ -1,10 +1,20 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
+import axios from 'axios';
 import { DiscordLinkToken } from '../models/DiscordLinkToken';
 import { UserDiscordLink } from '../models/UserDiscordLink';
+import { IUser } from '../models/User';
 
 const BOT_API_SECRET = process.env.LABNEX_API_BOT_SECRET;
 const LINK_TOKEN_EXPIRY_MINUTES = 15;
+
+// Environment variables for Discord OAuth2 (ensure these are in your .env file)
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
+// This should be the full URL to your backend callback endpoint
+// e.g., https://your-backend-api.com/api/integrations/discord/oauth-callback
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI; 
+const FRONTEND_DISCORD_LINK_CALLBACK_URL = process.env.FRONTEND_URL + '/users/discord/link'; // e.g., https://labnexdev.github.io/users/discord/link
 
 /**
  * @route   POST /api/integrations/discord/generate-link-token
@@ -162,5 +172,128 @@ export const unlinkDiscordAccount = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error unlinking Discord account:', error);
         res.status(500).json({ message: 'Server error while unlinking account.' });
+    }
+};
+
+// New function to initiate Discord link from the Labnex web application
+export const initiateDiscordLinkFromWebApp = async (req: Request, res: Response) => {
+    const labnexUserId = (req as any).user?._id as string;
+
+    if (!labnexUserId) {
+        return res.status(401).json({ message: 'Authentication required.' });
+    }
+
+    if (!DISCORD_CLIENT_ID || !DISCORD_REDIRECT_URI) {
+        console.error('Discord OAuth2 client ID or redirect URI is not configured on the server.');
+        return res.status(500).json({ message: 'Server configuration error for Discord integration.' });
+    }
+
+    try {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + LINK_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+
+        // Store the token with labnexUserId, so we know who initiated this
+        const newLinkToken = new DiscordLinkToken({
+            token,
+            labnexUserId,
+            expiresAt,
+        });
+        await newLinkToken.save();
+
+        // Construct Discord OAuth2 URL
+        const params = new URLSearchParams({
+            client_id: DISCORD_CLIENT_ID,
+            redirect_uri: DISCORD_REDIRECT_URI,
+            response_type: 'code',
+            scope: 'identify email', // Request basic user info. 'email' is optional but often useful.
+            state: token, // Use the generated token as state to prevent CSRF and to retrieve it later
+        });
+
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
+        
+        // Redirect user to Discord authorization page
+        res.redirect(discordAuthUrl);
+
+    } catch (error) {
+        console.error('Error initiating Discord link from web app:', error);
+        res.status(500).json({ message: 'Server error while initiating Discord link.' });
+    }
+};
+
+// New function to handle OAuth2 callback from Discord
+export const handleDiscordOAuthCallback = async (req: Request, res: Response) => {
+    const { code, state } = req.query; // Code and state are sent by Discord as query parameters
+
+    if (!code || !state) {
+        return res.status(400).json({ message: 'Missing authorization code or state from Discord.' });
+    }
+
+    const tokenFromState = state as string;
+
+    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !DISCORD_REDIRECT_URI || !FRONTEND_DISCORD_LINK_CALLBACK_URL) {
+        console.error('Discord OAuth2 credentials or frontend redirect URI are not configured.');
+        return res.status(500).json({ message: 'Server configuration error.' });
+    }
+
+    try {
+        // 1. Validate the state (token)
+        const linkTokenRecord = await DiscordLinkToken.findOne({ token: tokenFromState });
+        if (!linkTokenRecord) {
+            return res.status(400).json({ message: 'Invalid or expired state token.' });
+        }
+        if (linkTokenRecord.expiresAt < new Date()) {
+            // Optionally delete the expired token
+            await DiscordLinkToken.findByIdAndDelete(linkTokenRecord._id);
+            return res.status(400).json({ message: 'Link request has expired. Please try again.' });
+        }
+        if (!linkTokenRecord.labnexUserId) {
+            // This token was not initiated by the web app flow
+            return res.status(400).json({ message: 'Invalid token type for this operation.' });
+        }
+
+        // 2. Exchange authorization code for access token
+        const tokenResponse = await axios.post('https://discord.com/api/oauth2/token', new URLSearchParams({
+            client_id: DISCORD_CLIENT_ID,
+            client_secret: DISCORD_CLIENT_SECRET,
+            grant_type: 'authorization_code',
+            code: code as string,
+            redirect_uri: DISCORD_REDIRECT_URI,
+        }), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const accessToken = tokenResponse.data.access_token;
+
+        // 3. Fetch Discord user information
+        const userResponse = await axios.get('https://discord.com/api/users/@me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        const discordUser = userResponse.data;
+        const discordUserId = discordUser.id;
+        const discordUsername = `${discordUser.username}#${discordUser.discriminator}`; 
+
+        // 4. Update the linkTokenRecord with Discord user info
+        linkTokenRecord.discordUserId = discordUserId;
+        linkTokenRecord.discordUsername = discordUsername;
+        await linkTokenRecord.save();
+
+        // 5. Redirect the user to the frontend page to complete the linking
+        const frontendRedirectParams = new URLSearchParams({
+            token: linkTokenRecord.token, // The original token
+            discord_id: discordUserId,
+            discord_username: encodeURIComponent(discordUsername)
+        });
+        res.redirect(`${FRONTEND_DISCORD_LINK_CALLBACK_URL}?${frontendRedirectParams.toString()}`);
+
+    } catch (error: any) {
+        console.error('Error handling Discord OAuth callback:', error.response ? error.response.data : error.message);
+        // Redirect to an error page or the main page on the frontend?
+        // For now, sending a JSON error, but a redirect might be better UX
+        res.status(500).json({ message: 'Server error during Discord OAuth callback.' });
     }
 }; 
