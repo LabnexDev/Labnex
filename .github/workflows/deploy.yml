@@ -19,6 +19,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     
     steps:
     - name: Checkout
@@ -35,24 +38,19 @@ jobs:
       uses: actions/configure-pages@v4
         
     - name: Install dependencies
-      run: |
-        cd frontend
-        npm ci
+      run: npm ci
         
     - name: Build
       run: |
-        cd frontend
         npm run build
-        echo "--- Contents of frontend/dist ---"
-        ls -R ./dist  # List contents of dist recursively
-        echo "-------------------------------"
+        echo "--- Contents of ./dist (relative to frontend dir) ---"
+        ls -R ./dist
+        echo "------------------------------------------------------"
         
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        # Temporarily set the working directory for this step
-        # path: ./frontend/dist  # Comment this out or remove
-        path: frontend/dist      # Try without the leading ./
+        path: ./dist
 
   # Deployment job
   deploy:
