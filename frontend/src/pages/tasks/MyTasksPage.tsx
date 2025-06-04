@@ -116,7 +116,11 @@ const MyTasksPage: React.FC = () => {
                         <select id="filter-project" name="projectId" onChange={handleFilterChange} value={filters.projectId || ''} className={commonSelectClasses} disabled={isLoadingProjects}>
                             <option value="" className="bg-slate-800 text-slate-400">All Projects</option>
                             {projects?.map(p => {
-                                if (!p || !p._id) return null; // Skip rendering if project or its ID is null/undefined
+                                console.log('[MyTasksPage] Processing project for filter:', p);
+                                if (!p || !p._id) {
+                                    console.warn('[MyTasksPage] Skipping null project or project with no ID:', p);
+                                    return null;
+                                }
                                 return (
                                     <option key={p._id} value={p._id} className="bg-slate-800 text-slate-100">
                                         {p.name || 'Unnamed Project'}
