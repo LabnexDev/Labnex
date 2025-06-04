@@ -43,6 +43,9 @@ jobs:
       run: |
         cd frontend
         npm run build
+        echo "--- Contents of frontend/dist ---"
+        ls -R ./dist  # List contents of dist recursively
+        echo "-------------------------------"
         
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
