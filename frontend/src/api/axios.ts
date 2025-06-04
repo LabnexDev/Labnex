@@ -26,7 +26,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: false, // Set to false for cross-origin requests to Render
+  withCredentials: true, // MUST BE TRUE
   timeout: 30000, // 30 second timeout for production
 });
 
