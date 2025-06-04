@@ -115,7 +115,14 @@ const MyTasksPage: React.FC = () => {
                         <label htmlFor="filter-project" className="block text-sm font-medium text-slate-300 mb-1.5">Project</label>
                         <select id="filter-project" name="projectId" onChange={handleFilterChange} value={filters.projectId || ''} className={commonSelectClasses} disabled={isLoadingProjects}>
                             <option value="" className="bg-slate-800 text-slate-400">All Projects</option>
-                            {projects?.map(p => <option key={p._id} value={p._id} className="bg-slate-800 text-slate-100">{p.name}</option>)}
+                            {projects?.map(p => {
+                                if (!p || !p._id) return null; // Skip rendering if project or its ID is null/undefined
+                                return (
+                                    <option key={p._id} value={p._id} className="bg-slate-800 text-slate-100">
+                                        {p.name || 'Unnamed Project'}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
                     <div>
