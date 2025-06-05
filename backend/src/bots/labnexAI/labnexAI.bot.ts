@@ -103,9 +103,10 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessageReactions
     ],
-    partials: [Partials.Channel],
+    partials: [Partials.Channel, Partials.Message, Partials.Reaction],
 });
 console.log('[labnexAI.bot.ts] Discord client initialized.');
 
@@ -193,6 +194,13 @@ client.on(Events.MessageCreate, async message => {
     const counters = await handleMessageCreateEvent(message, client, messagesReceivedFromDiscord, messagesSentToUser);
     messagesReceivedFromDiscord = counters.updatedMessagesReceived;
     messagesSentToUser = counters.updatedMessagesSent;
+});
+
+//**********************************************************************
+// REACTION ROLE HANDLER
+//**********************************************************************
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    await handleMessageReactionAddEvent(reaction, user);
 });
 
 //**********************************************************************

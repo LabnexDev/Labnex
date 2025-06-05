@@ -1,28 +1,55 @@
-import { MessageReaction, User } from 'discord.js';
+import {
+  MessageReaction,
+  PartialMessageReaction,
+  User,
+  PartialUser
+} from 'discord.js';
 
-const RULES_MESSAGE_ID = process.env.RULES_MESSAGE_ID;
-
-export async function handleMessageReactionAddEvent(reaction: MessageReaction, user: User) {
+export async function handleMessageReactionAddEvent(
+  reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser
+) {
   if (user.bot) return;
-  if (!reaction.message.guild) return;
-  if (!RULES_MESSAGE_ID) {
-    console.warn('[messageReactionAdd] RULES_MESSAGE_ID not set.');
+
+  const roleMessageId = process.env.ROLE_ASSIGN_MESSAGE_ID;
+  const rulesMessageId = process.env.RULES_MESSAGE_ID;
+
+  if (!roleMessageId && !rulesMessageId) {
+    console.warn('[handleMessageReactionAddEvent] ROLE_ASSIGN_MESSAGE_ID or RULES_MESSAGE_ID not set.');
     return;
   }
-  if (reaction.message.id !== RULES_MESSAGE_ID) return;
-  if (reaction.emoji.name !== '✅') return;
 
   try {
-    const member = await reaction.message.guild.members.fetch(user.id);
-    const memberRole = reaction.message.guild.roles.cache.find(r => r.name === 'Member');
-    const waitlistRole = reaction.message.guild.roles.cache.find(r => r.name === 'Waitlist');
+    if (reaction.partial) await reaction.fetch();
+    const { message } = reaction;
+    const guild = message.guild;
+    if (!guild) return;
 
-    if (memberRole) await member.roles.add(memberRole);
-    if (waitlistRole) await member.roles.remove(waitlistRole);
+    const member = await guild.members.fetch(user.id);
+    const emoji = reaction.emoji.name;
 
-    console.log(`🎉 ${user.tag} accepted rules and became a Member.`);
+    // ✅ Rules Acceptance → Promote to Member
+    if (rulesMessageId && message.id === rulesMessageId && emoji === '✅') {
+      const memberRole = guild.roles.cache.find(r => r.name === 'Member');
+      const waitlistRole = guild.roles.cache.find(r => r.name === 'Waitlist');
+
+      if (memberRole) await member.roles.add(memberRole);
+      if (waitlistRole) await member.roles.remove(waitlistRole);
+
+      console.log(`🎉 ${user.tag} accepted the rules and became a Member.`);
+    }
+
+    // 🔽 Developer or 🧪 Tester Self-Assignment
+    if (roleMessageId && message.id === roleMessageId) {
+      if (emoji === '🔽') {
+        const devRole = guild.roles.cache.find(r => r.name === 'Developer');
+        if (devRole) await member.roles.add(devRole);
+      } else if (emoji === '🧪') {
+        const testerRole = guild.roles.cache.find(r => r.name === 'Tester');
+        if (testerRole) await member.roles.add(testerRole);
+      }
+    }
   } catch (err) {
-    console.error(`❌ Role update failed for ${user.tag}:`, err);
+    console.error(`❌ Reaction role assignment failed for ${user.tag}:`, err);
   }
 }
-
