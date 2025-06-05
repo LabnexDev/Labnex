@@ -153,6 +153,10 @@ const commands = [
         .setDescription('Sends the Labnex welcome embed for new members.')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .setDMPermission(false),
+    new SlashCommandBuilder().setName('sendroleselect')
+        .setDescription('Posts the role selection embed (Developer / Tester) with emoji reactions.')
+        .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
+        .setDMPermission(false),
 
 ].map(command => command.toJSON());
 

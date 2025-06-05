@@ -18,6 +18,7 @@ import { execute as handleSendEmbedCommand } from '../commands/sendEmbedCommand'
 import { execute as handleSendRulesCommand } from '../commands/sendrules';
 import { execute as handleSendInfoCommand } from '../commands/sendinfo';
 import { execute as handleSendWelcomeCommand } from '../commands/sendwelcome';
+import { execute as handleSendRoleSelectCommand } from '../commands/sendroleselect';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -170,6 +171,8 @@ export async function handleInteractionCreateEvent(
             await handleSendInfoCommand(interaction as CommandInteraction<'cached'>);
         } else if (commandName === 'sendwelcome') {
             await handleSendWelcomeCommand(interaction as CommandInteraction<'cached'>);
+        } else if (commandName === 'sendroleselect') {
+            await handleSendRoleSelectCommand(interaction as CommandInteraction<'cached'>);
         } else {
             console.log(`[interactionCreateHandler.ts] Unrecognized slash command: ${commandName}`);
             await slashCmdInteractionReply("Sorry, I don't recognize that command.", true);
