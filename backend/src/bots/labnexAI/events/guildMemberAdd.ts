@@ -1,54 +1,39 @@
-import {
-  Events,
-  EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder,
-  GuildMember,
-  TextChannel,
-  ChannelType
-} from 'discord.js';
+import { EmbedBuilder, GuildMember } from 'discord.js';
 
 // Named export for the handler function
 export async function handleGuildMemberAddEvent(member: GuildMember) {
-  // Try to find the welcome channel by name
-  const welcomeChannel = member.guild.channels.cache.find(
-    (ch) => ch.name === 'welcome' && ch.type === ChannelType.GuildText
-  ) as TextChannel | undefined; // Ensure it's a TextChannel
-
-  if (!welcomeChannel) {
-    console.log(`[guildMemberAdd.ts] 'welcome' channel not found in guild ${member.guild.name}. Cannot send welcome message.`);
-    return;
-  }
-
-  const welcomeEmbed = new EmbedBuilder()
-    .setTitle(`👋 Welcome to Labnex, ${member.user.username}!`)
-    .setDescription(
-      "We're excited to have you here.\n\nLabnex connects **developers** and **testers** to collaborate on real-world projects.\n\nPlease choose your role to get started:"
-    )
-    .setColor(0x66CCFF) // Soft blue, as per your example
-    .setThumbnail(member.user.displayAvatarURL()) // Add user's avatar for a personal touch
-    .setFooter({ text: "You can change your role later by messaging Labnex AI" });
-
-  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId('assign_tester')
-      .setLabel("🧪 I'm a Tester")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId('assign_developer')
-      .setLabel("💻 I'm a Developer")
-      .setStyle(ButtonStyle.Success)
-  );
-
   try {
-    await welcomeChannel.send({
-      content: `Hey <@${member.id}>, great to have you with us!`, // Personalized ping
-      embeds: [welcomeEmbed],
-      components: [row]
-    });
-    console.log(`[guildMemberAdd.ts] Sent welcome message to ${member.user.tag} in #${welcomeChannel.name} on guild ${member.guild.name}.`);
+    const waitlistRole = member.guild.roles.cache.find(role => role.name === 'Waitlist');
+    if (waitlistRole) {
+      await member.roles.add(waitlistRole);
+    }
+
+    const welcomeChannel = member.guild.channels.cache.find(
+      ch => ch.name === 'welcome' && ch.isTextBased()
+    );
+    if (!welcomeChannel) {
+      console.log(`[guildMemberAdd.ts] 'welcome' channel not found in guild ${member.guild.name}. Cannot send welcome message.`);
+      return;
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle('👋 Welcome to Labnex (Closed Beta)')
+      .setColor(0x66CCFF)
+      .setDescription(
+        `Hey <@${member.id}>, welcome aboard! 🎉\n\n` +
+        "You're in our **Closed Beta**. Here's what to do next:"
+      )
+      .addFields(
+        { name: '📜 Step 1: Read the Rules', value: 'Head to `#rules` and read through our community guidelines.' },
+        { name: '✅ Step 2: Accept Rules', value: 'React to the pinned rules message with ✅ to unlock full access.' },
+        { name: '🎭 Step 3: Choose Your Role', value: 'React in `#get-started` with 🔽 for Developer or 🧪 for Tester.' },
+        { name: '📝 Step 4: Join the Waitlist', value: '[Click here](https://labnexdev.github.io/Labnex) to request access to Labnex features.' }
+      )
+      .setFooter({ text: "You're early. You're important. Thanks for joining Labnex." });
+
+    await (welcomeChannel as any).send({ content: `<@${member.id}>`, embeds: [embed] });
+    console.log(`✅ Onboarded ${member.user.tag} with Waitlist role.`);
   } catch (error) {
-    console.error(`[guildMemberAdd.ts] Failed to send welcome message to ${member.user.tag} in guild ${member.guild.name}:`, error);
+    console.error(`❌ Onboarding failed for ${member.user.tag}:`, error);
   }
-} 
+}
