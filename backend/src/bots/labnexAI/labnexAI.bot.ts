@@ -174,6 +174,7 @@ client.once(Events.ClientReady, readyClient => {
 import { handleInteractionCreateEvent, updateInteractionCounters } from './events/interactionCreateHandler';
 import { handleMessageCreateEvent } from './events/messageCreateHandler';
 import { handleGuildMemberAddEvent } from './events/guildMemberAdd';
+import { handleMessageReactionAddEvent } from './events/messageReactionAdd';
 
 //**********************************************************************
 // SLASH COMMAND (INTERACTION) HANDLER
@@ -200,6 +201,13 @@ client.on(Events.MessageCreate, async message => {
 client.on(Events.GuildMemberAdd, async member => {
     console.log(`[labnexAI.bot.ts] Event: GuildMemberAdd - ${member.user.tag} joined ${member.guild.name}`);
     await handleGuildMemberAddEvent(member);
+});
+
+//**********************************************************************
+// REACTION TO RULES MESSAGE HANDLER
+//**********************************************************************
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+    await handleMessageReactionAddEvent(reaction, user);
 });
 
 // Bot login
