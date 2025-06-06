@@ -1,12 +1,16 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
-import { BellIcon, ArrowLeftOnRectangleIcon, InformationCircleIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { BellIcon, ArrowLeftOnRectangleIcon, InformationCircleIcon, UserGroupIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 // import { useTheme } from '../../contexts/ThemeContext'; // useTheme and theme are unused
 import { useQuery } from '@tanstack/react-query';
 import { getNotifications, type Notification, NotificationStatus, NotificationType } from '../../api/notifications';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuToggle: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
   // const { theme } = useTheme(); // theme is unused
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -36,7 +40,13 @@ export const Header: React.FC = () => {
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            {/* The Labnex logo previously here has been removed */}
+            <button
+              onClick={onMenuToggle}
+              className="md:hidden p-2 rounded-md text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Bars3Icon className="h-6 w-6" />
+            </button>
           </div>
           <div className="flex items-center space-x-4">
             <a
