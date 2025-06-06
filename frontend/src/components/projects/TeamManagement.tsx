@@ -174,14 +174,14 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ projectId, userR
 
       {filteredTeamMembers && filteredTeamMembers.length > 0 ? (
         <div className="-mx-4 sm:-mx-6 mt-4 flow-root">
-          <div className="inline-block min-w-full align-middle sm:px-6 lg:px-8">
+          <div className="inline-block min-w-full align-middle sm:px-6 lg:px-8 overflow-x-auto">
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 sm:rounded-lg">
               <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700 table-fixed w-full">
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
                     <th scope="col" className="w-3/5 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">Name</th>
-                    <th scope="col" className="w-[150px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Role</th>
-                    {canManageTeam && <th scope="col" className="w-[100px] relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>}
+                    <th scope="col" className="w-24 sm:w-[150px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Role</th>
+                    {canManageTeam && <th scope="col" className="w-20 sm:w-[100px] relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700/50 bg-white dark:bg-gray-800/50">

@@ -986,9 +986,9 @@ export function TerminalPage() {
           </div>
 
           {/* Terminal Content */}
-          <div 
+          <div
             ref={terminalRef}
-            className="h-96 overflow-y-auto p-6 font-mono text-sm"
+            className="h-96 overflow-x-auto overflow-y-auto p-6 font-mono text-sm"
           >
             {commands.length === 0 && (
               <div className="text-gray-500">
