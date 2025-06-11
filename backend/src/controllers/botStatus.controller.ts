@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { fork, ChildProcess } from 'child_process';
+import { fork, ChildProcess, ForkOptions } from 'child_process';
 import path from 'path';
 
 interface ActiveBotInfo {
@@ -14,14 +14,11 @@ interface ActiveBotInfo {
 // Key: botId (e.g., 'labnexAI'), Value: ActiveBotInfo
 const activeBots: Map<string, ActiveBotInfo> = new Map();
 
-// Path to the bot script - adjust if your compiled output is different (e.g., in a 'dist' folder)
-// const labnexAIBotScriptPath = path.join(__dirname, '../../bots/labnexAI/labnexAI.bot.js'); 
-// IMPORTANT: This assumes labnexAI.bot.ts is compiled to labnexAI.bot.js at this relative location.
-// If you are running directly with ts-node, the path might need to be to the .ts file,
-// and the execution command in fork() would change.
-
-// Corrected path to the compiled bot script in the 'dist' directory
-const labnexAIBotScriptPath = path.join(__dirname, '..', '..', 'dist', 'bots', 'labnexAI', 'labnexAI.bot.js');
+// Determine the correct path to the bot script based on the environment
+const isProduction = process.env.NODE_ENV === 'production';
+const labnexAIBotScriptPath = isProduction
+  ? path.join(__dirname, '..', 'bots', 'labnexAI', 'labnexAI.bot.js') // Path in production (dist folder)
+  : path.join(__dirname, '..', 'bots', 'labnexAI', 'labnexAI.bot.ts'); // Path in development (src folder)
 
 // Get status of a specific bot
 export const getBotStatus = async (req: Request, res: Response) => {
@@ -78,10 +75,15 @@ export const startBot = async (req: Request, res: Response) => {
 
     console.log(`Starting bot process for ${botId} from ${labnexAIBotScriptPath}...`);
     
-    const botProcess = fork(labnexAIBotScriptPath, [], {
-        stdio: ['pipe', 'pipe', 'pipe', 'ipc'], // Pipe stdin, stdout, stderr, and enable IPC
-        execArgv: [] // Prevent inheriting ts-node exec args from parent
-    });
+    // Forking options that differ between production and development
+    const forkOptions: ForkOptions = {
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'], // Always pipe stdio and enable IPC
+        execArgv: isProduction
+          ? [] // No special exec arguments needed for production
+          : ['-r', 'ts-node/register'], // Use ts-node for development
+    };
+
+    const botProcess = fork(labnexAIBotScriptPath, [], forkOptions);
 
     const startTime = Date.now();
     activeBots.set(botId, { 

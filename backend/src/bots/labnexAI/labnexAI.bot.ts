@@ -221,7 +221,10 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 // Bot login
 if (DISCORD_BOT_TOKEN) {
     console.log('[labnexAI.bot.ts] Logging in...');
-    client.login(DISCORD_BOT_TOKEN);
+    client.login(DISCORD_BOT_TOKEN).catch(error => {
+        console.error('[labnexAI.bot.ts] Failed to log in:', error);
+        process.exit(1);
+    });
 } else {
     console.error('[labnexAI.bot.ts] Error: DISCORD_BOT_TOKEN is not set. Bot will not start.');
 }
