@@ -23,7 +23,8 @@ export async function handleListSnippetsCommandNLU(
             `${LABNEX_API_URL}/integrations/discord/snippets`,
             {
                 headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET },
-                params: params
+                params: params,
+                timeout: 15000
             }
         );
 
@@ -91,7 +92,10 @@ export async function handleCreateSnippetCommandNLU(
         const response = await axios.post(
             `${LABNEX_API_URL}/integrations/discord/snippets`,
             apiPayload,
-            { headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET } }
+            { 
+                headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET },
+                timeout: 15000
+            }
         );
         await replyFunction(response.data.message || `Snippet "${title}" created successfully! (via NLU)`);
     } catch (error: any) {
@@ -120,7 +124,10 @@ export async function handleAddSnippetSlashCommand(interaction: CommandInteracti
                 language: language,
                 code: code,
             },
-            { headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET } }
+            { 
+                headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET },
+                timeout: 15000
+            }
         );
         await interaction.editReply(response.data.message || `Snippet "${title}" created successfully!`);
     } catch (error: any) {
@@ -137,7 +144,8 @@ export async function handleListSnippetsSlashCommand(interaction: CommandInterac
             `${LABNEX_API_URL}/integrations/discord/snippets`,
             {
                 headers: { 'x-bot-secret': LABNEX_API_BOT_SECRET },
-                params: { discordUserId: interaction.user.id }
+                params: { discordUserId: interaction.user.id },
+                timeout: 15000
             }
         );
         const snippets = response.data.snippets;

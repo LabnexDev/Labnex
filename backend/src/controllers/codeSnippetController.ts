@@ -8,7 +8,7 @@ import { assistWithCode } from '../bots/labnexAI/chatgpt.service';
 // @route   POST /api/snippets
 // @access  Private
 export const createSnippet = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { title, description, language, code, projectId } = req.body;
 
     if (!userId || !Types.ObjectId.isValid(userId)) {
@@ -58,7 +58,7 @@ export const createSnippet = async (req: Request, res: Response) => {
 // @route   GET /api/snippets
 // @access  Private
 export const getSnippets = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { projectId: queryProjectId } = req.query; // Renamed to avoid conflict with projectId in snippet schema
 
     try {
@@ -81,7 +81,7 @@ export const getSnippets = async (req: Request, res: Response) => {
 // @route   GET /api/snippets/:snippetId
 // @access  Private
 export const getSnippetById = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { snippetId } = req.params;
 
     if (!Types.ObjectId.isValid(snippetId)) {
@@ -108,7 +108,7 @@ export const getSnippetById = async (req: Request, res: Response) => {
 // @route   PUT /api/snippets/:snippetId
 // @access  Private
 export const updateSnippet = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { snippetId } = req.params;
     const { title, description, language, code, projectId } = req.body;
 
@@ -162,7 +162,7 @@ export const updateSnippet = async (req: Request, res: Response) => {
 // @route   DELETE /api/snippets/:snippetId
 // @access  Private
 export const deleteSnippet = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { snippetId } = req.params;
 
     if (!Types.ObjectId.isValid(snippetId)) {
@@ -190,7 +190,7 @@ export const deleteSnippet = async (req: Request, res: Response) => {
 // @route   POST /api/snippets/:snippetId/assist
 // @access  Private
 export const getAISuggestionForSnippet = async (req: Request, res: Response) => {
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
     const { snippetId } = req.params;
     const { action } = req.body; // action should be 'cleanup' or 'fix_errors'
 
