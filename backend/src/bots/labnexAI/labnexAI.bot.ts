@@ -43,8 +43,12 @@ import {
     handleListSnippetsCommand as handleListSnippetsCommandNLU,
     handleCreateSnippetCommand as handleCreateSnippetCommandNLU
 } from './commands/snippetCommands';
+import { REST } from '@discordjs/rest';
 
 console.log('[labnexAI.bot.ts] Basic imports successful.');
+
+// Set the API version for all requests
+const rest = new REST({ version: '10' });
 
 // Configure dotenv to load from the root project directory
 // Path is relative from the compiled JS file in dist/bots/labnexAI/
@@ -220,7 +224,8 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
 // Bot login
 if (DISCORD_BOT_TOKEN) {
-    console.log('[labnexAI.bot.ts] Logging in...');
+    console.log('[labnexAI.bot.ts] Setting token and logging in...');
+    rest.setToken(DISCORD_BOT_TOKEN);
     client.login(DISCORD_BOT_TOKEN).catch(error => {
         console.error('[labnexAI.bot.ts] Failed to log in:', error.message);
         if (error.code === 'TokenInvalid') {
