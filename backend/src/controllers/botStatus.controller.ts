@@ -85,6 +85,18 @@ export const startBot = async (req: Request, res: Response) => {
 
     const botProcess = fork(labnexAIBotScriptPath, [], forkOptions);
 
+    if (botProcess.pid) {
+        console.log(`[startBot] Successfully forked bot process with PID: ${botProcess.pid}`);
+    } else {
+        // This case is rare, as fork() usually throws an error instead of returning a process without a PID.
+        console.error(`[startBot] Failed to fork bot process. Path: ${labnexAIBotScriptPath}`);
+        // It's possible the response has already been sent, but we try to send an error response if not.
+        if (!res.headersSent) {
+            return res.status(500).json({ message: 'Failed to create bot process.' });
+        }
+        return; // Stop execution
+    }
+
     const startTime = Date.now();
     activeBots.set(botId, { 
         process: botProcess, 

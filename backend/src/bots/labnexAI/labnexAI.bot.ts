@@ -222,7 +222,14 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 if (DISCORD_BOT_TOKEN) {
     console.log('[labnexAI.bot.ts] Logging in...');
     client.login(DISCORD_BOT_TOKEN).catch(error => {
-        console.error('[labnexAI.bot.ts] Failed to log in:', error);
+        console.error('[labnexAI.bot.ts] Failed to log in:', error.message);
+        if (error.code === 'TokenInvalid') {
+            console.error('[labnexAI.bot.ts] The DISCORD_BOT_TOKEN is invalid. Please check the .env file and reset the token in the Discord Developer Portal if necessary.');
+        } else if (error.message.includes('Disallowed intents')) {
+            console.error('[labnexAI.bot.ts] CRITICAL: Your bot is missing required Privileged Gateway Intents.');
+            console.error('[labnexAI.bot.ts] Please go to your bot\'s application page on the Discord Developer Portal (https://discord.com/developers/applications)');
+            console.error('[labnexAI.bot.ts] and enable the "MESSAGE CONTENT INTENT" and "GUILD MEMBERS INTENT" under the "Bot" tab.');
+        }
         process.exit(1);
     });
 } else {
