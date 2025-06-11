@@ -114,6 +114,18 @@ const client = new Client({
 });
 console.log('[labnexAI.bot.ts] Discord client initialized.');
 
+// Add verbose debugging to see what's happening during login
+client.on(Events.Debug, debug => {
+    // We only care about websocket debug info for this issue
+    if (debug.includes('Remaining')) return; // Filter out noisy heartbeat messages
+    console.log(`[labnexAI-debug]: ${debug}`);
+});
+
+// Add shard error handling
+client.on(Events.ShardError, (error, shardId) => {
+    console.error(`[labnexAI.bot.ts] A websocket connection for shard ${shardId} encountered an error:`, error);
+});
+
 client.once(Events.ClientReady, readyClient => {
     console.log(`[labnexAI.bot.ts] Discord ClientReady event: Logged in as ${readyClient.user.tag}`);
     // Start sending stats periodically once the bot is ready
