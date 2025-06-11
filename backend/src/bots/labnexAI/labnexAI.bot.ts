@@ -48,8 +48,8 @@ console.log('[labnexAI.bot.ts] Basic imports successful.');
 
 // Configure dotenv to load from the root project directory
 // Path is relative from the compiled JS file in dist/bots/labnexAI/
-dotenv.config({ path: path.resolve(__dirname, '../../../../.env') }); 
-console.log('[labnexAI.bot.ts] dotenv.config() completed, attempting to load from:', path.resolve(__dirname, '../../../../.env'));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') }); 
+console.log('[labnexAI.bot.ts] dotenv.config() completed, attempting to load from:', path.resolve(__dirname, '../../../.env'));
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const LABNEX_API_URL = process.env.LABNEX_API_URL; // e.g., http://localhost:5000/api
