@@ -12,7 +12,7 @@ const documentationCache: { [key: string]: string } = {};
 const documentationFolderPath = path.join(__dirname, '../../../../frontend/public/documentation_md/topics/'); // Adjusted path relative to this file's compiled location in 'dist'
 
 // Function to load documentation into the cache
-async function loadDocumentation(): Promise<void> {
+export async function loadDocumentation(): Promise<void> {
     console.log('[loadDocumentation] Attempting to load documentation from:', documentationFolderPath);
     const filesToLoad = [
         'getting-started.md', 'cli-usage.md', 'introduction.md', 'website-usage.md',
@@ -40,16 +40,20 @@ async function loadDocumentation(): Promise<void> {
     }
 }
 
-// Load documentation when the module starts
-loadDocumentation().catch(error => {
-    console.error("[loadDocumentation] Critical error during initial documentation load:", error);
-});
+// Load documentation when the module starts - REMOVED, will be loaded on-demand
+// loadDocumentation().catch(error => {
+//     console.error("[loadDocumentation] Critical error during initial documentation load:", error);
+// });
 
 // Function to find relevant documentation based on keywords
-function findRelevantDocumentation(query: string): string | null {
+async function findRelevantDocumentation(query: string): Promise<string | null> {
     if (Object.keys(documentationCache).length === 0) {
-        console.warn("[findRelevantDocumentation] Documentation cache is empty. Cannot search.");
-        return null;
+        console.warn("[findRelevantDocumentation] Documentation cache is empty. Loading on-demand.");
+        await loadDocumentation();
+        if (Object.keys(documentationCache).length === 0) {
+            console.error("[findRelevantDocumentation] Failed to load documentation on-demand. Cannot search.");
+            return null;
+        }
     }
 
     const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 2); // Simple tokenizer, ignore small words
@@ -193,7 +197,12 @@ export async function askChatGPT(question: string, conversationHistory?: OpenAI.
         return "I'm sorry, but my connection to the OpenAI service is not configured. Please tell my administrator.";
     }
 
-    let relevantDocContent = findRelevantDocumentation(question);
+    // Ensure documentation is loaded before trying to find relevant content
+    if (Object.keys(documentationCache).length === 0) {
+        await loadDocumentation();
+    }
+
+    let relevantDocContent = await findRelevantDocumentation(question);
 
     // Base system message
     let systemMessageContent = `You are Labnex AI, a helpful assistant for the Labnex test case management application. 
