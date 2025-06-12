@@ -23,9 +23,45 @@ import statsRoutes from './routes/statsRoutes';
 import adminRoutes from './routes/adminRoutes';
 import { setupWebSocket } from './utils/websocket';
 import { createServer } from 'http';
+import { fork, ChildProcess } from 'child_process';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-//line  
+
+let botProcess: ChildProcess | null = null;
+
+function startBot() {
+  console.log('[BotManager] Attempting to start the bot...');
+  const botScriptPath = path.resolve(__dirname, 'bots/labnexAI/labnexAI.bot.js');
+  console.log(`[BotManager] Bot script path resolved to: ${botScriptPath}`);
+  
+  botProcess = fork(botScriptPath, [], {
+    // Pass parent process's env variables to child, crucial for .env to work
+    env: process.env,
+    // Use 'pipe' to capture stdout/stderr from the bot
+    silent: false 
+  });
+
+  botProcess.on('message', (message: any) => {
+    console.log('[BotManager] Received message from bot:', message);
+    // Here you could handle stats or other IPC messages
+  });
+
+  botProcess.on('error', (err) => {
+    console.error('[BotManager] Bot process error:', err);
+  });
+
+  botProcess.on('exit', (code, signal) => {
+    console.log(`[BotManager] Bot process exited with code ${code} and signal ${signal}.`);
+    // Optional: Implement a restart mechanism
+    botProcess = null; // Clear the process handle
+    // Consider adding a delay or max-retry logic before restarting
+    console.log('[BotManager] Restarting bot in 5 seconds...');
+    setTimeout(startBot, 5000);
+  });
+
+  console.log('[BotManager] Bot process has been forked.');
+}
+
 const app = express();
 app.set('trust proxy', 1); // Trust the first hop from the proxy
 const PORT = process.env.PORT || 5000;
@@ -130,6 +166,13 @@ const start = async () => {
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`WebSocket server is running`);
+
+      // Start the bot only in production or if explicitly enabled
+      if (process.env.NODE_ENV === 'production' || process.env.ENABLE_BOT === 'true') {
+        startBot();
+      } else {
+        console.log('[BotManager] Bot is disabled in the current environment. Set NODE_ENV to "production" or ENABLE_BOT to "true" to start it.');
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);
