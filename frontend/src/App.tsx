@@ -101,26 +101,10 @@ function AppRoutes() {
   }, []);
 
   useEffect(() => {
-    let intendedPath = '';
-    // Check if the path is in location.search like "?/login"
-    if (location.search.startsWith('?/') && (location.pathname === '/' || location.pathname === appBasename || location.pathname === appBasename + '/')) {
-      intendedPath = location.search.substring(1); // Removes the initial '?'
-      console.log(`[App.tsx] Detected path in location.search: "${intendedPath}"`);
-      
-      // The line below was causing a redirect loop and has been removed.
-      // The final navigate() call with `replace: true` is sufficient.
-      // navigate(location.pathname, { replace: true, state: location.state }); 
-
-      // Prepend slash if missing, as navigate expects paths like '/login'
-      if (!intendedPath.startsWith('/')) {
-        intendedPath = '/' + intendedPath;
-      }
-      
-      const finalNavigationPath = intendedPath + location.hash;
-      console.log(`[App.tsx] Navigating to path from location.search: "${intendedPath}" with hash: "${location.hash}" to final path: "${finalNavigationPath}"`);
-      navigate(finalNavigationPath, { replace: true });
-      return; // Exit early as we've handled this specific case
-    }
+    // The SPA redirect logic that was here has been removed as it was causing
+    // severe URL corruption issues. Modern hosting platforms provide better
+    // ways to handle SPA routing and 404s. This removal should stabilize
+    // the application's routing behavior.
 
     const sessionPath = sessionStorage.getItem('spa_redirect_path');
     const sessionSearch = sessionStorage.getItem('spa_redirect_search');
