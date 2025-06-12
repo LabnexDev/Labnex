@@ -13,30 +13,35 @@ import ContactPage from '../../pages/Contact';
 const WaitlistModalContent: React.FC<{ closeModal: () => void; payload: ModalPayload | null }> = ({ closeModal }) => {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null); // Reset error message on new submission
+
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (emailRegex.test(email)) {
-      setIsEmailValid(true);
-      console.log('[WaitlistModal] Attempting to submit waitlist email:', email);
-      try {
-        const response = await addWaitlistEntry(email);
-        if (response.success) {
-          setIsSubmitted(true);
-          console.log('[WaitlistModal] Email Submitted Successfully:', email);
-        } else {
-          // It might be better to show a generic error to the user 
-          // and log the specific error for debugging.
-          console.error('[WaitlistModal] Failed to add to waitlist:', response.message);
-          setIsEmailValid(false); // Or a new state like setSubmitError(response.message)
-        }
-      } catch (error) {
-        console.error('[WaitlistModal] Error submitting waitlist email:', error);
-        setIsEmailValid(false); // Or setSubmitError('An unexpected error occurred.')
+    if (!emailRegex.test(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      setIsEmailValid(false);
+      return;
+    }
+    
+    setIsEmailValid(true);
+    console.log('[WaitlistModal] Attempting to submit waitlist email:', email);
+    try {
+      await addWaitlistEntry(email);
+      setIsSubmitted(true);
+      console.log('[WaitlistModal] Email Submitted Successfully:', email);
+    } catch (error: any) {
+      console.error('[WaitlistModal] Error submitting waitlist email:', error);
+      if (error.response?.status === 409) {
+        setErrorMessage('This email address is already on our waitlist!');
+      } else if (error.message) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('An unexpected error occurred. Please try again.');
       }
-    } else {
       setIsEmailValid(false);
     }
   };
@@ -60,7 +65,7 @@ const WaitlistModalContent: React.FC<{ closeModal: () => void; payload: ModalPay
               aria-label="Email for waitlist"
               required
             />
-            {!isEmailValid && <p className="text-red-400 text-sm mt-1">Please enter a valid email address.</p>}
+            {errorMessage && <p className="text-red-400 text-sm mt-1">{errorMessage}</p>}
           </div>
           <Button type="submit" variant="primary" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300">
             Join Waitlist
