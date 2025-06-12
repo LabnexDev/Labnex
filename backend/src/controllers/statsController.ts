@@ -164,8 +164,8 @@ export const addWaitlistEntry = async (req: Request, res: Response) => {
                 <p>Hi there,</p>
                 <p>Thanks for signing up for the Labnex waitlist! We're thrilled to have you interested in revolutionizing the development and testing workflow.</p>
                 <p>You're now officially on the list, and we'll be in touch as soon as your early access account is ready. We're working hard to get Labnex into your hands.</p>
-                <p>In the meantime, you can learn more about our vision at <a href="https://labnexdev.github.io/Labnex">labnexdev.github.io/Labnex</a>.</p>
-                <a href="https://labnexdev.github.io/Labnex" class="button-cta">Explore Labnex</a>
+                <p>In the meantime, you can learn more about our vision at <a href="https://www.labnex.dev">www.labnex.dev</a>.</p>
+                <a href="https://www.labnex.dev" class="button-cta">Explore Labnex</a>
                 <p>Stay tuned!</p>
                 <p>Best regards,<br>The Labnex Team</p>
               </div>
@@ -184,7 +184,7 @@ export const addWaitlistEntry = async (req: Request, res: Response) => {
       `;
 
       await resend.emails.send({
-        from: 'Labnex Waitlist <noreply@labnex.echoaisite.online>', // Using your Resend provided email
+        from: 'Labnex Waitlist <noreply@contact.labnex.dev>', // Using your Resend provided email
         to: email,
         subject: '🎉 You\'re on the Labnex Waitlist!',
         html: emailHtmlContent,

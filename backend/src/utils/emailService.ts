@@ -13,7 +13,7 @@ export const sendEmail = async ({
   to, 
   subject, 
   html, 
-  from = 'Labnex Notifications <notifications@labnex.echoaisite.online>' 
+  from = 'Labnex Notifications <noreply@contact.labnex.dev>' 
 }: EmailOptions): Promise<void> => {
   if (!process.env.RESEND_API_KEY) {
     console.error('RESEND_API_KEY is not set. Skipping email sending.');
