@@ -107,9 +107,9 @@ function AppRoutes() {
       intendedPath = location.search.substring(1); // Removes the initial '?'
       console.log(`[App.tsx] Detected path in location.search: "${intendedPath}"`);
       
-      // Clear the search to prevent re-processing and clean up URL
-      // Using navigate with replace: true and current pathname but empty search
-      navigate(location.pathname, { replace: true, state: location.state }); 
+      // The line below was causing a redirect loop and has been removed.
+      // The final navigate() call with `replace: true` is sufficient.
+      // navigate(location.pathname, { replace: true, state: location.state }); 
 
       // Prepend slash if missing, as navigate expects paths like '/login'
       if (!intendedPath.startsWith('/')) {
