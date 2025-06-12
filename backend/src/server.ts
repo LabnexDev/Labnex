@@ -31,13 +31,30 @@ app.set('trust proxy', 1); // Trust the first hop from the proxy
 const PORT = process.env.PORT || 5000;
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.LABNEX_FRONTEND_ORIGIN || 'http://localhost:5173',
+const allowedOrigins = [
+  'https://www.labnex.dev',
+  'https://labnex.dev',
+  'http://localhost:5173',
+  'https://labnexdev.github.io' // Old domain, can be removed later
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   exposedHeaders: ['Set-Cookie']
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));

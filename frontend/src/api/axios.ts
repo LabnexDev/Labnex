@@ -2,12 +2,12 @@ import axios from 'axios';
 
 // Determine the correct API base URL based on environment
 export const getApiBaseUrl = () => {
-  // Check if we're in production (GitHub Pages deployment)
+  // Check if we're in a production environment
   const isProduction = import.meta.env.PROD;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   
   if (isProduction && !isLocalhost) {
-    // Production deployment (GitHub Pages) - use Render backend
+    // Production deployment - use the production backend URL
     return import.meta.env.VITE_PRODUCTION_API_URL || 'https://labnex-backend.onrender.com/api';
   } else {
     // Development mode - use local backend or custom dev API URL
