@@ -163,16 +163,21 @@ export async function handleInteractionCreateEvent(
             await handleAddSnippetSlashCommand(interaction);
         } else if (commandName === 'snippets') {
             await handleListSnippetsSlashCommand(interaction);
-        } else if (commandName === 'sendembed') {
-            await handleSendEmbedCommand(interaction as CommandInteraction<'cached'>);
-        } else if (commandName === 'sendrules') {
-            await handleSendRulesCommand(interaction as CommandInteraction<'cached'>);
-        } else if (commandName === 'sendinfo') {
-            await handleSendInfoCommand(interaction as CommandInteraction<'cached'>);
-        } else if (commandName === 'sendwelcome') {
-            await handleSendWelcomeCommand(interaction as CommandInteraction<'cached'>);
-        } else if (commandName === 'sendroleselect') {
-            await handleSendRoleSelectCommand(interaction as CommandInteraction<'cached'>);
+        } else if (['sendembed', 'sendrules', 'sendinfo', 'sendwelcome', 'sendroleselect'].includes(commandName)) {
+            // Guild-only command check
+            if (!interaction.inGuild()) {
+                await slashCmdInteractionReply("This command can only be used within a server.", true);
+                return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+            }
+            // Now it's safe to cast and proceed
+            const guildInteraction = interaction as CommandInteraction<'cached'>;
+            switch (commandName) {
+                case 'sendembed': await handleSendEmbedCommand(guildInteraction); break;
+                case 'sendrules': await handleSendRulesCommand(guildInteraction); break;
+                case 'sendinfo': await handleSendInfoCommand(guildInteraction); break;
+                case 'sendwelcome': await handleSendWelcomeCommand(guildInteraction); break;
+                case 'sendroleselect': await handleSendRoleSelectCommand(guildInteraction); break;
+            }
         } else {
             console.log(`[interactionCreateHandler.ts] Unrecognized slash command: ${commandName}`);
             await slashCmdInteractionReply("Sorry, I don't recognize that command.", true);
