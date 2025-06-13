@@ -21,6 +21,26 @@ const commands = [
     new SlashCommandBuilder().setName('help').setDescription('Displays the list of available commands.'),
     new SlashCommandBuilder().setName('linkaccount').setDescription('Link your Discord account with your Labnex account.'),
     new SlashCommandBuilder().setName('projects').setDescription('Lists Labnex projects you have access to.'),
+    new SlashCommandBuilder().setName('ticket')
+        .setDescription('Commands for the ticket system.')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('create')
+                .setDescription('Create a new support ticket.'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('close')
+                .setDescription('Close an active ticket thread.')
+                .addStringOption(option => option.setName('reason').setDescription('Reason for closing').setRequired(false)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('reply')
+                .setDescription('Send a reply in a ticket thread.')
+                .addStringOption(option => option.setName('message').setDescription('Your reply message').setRequired(true)))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('escalate')
+                .setDescription('Escalate a ticket to higher-level staff.')),
     // Basic structure for tasks - can be expanded
     new SlashCommandBuilder().setName('tasks')
         .setDescription('Lists tasks for a specified project.')

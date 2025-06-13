@@ -1,4 +1,5 @@
-import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember } from 'discord.js';
+// This is a test comment to reset the file state.
+import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType } from 'discord.js';
 import axios from 'axios';
 import {
     handleLinkAccount,
@@ -58,6 +59,126 @@ export function updateInteractionCounters(newReceived: number, newSent: number) 
     messagesSentToUser = newSent;
 }
 
+async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
+    if (!interaction.isChatInputCommand()) return;
+
+    const subcommand = interaction.options.getSubcommand();
+    const member = interaction.member as GuildMember;
+    const channel = interaction.channel;
+
+    // Helper to check for Staff role
+    const isStaff = () => member.roles.cache.some(role => role.name === 'Staff');
+
+    if (subcommand === 'create') {
+        const modal = new ModalBuilder()
+            .setCustomId('ticketModal')
+            .setTitle('Submit a new ticket');
+
+        const issueDescriptionInput = new TextInputBuilder()
+            .setCustomId('issueDescription')
+            .setLabel("Please describe your issue in detail")
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+        
+        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(issueDescriptionInput);
+
+        modal.addComponents(firstActionRow);
+
+        await interaction.showModal(modal);
+        return;
+    }
+
+    // All other subcommands are staff-only and must be in a thread
+    if (!channel || !channel.isThread()) {
+        await interaction.reply({ content: 'This command can only be used within a ticket thread.', ephemeral: true });
+        return;
+    }
+
+    if (!isStaff()) {
+        await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        return;
+    }
+    
+    switch (subcommand) {
+        case 'close': {
+            await interaction.deferReply({ ephemeral: true });
+
+            const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
+
+            try {
+                // Update original embed in modmail
+                if (channel.parentId) {
+                    const modmailChannel = await interaction.guild?.channels.fetch(channel.parentId);
+                    if (modmailChannel && modmailChannel.isTextBased()) {
+                        const originalMessage = await modmailChannel.messages.fetch(channel.id);
+                        if (originalMessage && originalMessage.embeds.length > 0) {
+                            const originalEmbed = originalMessage.embeds[0];
+                            const updatedEmbed = new EmbedBuilder(originalEmbed.data)
+                                .setColor(0xff0000) // Red for closed
+                                .spliceFields(1, 1, { name: 'Status', value: 'Closed', inline: true }) // Replace status
+                                .addFields(
+                                    { name: 'Closed By', value: member.user.tag, inline: true },
+                                    { name: 'Reason', value: reason }
+                                );
+                            await originalMessage.edit({ embeds: [updatedEmbed] });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('[TicketSystem] Failed to update the original ticket embed.', e);
+                // Non-fatal, we can still close the thread
+            }
+
+            // Notify user in thread
+            await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
+            
+            // Lock the thread
+            await channel.setLocked(true);
+            await channel.setArchived(true);
+            
+            await interaction.editReply({ content: 'Ticket has been closed and archived.' });
+            break;
+        }
+
+        case 'reply': {
+            await interaction.deferReply({ ephemeral: true });
+            const message = getInteractionStringOption(interaction, 'message', true);
+
+            if (!message) {
+                await interaction.editReply({ content: 'You must provide a message to reply with.' });
+                return;
+            }
+
+            const replyEmbed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                .setDescription(message)
+                .setTimestamp();
+
+            await channel.send({ embeds: [replyEmbed] });
+            
+            await interaction.editReply({ content: 'Your reply has been sent.' });
+            break;
+        }
+
+        case 'escalate': {
+            await interaction.deferReply({ ephemeral: true });
+            const adminRole = interaction.guild?.roles.cache.find(role => role.name === 'Admin');
+            const adminMention = adminRole ? `<@&${adminRole.id}>` : '@Admin';
+
+            const escalateEmbed = new EmbedBuilder()
+                .setColor(0xffff00) // Yellow for escalation
+                .setTitle('Ticket Escalated')
+                .setDescription(`<@${member.id}> has escalated this ticket. ${adminMention}, your attention is requested.`)
+                .setTimestamp();
+
+            await channel.send({ embeds: [escalateEmbed] });
+            
+            await interaction.editReply({ content: 'Ticket has been escalated.' });
+            break;
+        }
+    }
+}
 
 export async function handleInteractionCreateEvent(
     interaction: Interaction,
@@ -113,6 +234,7 @@ export async function handleInteractionCreateEvent(
                 { name: 'notes', description: 'Lists your recent notes.' },
                 { name: 'addsnippet', description: 'Creates a new code snippet. (Requires: language, title, code)' },
                 { name: 'snippets', description: 'Lists your recent code snippets.' },
+                { name: 'ticket', description: 'Create a new support ticket.' },
             ];
             const helpEmbed = new EmbedBuilder()
                 .setColor(0x0099FF)
@@ -163,6 +285,8 @@ export async function handleInteractionCreateEvent(
             await handleAddSnippetSlashCommand(interaction);
         } else if (commandName === 'snippets') {
             await handleListSnippetsSlashCommand(interaction);
+        } else if (commandName === 'ticket') {
+            await handleTicketCommand(interaction);
         } else if (['sendembed', 'sendrules', 'sendinfo', 'sendwelcome', 'sendroleselect'].includes(commandName)) {
             // Guild-only command check
             if (!interaction.inGuild()) {
@@ -198,23 +322,9 @@ export async function handleInteractionCreateEvent(
             }
             return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
         }
-
-        // Secondary guard for member, though member should be present if inGuild() is true
-        if (!interaction.member || !('roles' in interaction.member)) {
-             console.error('[interactionCreateHandler.ts] Button interaction in guild, but member object is not as expected.');
-             if (interaction.isRepliable()) {
-                try {
-                    await interaction.reply({ content: "Error processing your role: member data incomplete.", ephemeral: true });
-                    localMessagesSent++;
-                } catch (e) { console.error("Failed to send error reply for member data issue", e); }
-            }
-            return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-        }
         
-        // interaction.guild is now guaranteed non-null by inGuild() check.
-        // interaction.member is GuildMember due to 'roles' in interaction.member check and inGuild().
-        const member = interaction.member as GuildMember; // Explicit cast for clarity and full GuildMember methods
-        const guild = interaction.guild!; // Use non-null assertion for guild as linter is being difficult
+        const member = interaction.member as GuildMember;
+        const guild = interaction.guild!;
 
         const testerRole = guild.roles.cache.find(role => role.name === 'Tester');
         const devRole = guild.roles.cache.find(role => role.name === 'Developer');
@@ -246,28 +356,75 @@ export async function handleInteractionCreateEvent(
                 console.warn(`[interactionCreateHandler.ts] 'Developer' role not found in guild ${guild.name}.`);
                 replyMessage = "The \"Developer\" role could not be found. Please contact an admin.";
             }
-        } else {
-            console.log(`[interactionCreateHandler.ts] Unrecognized button customId for role assignment: ${customId}`);
-            return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent }; 
+        }
+        
+        try {
+            if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ content: replyMessage, ephemeral: true });
+                localMessagesSent++;
+            }
+        } catch (finalReplyError) {
+            console.error('[InteractionCreate/Button] Error sending final confirmation reply:', finalReplyError);
         }
 
-        try {
-            await interaction.reply({ content: replyMessage, ephemeral: true });
-            localMessagesSent++;
-        } catch (buttonReplyError) {
-            console.error(`[InteractionCreate/Button/${customId}] Error sending button reply:`, buttonReplyError);
-            if (interaction.deferred) {
-                try {
-                    await interaction.followUp({content: replyMessage, ephemeral: true});
-                    localMessagesSent++;
-                } catch (followUpError) {
-                     console.error(`[InteractionCreate/Button/${customId}] Error sending button followUp:`, followUpError);
-                }
+    // Handle Modal Submissions
+    } else if (interaction.isModalSubmit()) {
+        localMessagesReceived++;
+        const { customId } = interaction;
+        console.log(`[interactionCreateHandler.ts] Event: Modal Submit "${customId}" from ${interaction.user.tag}`);
+
+        if (customId === 'ticketModal') {
+            await interaction.deferReply({ ephemeral: true });
+
+            const issueDescription = interaction.fields.getTextInputValue('issueDescription');
+            const member = interaction.member as GuildMember;
+
+            // Find the modmail channel
+            const modmailChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'modmail');
+
+            if (!modmailChannel || !modmailChannel.isTextBased()) {
+                console.error('[TicketSystem] #modmail channel not found or is not a text channel.');
+                await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an administrator.' });
+                return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+            }
+
+            const ticketId = Date.now().toString();
+
+            const ticketEmbed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setTitle(`New Ticket: #${ticketId}`)
+                .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                .addFields(
+                    { name: 'User', value: `<@${member.id}>`, inline: true },
+                    { name: 'Status', value: 'Open', inline: true },
+                    { name: 'Issue', value: issueDescription }
+                )
+                .setTimestamp();
+            
+            try {
+                const ticketMessage = await modmailChannel.send({ embeds: [ticketEmbed] });
+
+                const thread = await ticketMessage.startThread({
+                    name: `ticket-${ticketId}-${member.user.username}`,
+                    autoArchiveDuration: 1440, // 24 hours
+                    reason: `Ticket created by ${member.user.tag}`,
+                });
+
+                await thread.members.add(member.id);
+
+                const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff');
+                const staffMention = staffRole ? `<@&${staffRole.id}>` : '@staff';
+
+                await thread.send(`Welcome, <@${member.id}>! ${staffMention} will be with you shortly to discuss your ticket.`);
+
+                await interaction.editReply({ content: `Your ticket (#${ticketId}) has been submitted successfully! A private thread has been created for you.` });
+                localMessagesSent++;
+            } catch (error) {
+                console.error('[TicketSystem] Failed to create ticket thread:', error);
+                await interaction.editReply({ content: 'I was able to submit your ticket, but failed to create a private thread for it. Please ask staff for assistance in the #modmail channel.' });
             }
         }
     }
-    // Future: else if (interaction.isModalSubmit()) { ... }
-    // Future: else if (interaction.isStringSelectMenu()) { ... }
 
     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
 } 
