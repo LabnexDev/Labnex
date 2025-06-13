@@ -39,6 +39,8 @@ import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelop
 import DiscordAIIntegrationFeaturePage from './pages/features/DiscordAIIntegrationFeaturePage';
 import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage';
 import TechStackFeaturePage from './pages/features/TechStackFeaturePage';
+import RoadmapPage from './pages/roadmap/RoadmapPage';
+import ThankYouPage from './pages/donation/ThankYouPage';
 import { ModalProvider } from './contexts/ModalContext';
 import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 
@@ -154,6 +156,8 @@ function AppRoutes() {
       <Route path="/features/discord-ai-integration" element={<DiscordAIIntegrationFeaturePage />} />
       <Route path="/features/cli-automation" element={<CLIAutomationFeaturePage />} />
       <Route path="/features/tech-stack" element={<TechStackFeaturePage />} />
+      <Route path="/roadmap" element={<RoadmapPage />} />
+      <Route path="/donation/thank-you" element={<ThankYouPage />} />
       <Route
         path="/admin/dashboard"
         element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}

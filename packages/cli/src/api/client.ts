@@ -307,6 +307,21 @@ export class LabnexApiClient {
     return response.data;
   }
 
+  async analyzeFailureConversational(
+    testRunId: string, 
+    failureId: string, 
+    conversationHistory: any[], 
+    question: string
+  ): Promise<ApiResponse<{ analysis: string; suggestions: string[] }>> {
+    const response = await this.api.post(`/ai/analyze-failure/conversational`, {
+      testRunId,
+      failureId,
+      conversationHistory,
+      question
+    });
+    return response.data;
+  }
+
   // New AI methods for step interpretation and suggestion
   async interpretTestStep(stepDescription: string): Promise<ApiResponse<string>> {
     if (this.verboseLogging) console.log(`[AI Client] POST /ai/interpret Request:`, { description: stepDescription });

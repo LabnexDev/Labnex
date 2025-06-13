@@ -1,5 +1,6 @@
 import React from 'react';
 import { useModal } from '../contexts/ModalContext';
+import { Link } from 'react-router-dom';
 import './LandingPage.css';
 
 // Import background components
@@ -117,18 +118,22 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <span className="font-bold text-2xl text-white">Labnex</span>
+              <Link to="/" className="font-bold text-2xl text-white">Labnex</Link>
             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300 hover:scale-[1.02]">
-                  Join Waitlist
-                </Button>
-              </div>
-            </div>
-            <div className="md:hidden">
-              <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+            <div className="hidden md:flex items-center space-x-2">
+              <Button to="/roadmap" variant="tertiary" size="sm">
+                The Road Map
+              </Button>
+              <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300 hover:scale-[1.02]">
                 Join Waitlist
+              </Button>
+            </div>
+            <div className="md:hidden flex items-center space-x-2">
+              <Button to="/roadmap" variant="tertiary" size="sm" className="px-3 py-2">
+                Roadmap
+              </Button>
+              <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+                Join
               </Button>
             </div>
           </div>

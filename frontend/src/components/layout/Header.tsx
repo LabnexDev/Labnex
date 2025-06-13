@@ -1,6 +1,7 @@
+import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
-import { BellIcon, ArrowLeftOnRectangleIcon, InformationCircleIcon, UserGroupIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { BellIcon, ArrowLeftOnRectangleIcon, InformationCircleIcon, UserGroupIcon, Bars3Icon, MapIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 // import { useTheme } from '../../contexts/ThemeContext'; // useTheme and theme are unused
 import { useQuery } from '@tanstack/react-query';
@@ -49,6 +50,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             </button>
           </div>
           <div className="flex items-center space-x-4">
+            <Link
+              to="/roadmap"
+              title="View our Roadmap"
+              className="p-2 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 transition-colors"
+            >
+              <span className="sr-only">View our Roadmap</span>
+              <MapIcon className="h-6 w-6" />
+            </Link>
             <a
               href="https://discord.gg/4jPvtrF4"
               target="_blank"

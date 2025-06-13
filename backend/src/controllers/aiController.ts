@@ -338,6 +338,84 @@ Respond with a JSON object containing:
   }
 };
 
+export const analyzeFailureConversational = async (req: AuthRequest, res: Response) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser?.id) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const { testRunId, failureId, conversationHistory, question } = req.body;
+
+    // Validate input
+    if (!testRunId || !failureId || !conversationHistory || !question) {
+      return res.status(400).json({ success: false, error: 'Missing required fields for conversational analysis.' });
+    }
+
+    const testRun = await TestRun.findById(testRunId).populate('project');
+    if (!testRun) {
+      return res.status(404).json({ success: false, error: 'Test run not found' });
+    }
+
+    // Check access
+    const hasAccess = await checkProjectAccess(testRun.project._id, currentUser.id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    
+    // Find the failed test result to provide context
+    const failedResult = testRun.testResults.find(r => r.testCaseId.toString() === failureId);
+    if (!failedResult) {
+      return res.status(404).json({ success: false, error: 'Failure details not found in test run' });
+    }
+    
+    const testCase = await TestCase.findById(failureId);
+    if (!testCase) {
+      return res.status(404).json({ success: false, error: 'Test case not found' });
+    }
+
+    // Construct the conversational prompt
+    const systemPrompt = `You are an expert test failure analysis assistant. A user is asking for help with a failed test.
+The original failure context is as follows:
+- Test Case: "${testCase.title}"
+- Steps: ${JSON.stringify(testCase.steps)}
+- Failure Reason: "${failedResult.error}"
+
+You are in an interactive session. The user has already seen an initial analysis. Below is the conversation history. Answer the user's NEWEST question based on the full context. Be helpful and provide clear, actionable advice.`;
+
+    // The conversationHistory from the client already has the right format. We just add the system prompt and the new user question.
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
+      ...conversationHistory, // Spread the existing history
+      { role: "user", content: question } // Add the new question
+    ];
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: messages,
+      temperature: 0.5,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response from AI');
+    }
+
+    res.json({
+      success: true,
+      data: {
+        analysis: content,
+        suggestions: [] // Suggestions are part of the main analysis in conversational mode
+      },
+      message: 'Conversational analysis successful'
+    });
+
+  } catch (error: any) {
+    console.error('Error in conversational failure analysis:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 export const interpretTestStep = async (req: AuthRequest, res: Response) => {
   const currentUser = req.user;
   if (!currentUser?.id) {

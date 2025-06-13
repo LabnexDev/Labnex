@@ -8,10 +8,12 @@ import { projectsCommand } from './commands/projects';
 import { aiCommand } from './commands/ai';
 import { analyzeCommand } from './commands/analyze';
 import { setupConfigCommands } from './commands/config';
+import { listCommand } from './commands/list';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
 import { LocalBrowserExecutor } from './localBrowserExecutor';
 import ora from 'ora';
+import inquirer from 'inquirer';
 
 async function main() {
   // Initialize configuration
@@ -60,7 +62,46 @@ async function main() {
     .option('--timeout <ms>', 'Test timeout in milliseconds', '300000')
     .action(async (options) => {
       try {
-        await runTests(options);
+        let projectId = options.projectId;
+
+        // If no project ID is provided, fetch projects and ask the user
+        if (!projectId) {
+          const spinner = ora('Fetching your projects...').start();
+          try {
+            const response = await apiClient.getProjects();
+            if (response.success && response.data && response.data.length > 0) {
+              spinner.stop(); // Stop spinner before showing prompt
+              const choices = response.data.map((p: any) => ({
+                name: `${p.name} (${p.projectCode})`,
+                value: p._id,
+              }));
+
+              const answer = await inquirer.prompt([
+                {
+                  type: 'list',
+                  name: 'selectedProject',
+                  message: 'Which project would you like to run tests for?',
+                  choices: choices,
+                },
+              ]);
+              projectId = answer.selectedProject;
+            } else if (response.success && response.data.length === 0) {
+              spinner.fail(chalk.yellow('You do not have any projects.'));
+              console.log(chalk.cyan('You can create one using: labnex projects create'));
+              return;
+            } else {
+              spinner.fail(chalk.red(`Failed to fetch projects: ${response.message || 'Unknown error'}`));
+              return;
+            }
+          } catch (error: any) {
+            spinner.fail(chalk.red(`Error fetching projects: ${error.message}`));
+            return;
+          }
+        }
+        
+        // Pass the determined project ID to the runTests function
+        await runTests({ ...options, projectId });
+
       } catch (error: any) {
         console.error(chalk.red('❌ Test execution failed:'), error.message);
         if (process.env.LABNEX_VERBOSE === 'true') {
@@ -87,34 +128,13 @@ async function main() {
       }
     });
 
-  // List command
-  program
-    .command('list')
-    .description('View available projects or list test cases for a specific project.')
-    .option('-p, --projects', 'List all projects')
-    .option('-t, --tests <projectId>', 'List test cases for a project')
-    .action(async (options) => {
-      try {
-        if (options.projects) {
-          await listProjects();
-        } else if (options.tests) {
-          await listTestCases(options.tests);
-        } else {
-          console.log(chalk.yellow('Please specify --projects or --tests <projectId>'));
-          console.log('Example: labnex list --projects');
-          console.log('Example: labnex list --tests 6832ac498153de9c85b03727');
-        }
-      } catch (error: any) {
-        console.error(chalk.red('❌ Error listing:'), error.message);
-      }
-    });
-
   // Register other command groups
   program.addCommand(authCommand);
   program.addCommand(projectsCommand);
   program.addCommand(aiCommand);
   program.addCommand(analyzeCommand);
   program.addCommand(setupConfigCommands());
+  program.addCommand(listCommand);
 
   // Enhanced help
   program.configureHelp({
@@ -129,7 +149,7 @@ async function main() {
       const descriptions: { [key: string]: string } = {
         'run': 'Execute tests for a project (local/cloud)',
         'status': 'Monitor test execution status',
-        'list': 'List projects and test cases',
+        'list': 'List resources (projects, tests)',
         'auth': 'Manage authentication and API token settings',
         'projects': 'Manage projects (create, list, show details)',
         'ai': 'Access AI-powered features (generate, optimize tests)',
@@ -159,10 +179,10 @@ ${chalk.bold('Examples:')}
   ${chalk.cyan('labnex run --project-id 6832ac498153de9c85b03727 --mode cloud --parallel 8')}
     Run tests in cloud with 8 parallel workers
 
-  ${chalk.cyan('labnex list --projects')}
+  ${chalk.cyan('labnex list projects')}
     List all available projects
 
-  ${chalk.cyan('labnex list --tests 6832ac498153de9c85b03727')}
+  ${chalk.cyan('labnex list tests 6832ac498153de9c85b03727')}
     List test cases for a specific project
 
   ${chalk.cyan('labnex status')}
@@ -365,130 +385,14 @@ async function checkOverallStatus() {
 }
 
 async function checkSpecificTestRun(runId: string) {
-  console.log(chalk.gray(`📊 Checking test run: ${runId}`));
-  console.log(chalk.yellow('🚧 Test run monitoring is coming soon!'));
+  const spinner = ora(`Checking status for test run ${runId}...`).start();
+  // ...
 }
 
-// List functions
-async function listProjects() {
-  const spinner = ora('Fetching projects...').start();
-  try {
-    const response = await apiClient.getProjects();
-    if (response.success && response.data) {
-      spinner.succeed(chalk.green(`✅ Found ${response.data.length} projects`));
-      console.log('');
-      response.data.forEach((project: any) => {
-        console.log(chalk.cyan(`📁 ${project.name}`));
-        console.log(chalk.gray(`   ID: ${project._id}`));
-        console.log(chalk.gray(`   Code: ${project.projectCode}`));
-        console.log(chalk.gray(`   Test Cases: ${project.testCaseCount || 0}`));
-        console.log(chalk.gray(`   Description: ${project.description || 'No description'}`));
-        console.log('');
-      });
-    } else {
-      spinner.fail(chalk.red('❌ Failed to fetch projects'));
-    }
-  } catch (error: any) {
-    spinner.fail(chalk.red(`❌ Error: ${error.message}`));
-  }
-}
+// All functions below this line have been moved to their respective command files (e.g., commands/list.ts)
+// The old listProjects, listTestCases, etc., functions are no longer here.
 
-async function listTestCases(projectId: string) {
-  const spinner = ora(`Fetching test cases for project ${projectId}...`).start();
-  try {
-    const response = await apiClient.getTestCases(projectId);
-    if (response.success && response.data) {
-      spinner.succeed(chalk.green(`✅ Found ${response.data.length} test cases`));
-      console.log('');
-      response.data.forEach((testCase: any) => {
-        console.log(chalk.cyan(`🧪 ${testCase.title}`));
-        console.log(chalk.gray(`   ID: ${testCase._id}`));
-        console.log(chalk.gray(`   Priority: ${testCase.priority || 'MEDIUM'}`));
-        console.log(chalk.gray(`   Status: ${testCase.status || 'pending'}`));
-        console.log(chalk.gray(`   Steps: ${testCase.steps ? testCase.steps.length : 0}`));
-        console.log(chalk.gray(`   Description: ${testCase.description || 'No description'}`));
-        console.log('');
-      });
-    } else {
-      spinner.fail(chalk.red('❌ Failed to fetch test cases'));
-    }
-  } catch (error: any) {
-    spinner.fail(chalk.red(`❌ Error: ${error.message}`));
-  }
-}
-
-// AI test case generation with input validation
-async function generateTestCase(options: any) {
-  let description = options.description;
-  console.log(chalk.cyan('🤖 Generating AI-powered test case...'));
-  console.log(chalk.gray(`📝 Description: ${description}`));
-
-  // Check if description is vague
-  if (isVagueDescription(description)) {
-    console.log(chalk.yellow('⚠️ The provided description seems vague. Please provide more specific details for better test case generation.'));
-    const detailedDescription = await promptForDetails();
-    console.log(chalk.gray(`📝 Updated Description: ${detailedDescription}`));
-    options.description = detailedDescription;
-    description = detailedDescription;
-  }
-
-  const spinner = ora('Generating test case...').start();
-  try {
-    // Request detailed test case with specific steps and expected outcomes
-    const response = await apiClient.generateTestCase(description);
-    if (response.success && response.data) {
-      spinner.succeed(chalk.green('✅ Test case generated successfully'));
-      console.log(chalk.cyan('🧪 Generated Test Case:'));
-      console.log(chalk.gray(`Title: ${response.data.title}`));
-      console.log(chalk.gray(`Description: ${response.data.description}`));
-      if (response.data.steps && Array.isArray(response.data.steps)) {
-        console.log(chalk.gray('Steps:'));
-        response.data.steps.forEach((step: any, index: number) => {
-          if (typeof step === 'string') {
-            console.log(chalk.gray(`  ${index + 1}. ${step}`));
-          } else {
-            console.log(chalk.gray(`  ${index + 1}. ${step.description || 'Step description not provided'}`));
-            if (step.expectedOutcome) {
-              console.log(chalk.gray(`     Expected: ${step.expectedOutcome}`));
-            }
-          }
-        });
-      } else {
-        console.log(chalk.gray(`Steps: ${response.data.steps || 'Not provided'}`));
-      }
-      console.log(chalk.gray(`Overall Expected Result: ${response.data.expectedResult || 'Not specified'}`));
-    } else {
-      spinner.fail(chalk.red(`❌ Failed to generate test case: ${response.error || 'Unknown error'}`));
-    }
-  } catch (error: any) {
-    spinner.fail(chalk.red(`❌ Error generating test case: ${error.message}`));
-  }
-}
-
-// Function to check if description is vague
-function isVagueDescription(description: string): boolean {
-  const vagueKeywords = ['test', 'check', 'verify', 'functionality', 'feature'];
-  const words = description.toLowerCase().split(' ');
-  return words.length < 5 || vagueKeywords.some(keyword => words.includes(keyword));
-}
-
-// Function to prompt user for more details
-async function promptForDetails(): Promise<string> {
-  const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise((resolve) => {
-    readline.question(chalk.cyan('Please provide a more detailed description of the test case: '), (answer: string) => {
-      readline.close();
-      resolve(answer);
-    });
-  });
-}
-
-// Call the main function to start the CLI
-main().catch(error => {
-  console.error('❌ CLI execution error:', error);
+main().catch((error) => {
+  console.error(chalk.red('\n❌ An unexpected error occurred:'), error);
   process.exit(1);
 });

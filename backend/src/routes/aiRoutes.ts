@@ -6,6 +6,7 @@ import {
   interpretTestStep,
   suggestAlternative,
   getDynamicSelectorSuggestion,
+  analyzeFailureConversational,
 } from '../controllers/aiController';
 import { auth } from '../middleware/auth';
 
@@ -17,7 +18,8 @@ router.use(auth);
 // AI routes
 router.post('/generate-test-case', generateTestCase);
 router.post('/optimize-test-suite/:projectId', optimizeTestSuite);
-router.post('/analyze-failure', analyzeFailure);
+router.post('/analyze-failure/:testRunId/:failureId', analyzeFailure);
+router.post('/analyze-failure/conversational', analyzeFailureConversational);
 router.post('/interpret', interpretTestStep);
 router.post('/suggest-alternative', suggestAlternative);
 router.post('/suggest-selector', getDynamicSelectorSuggestion);
