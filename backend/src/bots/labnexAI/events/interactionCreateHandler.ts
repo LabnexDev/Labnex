@@ -1,5 +1,5 @@
 // This is a test comment to reset the file state.
-import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType } from 'discord.js';
+import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType, TextChannel } from 'discord.js';
 import axios from 'axios';
 import {
     handleLinkAccount,
@@ -379,12 +379,12 @@ export async function handleInteractionCreateEvent(
             const issueDescription = interaction.fields.getTextInputValue('issueDescription');
             const member = interaction.member as GuildMember;
 
-            // Find the modmail channel
-            const modmailChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'modmail');
+            // Find the modmail channel, ensuring it is a text-based channel
+            const modmailChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'modmail' && channel.type === ChannelType.GuildText);
 
-            if (!modmailChannel || !modmailChannel.isTextBased()) {
-                console.error('[TicketSystem] #modmail channel not found or is not a text channel.');
-                await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an administrator.' });
+            if (!modmailChannel) {
+                console.error('[TicketSystem] #modmail text channel not found.');
+                await interaction.editReply({ content: 'Could not find the #modmail text channel. Please contact an administrator.' });
                 return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
             }
 
@@ -402,7 +402,7 @@ export async function handleInteractionCreateEvent(
                 .setTimestamp();
             
             try {
-                const ticketMessage = await modmailChannel.send({ embeds: [ticketEmbed] });
+                const ticketMessage = await (modmailChannel as TextChannel).send({ embeds: [ticketEmbed] });
 
                 const thread = await ticketMessage.startThread({
                     name: `ticket-${ticketId}-${member.user.username}`,
