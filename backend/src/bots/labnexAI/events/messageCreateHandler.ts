@@ -39,6 +39,7 @@ import {
     handleCreateSnippetCommand
   } from '../commands/snippetCommands';
   import { TestCaseInProgress, ProjectCreationInProgress } from '../types/labnexAI.types';
+  import { activeTickets } from './interactionCreateHandler'; // Import the active tickets map
   import axios from 'axios';
   import OpenAI from 'openai';
   
@@ -97,6 +98,24 @@ import {
   
     if (message.author.bot || !message.content) {
       return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+    }
+  
+    // Handle ticket system DMs
+    if (!message.guild && activeTickets.has(message.author.id)) {
+        const threadId = activeTickets.get(message.author.id)!;
+        const thread = await client.channels.fetch(threadId) as ThreadChannel;
+
+        if (thread) {
+            const userReplyEmbed = new EmbedBuilder()
+                .setColor(0x0099FF)
+                .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+                .setDescription(message.content)
+                .setTimestamp();
+            await thread.send({ embeds: [userReplyEmbed] });
+            await message.react('✅');
+        }
+        // Return immediately after processing the ticket DM
+        return { updatedMessagesReceived: localMessagesReceived + 1, updatedMessagesSent: localMessagesSent };
     }
   
     localMessagesReceived++;

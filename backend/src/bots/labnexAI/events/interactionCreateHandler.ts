@@ -32,6 +32,8 @@ let messagesSentToUser = 0;
 const LABNEX_API_URL = process.env.LABNEX_API_URL;
 const LABNEX_API_BOT_SECRET = process.env.LABNEX_API_BOT_SECRET;
 
+// Map to track active tickets, linking a user's ID to their ticket thread's ID
+export const activeTickets = new Map<string, string>(); // Map<userId, threadId>
 
 // Helper function for Slash Command Option Parsing (moved from main bot file)
 /* // Removing this local definition
@@ -102,20 +104,22 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
     switch (subcommand) {
         case 'close': {
             await interaction.deferReply({ ephemeral: true });
-
             const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
+            let userIdToNotify: string | undefined;
 
             try {
-                // Update original embed in modmail
                 if (channel.parentId) {
                     const modmailChannel = await interaction.guild?.channels.fetch(channel.parentId);
-                    if (modmailChannel && modmailChannel.isTextBased()) {
+                    if (modmailChannel?.isTextBased()) {
                         const originalMessage = await modmailChannel.messages.fetch(channel.id);
                         if (originalMessage && originalMessage.embeds.length > 0) {
                             const originalEmbed = originalMessage.embeds[0];
+                            const userField = originalEmbed.fields.find(f => f.name === 'User');
+                            userIdToNotify = userField?.value.match(/<@(\d+)>/)?.[1];
+                            
                             const updatedEmbed = new EmbedBuilder(originalEmbed.data)
-                                .setColor(0xff0000) // Red for closed
-                                .spliceFields(1, 1, { name: 'Status', value: 'Closed', inline: true }) // Replace status
+                                .setColor(0xff0000)
+                                .spliceFields(1, 1, { name: 'Status', value: 'Closed', inline: true })
                                 .addFields(
                                     { name: 'Closed By', value: member.user.tag, inline: true },
                                     { name: 'Reason', value: reason }
@@ -126,13 +130,15 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
                 }
             } catch (e) {
                 console.error('[TicketSystem] Failed to update the original ticket embed.', e);
-                // Non-fatal, we can still close the thread
             }
 
-            // Notify user in thread
-            await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
-            
-            // Lock the thread
+            if (userIdToNotify) {
+                activeTickets.delete(userIdToNotify);
+                const user = await interaction.client.users.fetch(userIdToNotify);
+                await user.send(`Your ticket has been closed by **${member.user.tag}**. Reason: *${reason}*`);
+            }
+
+            await channel.send(`This ticket has been closed by <@${member.id}>.`);
             await channel.setLocked(true);
             await channel.setArchived(true);
             
@@ -143,21 +149,43 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
         case 'reply': {
             await interaction.deferReply({ ephemeral: true });
             const message = getInteractionStringOption(interaction, 'message', true);
+            let userIdToNotify: string | undefined;
 
             if (!message) {
                 await interaction.editReply({ content: 'You must provide a message to reply with.' });
                 return;
             }
 
-            const replyEmbed = new EmbedBuilder()
-                .setColor(0x0099FF)
-                .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-                .setDescription(message)
-                .setTimestamp();
+            try {
+                if (channel.parentId) {
+                    const modmailChannel = await interaction.guild?.channels.fetch(channel.parentId);
+                    if (modmailChannel?.isTextBased()) {
+                        const originalMessage = await modmailChannel.messages.fetch(channel.id);
+                        const userField = originalMessage.embeds[0]?.fields.find(f => f.name === 'User');
+                        userIdToNotify = userField?.value.match(/<@(\d+)>/)?.[1];
+                    }
+                }
 
-            await channel.send({ embeds: [replyEmbed] });
-            
-            await interaction.editReply({ content: 'Your reply has been sent.' });
+                if (userIdToNotify) {
+                    const user = await interaction.client.users.fetch(userIdToNotify);
+                    const replyEmbed = new EmbedBuilder()
+                        .setColor(0x0099FF)
+                        .setAuthor({ name: `${member.user.tag} (Staff)`, iconURL: member.user.displayAvatarURL() })
+                        .setDescription(message)
+                        .setTimestamp();
+                    
+                    await user.send({ embeds: [replyEmbed] });
+
+                    // Also post in thread for staff record
+                    await channel.send({ embeds: [replyEmbed] });
+                    await interaction.editReply({ content: 'Your reply has been sent to the user.' });
+                } else {
+                    await interaction.editReply({ content: 'Could not find the user to reply to.' });
+                }
+            } catch (e) {
+                console.error('[TicketSystem] Failed to send reply DM.', e);
+                await interaction.editReply({ content: 'There was an error sending the reply. The user may have DMs disabled.' });
+            }
             break;
         }
 
@@ -357,19 +385,36 @@ export async function handleInteractionCreateEvent(
                     )
                     .setTimestamp();
                 
-                const ticketMessage = await (modmailChannel as TextChannel).send({ embeds: [ticketEmbed] });
-                const thread = await ticketMessage.startThread({
-                    name: `ticket-${ticketId}-${member.user.username}`,
-                    autoArchiveDuration: 1440,
-                    reason: `Ticket created by ${member.user.tag}`,
-                });
+                try {
+                    const ticketMessage = await (modmailChannel as TextChannel).send({ embeds: [ticketEmbed] });
 
-                await thread.members.add(member.id);
-                const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff');
-                const staffMention = staffRole ? `<@&${staffRole.id}>` : '@staff';
-                await thread.send(`Welcome, <@${member.id}>! ${staffMention} will be with you shortly to discuss your ticket.`);
-                await interaction.editReply({ content: `Your ticket (#${ticketId}) has been submitted successfully! A private thread has been created for you.` });
-                localMessagesSent++;
+                    const thread = await ticketMessage.startThread({
+                        name: `ticket-${ticketId}-${member.user.username}`,
+                        autoArchiveDuration: 1440, // 24 hours
+                        reason: `Ticket created by ${member.user.tag}`,
+                    });
+
+                    // Link the user's ID to the new thread's ID
+                    activeTickets.set(member.id, thread.id);
+
+                    const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff' || role.name === 'Admin');
+                    const staffMention = staffRole ? `<@&${staffRole.id}>` : '@staff';
+                    
+                    await thread.send(`A new ticket has been created by <@${member.id}>. ${staffMention}, please assist.`);
+                    
+                    await member.send(`Thank you for reaching out! Your ticket (#${ticketId}) has been created.\n\nYou can reply directly to me in this DM to send messages to the staff. They will reply to you here as well.`);
+
+                    await interaction.editReply({ content: `Your ticket (#${ticketId}) has been submitted successfully! I have sent you a DM to continue.` });
+                    localMessagesSent++;
+                } catch (error) {
+                    console.error('[TicketSystem] Failed to create ticket thread or DM user:', error);
+
+                    if (error instanceof Error && 'code' in error && error.code === 50007) { // Cannot send messages to this user
+                         await interaction.editReply({ content: 'I was able to submit your ticket, but I cannot send you a DM. Please check your privacy settings to allow DMs from server members.' });
+                    } else {
+                        await interaction.editReply({ content: 'An error occurred while creating your ticket. Please try again or contact staff directly.' });
+                    }
+                }
             }
         }
     } catch (error) {
