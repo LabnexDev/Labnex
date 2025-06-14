@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { EnvelopeIcon, LifebuoyIcon, UserGroupIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { FaDiscord } from 'react-icons/fa';
 
 const Contact: React.FC = () => {
   return (
@@ -78,7 +77,6 @@ const Contact: React.FC = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300"
                 >
-                  <FaDiscord className="w-5 h-5" />
                   <span>Join the Discord</span>
                 </a>
               </section>
