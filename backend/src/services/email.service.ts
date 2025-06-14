@@ -24,7 +24,7 @@ export const sendSupportEmail = async (options: SupportEmailOptions) => {
 
     try {
         await resend.emails.send({
-            from: 'Labnex Support <noreply@labnex.dev>', // Must be a verified domain on Resend
+            from: 'Labnex Support <support@contact.labnex.dev>', // Must be a verified domain on Resend
             to: [supportRecipientEmail],
             subject: `[Labnex Support] [${category.toUpperCase()}] ${subject}`,
             replyTo: from,
