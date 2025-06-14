@@ -1,0 +1,97 @@
+export interface Change {
+  version: string;
+  date: string;
+  title: string;
+  description: string;
+  changes: {
+    type: 'feature' | 'fix' | 'improvement' | 'refactor';
+    details: string;
+  }[];
+}
+
+export const changelogData: Change[] = [
+  {
+    version: '1.4.0',
+    date: '2025-06-14',
+    title: 'Advanced Ticket Commands',
+    description: 'Finalized the command structure for the new ticketing system, including close and delete functionalities, and reorganized them for clarity.',
+    changes: [
+      { type: 'feature', details: 'Finalized ticket command structure: added /close and /delete.' },
+      { type: 'refactor', details: 'Moved ticket commands into their own dedicated category.' },
+      { type: 'improvement', details: 'Temporarily disabled staff pings in ticket creation for testing.' },
+    ],
+  },
+  {
+    version: '1.3.5',
+    date: '2025-06-13',
+    title: 'Ticketing System Overhaul',
+    description: 'Refactored the core ticketing logic, transitioned fully from the legacy modmail system, and integrated new AI-powered features for staff.',
+    changes: [
+      { type: 'refactor', details: 'Refactored ticket logic and resolved related issues.' },
+      { type: 'improvement', details: 'Improved interactionCreateHandler.ts and response handling.' },
+      { type: 'feature', details: 'Added backend logging and fixed a bot state hanging issue.' },
+      { type: 'feature', details: 'Implemented AI tag generation for staff tickets.' },
+      { type: 'feature', details: 'Fully transitioned from modmail to structured ticket channels.' },
+    ],
+  },
+  {
+    version: '1.3.0',
+    date: '2025-06-12',
+    title: 'New Features & Infrastructure Updates',
+    description: 'Launched the public roadmap and donation features, alongside various improvements to routing, error handling, and frontend structure.',
+    changes: [
+      { type: 'feature', details: 'Launched roadmap page and enabled donation settings.' },
+      { type: 'fix', details: 'Improved waitlist 409 error handling.' },
+      { type: 'improvement', details: 'Updated stats controller and domain email logic.' },
+      { type: 'refactor', details: 'Cleaned up 404 redirects and frontend structure in App.tsx.' },
+    ],
+  },
+  {
+    version: '1.2.8',
+    date: '2025-06-11',
+    title: 'Backend Stability & Deployment Fixes',
+    description: 'Addressed critical backend issues including CORS, timeouts, and deployment configurations to improve overall stability and reliability.',
+    changes: [
+      { type: 'fix', details: 'Fixed CORS issues for backend endpoints.' },
+      { type: 'improvement', details: 'Improved backend startup and logging.' },
+      { type: 'fix', details: 'Fixed AI timeout and snippet-saving bugs.' },
+      { type: 'improvement', details: 'Bound domain with CNAME and updated Vite config.' },
+      { type: 'refactor', details: 'Backend package improvements and server config cleanups.' },
+    ],
+  },
+  {
+    version: '1.2.5',
+    date: '2025-06-10',
+    title: 'Modmail System Transition',
+    description: 'Enhanced the existing modmail system with better commands and role handling while beginning its deprecation in favor of the new ticket system.',
+    changes: [
+      { type: 'improvement', details: 'Enhanced modmail commands and AI suggestions.' },
+      { type: 'improvement', details: 'Improved role handling and debug logging.' },
+      { type: 'refactor', details: 'Deprecated modmail flow in favor of ticket system.' },
+    ],
+  },
+  {
+    version: '1.2.2',
+    date: '2025-06-07',
+    title: 'Mobile Experience & Role Automation',
+    description: 'Focused on improving the user experience on mobile devices and automating server role assignments based on user actions.',
+    changes: [
+      { type: 'improvement', details: 'Improved mobile responsiveness.' },
+      { type: 'feature', details: 'Added `sendroleselect` and `sendrules` slash commands.' },
+      { type: 'feature', details: 'Integrated waitlist role onboarding and rule-based role assignment.' },
+    ],
+  },
+  {
+    version: '1.2.1',
+    date: '2025-05-26',
+    title: 'CLI Publication & Documentation',
+    description: 'Published the first public version of the Labnex CLI to npm and created documentation for its use and installation.',
+    changes: [
+      { type: 'feature', details: 'Published Labnex CLI v1.2.1 to npm.' },
+      { type: 'feature', details: 'Added local CLI installation guide to the site.' },
+      { type: 'improvement', details: 'Improved Puppeteer Chrome config for free-tier memory optimization.' },
+      { type: 'fix', details: 'Fixed GitHub Actions workflows and permissions.' },
+      { type: 'improvement', details: 'Refined README, added screenshots, and updated deployment docs.' },
+    ],
+  },
+]; 

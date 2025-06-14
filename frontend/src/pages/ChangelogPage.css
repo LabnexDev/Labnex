@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.changelog-page .max-w-lg {
+  max-width: 36rem; /* 576px */
+}
+
+/* Timeline card alignment */
+@media (min-width: 640px) {
+  .changelog-page .relative .relative:nth-child(odd) .max-w-lg {
+    margin-left: auto;
+    margin-right: calc(50% + 1.5rem); /* Adjust based on timeline line position */
+  }
+  .changelog-page .relative .relative:nth-child(even) .max-w-lg {
+    margin-right: auto;
+    margin-left: calc(50% + 1.5rem); /* Adjust based on timeline line position */
+  }
+
+  /* Add arrows to the timeline cards */
+  .changelog-page .max-w-lg::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    width: 0;
+    height: 0;
+    border-style: solid;
+  }
+
+  .changelog-page .relative .relative:nth-child(odd) .max-w-lg::before {
+    right: -0.75rem; /* 12px */
+    border-width: 8px 0 8px 8px;
+    border-color: transparent transparent transparent #1e293b; /* Corresponds to bg-slate-900 */
+  }
+
+  .changelog-page .relative .relative:nth-child(even) .max-w-lg::before {
+    left: -0.75rem; /* 12px */
+    border-width: 8px 8px 8px 0;
+    border-color: transparent #1e293b transparent transparent; /* Corresponds to bg-slate-900 */
+  }
+}
+
+.changelog-page .bg-slate-900\/50 {
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+.changelog-page .border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.1);
+} 

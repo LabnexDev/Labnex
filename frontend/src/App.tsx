@@ -30,6 +30,9 @@ import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import LandingPage from './pages/LandingPage';
+import ChangelogPage from './pages/ChangelogPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import { SystemRoleType } from './types/roles';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeaturePage';
@@ -149,6 +152,9 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<LandingPage />} />
+      <Route path="/changelog" element={<ChangelogPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />
