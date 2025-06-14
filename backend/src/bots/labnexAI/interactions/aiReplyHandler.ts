@@ -7,7 +7,7 @@ export async function handleAiReplyButtons(interaction: ButtonInteraction): Prom
 
     const isStaff = () => member.roles.cache.some(role => role.name === 'Staff' || role.name === 'Admin');
     if (!isStaff()) {
-        await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 /* Ephemeral */ });
         return;
     }
 
@@ -16,7 +16,7 @@ export async function handleAiReplyButtons(interaction: ButtonInteraction): Prom
     const suggestedText = suggestionMessage.embeds[0]?.description;
 
     if (!suggestedText) {
-        await interaction.reply({ content: 'Could not find the suggestion text.', ephemeral: true });
+        await interaction.reply({ content: 'Could not find the suggestion text.', flags: 1 << 6 /* Ephemeral */ });
         return;
     }
 
@@ -52,8 +52,8 @@ export async function handleAiReplyButtons(interaction: ButtonInteraction): Prom
                         .setTimestamp()
                         .setFooter({text: "AI-suggested reply sent to user."});
                     
-                    const channel = interaction.message.channel;
-                    if (channel instanceof TextChannel || channel instanceof ThreadChannel) {
+                    const channel = interaction.channel;
+                    if (channel && (channel.isTextBased() && !channel.isDMBased())) {
                         await channel.send({embeds: [noteEmbed]});
                     }
 
@@ -65,11 +65,13 @@ export async function handleAiReplyButtons(interaction: ButtonInteraction): Prom
             break;
         }
         case 'copy': {
-            await interaction.reply({ content: suggestedText, ephemeral: true });
+            await interaction.reply({ content: suggestedText, flags: 1 << 6 /* Ephemeral */ });
             break;
         }
         case 'ignore': {
             await suggestionMessage.delete();
+            // also acknowledge the interaction
+            await interaction.reply({ content: 'Suggestion ignored.', flags: 1 << 6 /* Ephemeral */ });
             break;
         }
     }

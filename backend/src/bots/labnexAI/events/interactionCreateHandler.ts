@@ -1,5 +1,23 @@
 // This is a test comment to reset the file state.
-import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType, TextChannel, ButtonBuilder, ButtonStyle, ThreadChannel } from 'discord.js';
+import {
+    CommandInteraction,
+    CacheType,
+    EmbedBuilder,
+    Interaction,
+    GuildMember,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder,
+    ChannelType,
+    TextChannel,
+    ButtonBuilder,
+    ButtonStyle,
+    ThreadChannel,
+    InteractionReplyOptions,
+    MessagePayload,
+    CommandInteractionOptionResolver,
+} from 'discord.js';
 import axios from 'axios';
 import {
     handleLinkAccount,
@@ -63,10 +81,10 @@ export function updateInteractionCounters(newReceived: number, newSent: number) 
     messagesSentToUser = newSent;
 }
 
-async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
+async function handleTicketCommand(interaction: CommandInteraction) {
     if (!interaction.isChatInputCommand()) return;
 
-    const subcommand = interaction.options.getSubcommand();
+    const subcommand = (interaction.options as CommandInteractionOptionResolver).getSubcommand();
     const member = interaction.member as GuildMember;
     const channel = interaction.channel;
 
@@ -94,18 +112,18 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
 
     // All other subcommands are staff-only and must be in a thread
     if (!channel || !channel.isThread()) {
-        await interaction.reply({ content: 'This command can only be used within a ticket thread.', ephemeral: true });
+        await interaction.reply({ content: 'This command can only be used within a ticket thread.', flags: 1 << 6 });
         return;
     }
 
     if (!isStaff()) {
-        await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 });
         return;
     }
     
     switch (subcommand) {
         case 'close': {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: 1 << 6 });
             const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
             let userIdToNotify: string | undefined;
 
@@ -157,7 +175,7 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
         }
 
         case 'reply': {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: 1 << 6 });
             const message = getInteractionStringOption(interaction, 'message', true);
             let userIdToNotify: string | undefined;
 
@@ -200,8 +218,13 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
         }
 
         case 'escalate': {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: 1 << 6 });
             const reason = getInteractionStringOption(interaction, 'reason', true);
+
+            if (!reason) {
+                await interaction.editReply({ content: 'A reason is required to escalate.' });
+                return;
+            }
 
             const adminRole = interaction.guild?.roles.cache.find(role => role.name === 'Admin');
             const adminMention = adminRole ? `<@&${adminRole.id}>` : '@Admin';
@@ -210,7 +233,7 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
                 .setColor(0xffff00) // Yellow for escalation
                 .setTitle('Ticket Escalated')
                 .setDescription(`<@${member.id}> has escalated this ticket. ${adminMention}, your attention is requested.`)
-                .addFields({ name: 'Reason for Escalation', value: reason || 'No reason provided.' })
+                .addFields({ name: 'Reason for Escalation', value: reason })
                 .setTimestamp();
 
             await channel.send({ embeds: [escalateEmbed] });
@@ -240,167 +263,105 @@ export async function handleInteractionCreateEvent(
     let localMessagesReceived = currentMessagesReceived;
     let localMessagesSent = currentMessagesSent;
 
+    const reply = async (options: string | MessagePayload | InteractionReplyOptions) => {
+        if (interaction.isRepliable()) {
+            if (interaction.replied || interaction.deferred) {
+                await interaction.followUp(options);
+            } else {
+                await interaction.reply(options);
+            }
+        }
+    };
+
     try {
         if (interaction.isChatInputCommand()) {
             localMessagesReceived++;
             const { commandName } = interaction;
             console.log(`[interactionCreateHandler.ts] Event: ChatInput Command "${commandName}" from ${interaction.user.tag}`);
-
-            const slashCmdInteractionReply = async (content: string, ephemeral = false) => {
-                if (interaction.replied || interaction.deferred) {
-                    await interaction.followUp({ content, ephemeral });
-                } else {
-                    await interaction.reply({ content, ephemeral });
-                }
-                localMessagesSent++;
+            
+            const replyFunction = async (content: string, ephemeral = false) => {
+                await reply({ content, flags: ephemeral ? (1 << 6) : undefined });
             };
 
-            const slashCmdSendDm = async (content: string) => {
+            const sendDmFunction = async (content: string) => {
                 await interaction.user.send(content);
-                localMessagesSent++;
             };
 
-            if (commandName === 'help') {
-                const commandList = [
-                    { name: 'help', description: 'Displays the list of available commands.' },
-                    { name: 'linkaccount', description: 'Link your Discord account with your Labnex account.' },
-                    { name: 'projects', description: 'Lists Labnex projects you have access to.' },
-                    { name: 'tasks', description: 'Lists tasks for a specified project. (Optional: project name/ID)' },
-                    { name: 'createtask', description: 'Creates a new task in the specified project. (Requires: project, title)' },
-                    { name: 'taskinfo', description: 'Displays detailed information about a specific task. (Requires: task identifier)' },
-                    { name: 'updatetask status', description: 'Updates the status of a task. (Requires: task identifier, new status)' },
-                    { name: 'addnote', description: 'Creates a new note. (Requires: title, body)' },
-                    { name: 'notes', description: 'Lists your recent notes.' },
-                    { name: 'addsnippet', description: 'Creates a new code snippet. (Requires: language, title, code)' },
-                    { name: 'snippets', description: 'Lists your recent code snippets.' },
-                    { name: 'ticket', description: 'Create a new support ticket.' },
-                ];
-                const helpEmbed = new EmbedBuilder()
-                    .setColor(0x0099FF)
-                    .setTitle('Labnex Bot Help')
-                    .setDescription('Here are the available slash commands:')
-                    .setTimestamp();
-                commandList.forEach(cmd => {
-                    helpEmbed.addFields({ name: `/${cmd.name}`, value: cmd.description });
-                });
-                await interaction.reply({ embeds: [helpEmbed], ephemeral: true });
-                localMessagesSent++; 
-            } else if (commandName === 'linkaccount') {
-                await handleLinkAccount(interaction.user.id, interaction.user.tag, slashCmdInteractionReply, slashCmdSendDm);
-            } else if (commandName === 'projects') {
-                await handleMyProjectsCommand(interaction.user.id, slashCmdInteractionReply, interaction);
-            } else if (commandName === 'tasks') {
-                const projectIdentifier = getInteractionStringOption(interaction, 'project', false);
-                await handleProjectTasksCommand(interaction.user.id, projectIdentifier, slashCmdInteractionReply, interaction);
-            } else if (commandName === 'createtask') {
-                const options: CreateTaskOptions = {
-                    discordUserId: interaction.user.id,
-                    projectIdentifier: getInteractionStringOption(interaction, 'project', true) || '',
-                    title: getInteractionStringOption(interaction, 'title', true) || '',
-                    description: getInteractionStringOption(interaction, 'description', false),
-                    priority: getInteractionStringOption(interaction, 'priority', false),
-                    status: getInteractionStringOption(interaction, 'status', false),
-                    dueDate: getInteractionStringOption(interaction, 'due_date', false),
-                };
-                if (options.projectIdentifier && options.title) {
-                    await handleCreateTaskCommand(options, slashCmdInteractionReply, interaction);
-                } else {
-                    await slashCmdInteractionReply("Missing required options for creating a task (project or title).", true);
-                }
-            } else if (commandName === 'taskinfo') {
-                const taskIdentifierArg = getInteractionStringOption(interaction, 'task_identifier', true);
-                if (taskIdentifierArg) {
-                    await handleTaskInfoCommand(interaction.user.id, taskIdentifierArg, slashCmdInteractionReply, interaction);
-                } else {
-                    await slashCmdInteractionReply('The task identifier (ID or title) is required. Please provide it.', true);
-                }
-            } else if (commandName === 'updatetask') {
-                await handleUpdateTaskStatusCommand(interaction);
-            } else if (commandName === 'addnote') {
-                await handleAddNoteSlashCommand(interaction);
-            } else if (commandName === 'notes') {
-                await handleListNotesSlashCommand(interaction);
-            } else if (commandName === 'addsnippet') {
-                await handleAddSnippetSlashCommand(interaction);
-            } else if (commandName === 'snippets') {
-                await handleListSnippetsSlashCommand(interaction);
-            } else if (commandName === 'ticket') {
+            if (commandName === 'ticket') {
                 await handleTicketCommand(interaction);
-            } else if (['sendembed', 'sendrules', 'sendinfo', 'sendwelcome', 'sendroleselect'].includes(commandName)) {
+            } else if (commandName === 'my-projects') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                await handleMyProjectsCommand(interaction.user.id, replyFunction, interaction);
+            } else if (commandName === 'project-tasks') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                const projectIdentifier = getInteractionStringOption(interaction, 'project', true);
+                await handleProjectTasksCommand(interaction.user.id, projectIdentifier, replyFunction, interaction);
+            } else if (commandName === 'create-task') {
+                // This command handles its own reply via modal, so no defer needed here.
+                const options: CreateTaskOptions = {
+                     discordUserId: interaction.user.id,
+                     projectIdentifier: getInteractionStringOption(interaction, 'project', true) || '',
+                     title: getInteractionStringOption(interaction, 'title', true) || '',
+                     description: getInteractionStringOption(interaction, 'description', false),
+                     priority: getInteractionStringOption(interaction, 'priority', false),
+                     status: getInteractionStringOption(interaction, 'status', false),
+                     dueDate: getInteractionStringOption(interaction, 'due_date', false),
+                 };
+                await handleCreateTaskCommand(options, replyFunction, interaction);
+            } else if (commandName === 'task-info') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                const taskIdentifier = getInteractionStringOption(interaction, 'task_identifier', true);
+                if (taskIdentifier) {
+                    await handleTaskInfoCommand(interaction.user.id, taskIdentifier, replyFunction, interaction);
+                } else {
+                    await reply({ content: 'Task identifier is required.', flags: 1 << 6 });
+                }
+            } else if (commandName === 'update-task-status') {
+                await handleUpdateTaskStatusCommand(interaction);
+            } else if (commandName === 'add-note') {
+                await handleAddNoteSlashCommand(interaction);
+            } else if (commandName === 'list-notes') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                await handleListNotesSlashCommand(interaction);
+            } else if (commandName === 'add-snippet') {
+                await handleAddSnippetSlashCommand(interaction);
+            } else if (commandName === 'list-snippets') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                await handleListSnippetsSlashCommand(interaction);
+            } else if (commandName === 'link-account') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                await handleLinkAccount(interaction.user.id, interaction.user.tag, replyFunction, sendDmFunction);
+            } else if (['send-embed', 'send-rules', 'send-info', 'send-welcome', 'send-roleselect'].includes(commandName)) {
                 if (!interaction.inGuild()) {
-                    await slashCmdInteractionReply("This command can only be used within a server.", true);
+                    await reply({ content: "This command can only be used in a server.", flags: 1 << 6 });
                 } else {
                     const guildInteraction = interaction as CommandInteraction<'cached'>;
                     switch (commandName) {
-                        case 'sendembed': await handleSendEmbedCommand(guildInteraction); break;
-                        case 'sendrules': await handleSendRulesCommand(guildInteraction); break;
-                        case 'sendinfo': await handleSendInfoCommand(guildInteraction); break;
-                        case 'sendwelcome': await handleSendWelcomeCommand(guildInteraction); break;
-                        case 'sendroleselect': await handleSendRoleSelectCommand(guildInteraction); break;
+                        case 'send-embed': await handleSendEmbedCommand(guildInteraction); break;
+                        case 'send-rules': await handleSendRulesCommand(guildInteraction); break;
+                        case 'send-info': await handleSendInfoCommand(guildInteraction); break;
+                        case 'send-welcome': await handleSendWelcomeCommand(guildInteraction); break;
+                        case 'send-roleselect': await handleSendRoleSelectCommand(guildInteraction); break;
                     }
                 }
             } else {
-                console.log(`[interactionCreateHandler.ts] Unrecognized slash command: ${commandName}`);
-                await slashCmdInteractionReply("Sorry, I don't recognize that command.", true);
+                await reply({ content: 'Unknown command!', flags: 1 << 6 });
             }
+            localMessagesSent++;
         } else if (interaction.isButton()) {
             localMessagesReceived++;
             const { customId } = interaction;
-            console.log(`[interactionCreateHandler.ts] Event: Button "${customId}" from ${interaction.user.tag}`);
+            console.log(`[interactionCreateHandler.ts] Event: Button Click "${customId}" from ${interaction.user.tag}`);
 
-            if (customId.startsWith('ai_')) {
+            if (customId.startsWith('ai_reply_')) {
+                if (!interaction.deferred) {
+                    await interaction.deferUpdate();
+                }
                 await handleAiReplyButtons(interaction);
-                return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-            }
 
-            if (!interaction.inGuild()) { 
-                await interaction.reply({ content: "This action can only be performed within a server.", ephemeral: true });
-                localMessagesSent++;
-                return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-            }
-            
-            // Role assignment button handling
-            const guild = interaction.guild!;
-            const member = interaction.member as GuildMember;
-            const testerRole = guild.roles.cache.find(role => role.name === 'Tester');
-            const devRole = guild.roles.cache.find(role => role.name === 'Developer');
-            let replyMessage = "An unexpected error occurred while assigning the role.";
-
-            if (customId === 'assign_tester') {
-                if (testerRole) {
-                    try {
-                        await member.roles.add(testerRole);
-                        replyMessage = "✅ You've been assigned the **Tester** role!";
-                    } catch (roleError) {
-                        console.error(`[InteractionCreate/Button/assign_tester] Error adding role:`, roleError);
-                        replyMessage = "There was an error assigning the Tester role. Please contact an admin.";
-                    }
-                } else {
-                    console.warn(`[interactionCreateHandler.ts] 'Tester' role not found in guild ${guild.name}.`);
-                    replyMessage = "The \"Tester\" role could not be found. Please contact an admin.";
-                }
-            } else if (customId === 'assign_developer') {
-                if (devRole) {
-                    try {
-                        await member.roles.add(devRole);
-                        replyMessage = "✅ You've been assigned the **Developer** role!";
-                    } catch (roleError) {
-                        console.error(`[InteractionCreate/Button/assign_developer] Error adding role:`, roleError);
-                        replyMessage = "There was an error assigning the Developer role. Please contact an admin.";
-                    }
-                } else {
-                    console.warn(`[interactionCreateHandler.ts] 'Developer' role not found in guild ${guild.name}.`);
-                    replyMessage = "The \"Developer\" role could not be found. Please contact an admin.";
-                }
-            }
-
-            try {
-                if (!interaction.replied && !interaction.deferred) {
-                await interaction.reply({ content: replyMessage, ephemeral: true });
-                localMessagesSent++;
-                }
-            } catch (finalReplyError) {
-                console.error('[InteractionCreate/Button] Error sending final confirmation reply:', finalReplyError);
+            } else {
+                console.log(`[interactionCreateHandler.ts] Button interaction with unhandled customId: ${customId}`);
+                await reply({ content: 'This button is not configured.', flags: 1 << 6 });
             }
 
         } else if (interaction.isModalSubmit()) {
@@ -409,116 +370,141 @@ export async function handleInteractionCreateEvent(
             console.log(`[interactionCreateHandler.ts] Event: Modal Submit "${customId}" from ${interaction.user.tag}`);
 
             if (customId === 'ticketModal') {
-                await interaction.deferReply({ ephemeral: true });
+                await interaction.deferReply({ flags: 1 << 6 });
 
                 const issueDescription = interaction.fields.getTextInputValue('issueDescription');
-                const member = interaction.member as GuildMember;
-                const modmailChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'modmail' && channel.type === ChannelType.GuildText);
+                const user = interaction.user;
+
+                // Check if user already has an active ticket
+                if (activeTickets.has(user.id)) {
+                    const threadId = activeTickets.get(user.id);
+                    const thread = interaction.guild?.channels.cache.get(threadId as string) as ThreadChannel | undefined;
+                    if (thread && !thread.archived) {
+                        await interaction.editReply({ content: `You already have an open ticket. Please use your existing ticket channel: <#${threadId}>` });
+                        return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                    } else {
+                        // If ticket was archived for some reason but not cleared from map
+                        activeTickets.delete(user.id);
+                    }
+                }
+                
+                // Defer the reply to prevent timeout
+                await interaction.deferReply({ flags: 1 << 6 });
+
+                const modmailChannelId = '1122550689405730966'; // Replace with your actual ModMail channel ID
+                const modmailChannel = interaction.guild?.channels.cache.get(modmailChannelId) as TextChannel | null;
 
                 if (!modmailChannel) {
-                    await interaction.editReply({ content: 'Could not find the #modmail text channel. Please contact an administrator.' });
+                    console.error('[TicketSystem] Modmail channel not found.');
+                    await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
-
-                const ticketId = Date.now().toString();
                 
-                // --- AI Tag Generation ---
-                let aiTags: string[] | null = null;
+                // DM user confirmation
                 try {
-                    aiTags = await generateTagsForTicket(issueDescription);
+                    await user.send({ content: 'Thank you for submitting your ticket. A staff member will be with you shortly. All further communication will happen in this DM channel.' });
+                    localMessagesSent++;
                 } catch (e) {
-                    console.error('[TicketSystem] AI tag generation failed:', e);
-                    // Fail silently, ticket creation should not stop.
+                    console.error(`[TicketSystem] Could not send DM to user ${user.id}. They may have DMs disabled.`);
+                    await interaction.editReply({ content: 'I tried to DM you, but your DMs are disabled. Please enable them and try again.'});
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
-                // -------------------------
+                
+                // AI Processing for tags and initial reply
+                let aiTagsText = 'Could not determine tags.';
+                let aiReply = 'Could not generate a suggested reply.';
+                try {
+                    const tagsResult = await generateTagsForTicket(issueDescription);
+                    if (tagsResult) aiTagsText = tagsResult.join(', ');
+
+                    const replyResult = await generateSuggestedReply(issueDescription);
+                    if (replyResult) aiReply = replyResult;
+                } catch (e) {
+                    console.error('[TicketSystem] Failed to get AI suggestions:', e);
+                }
 
                 const ticketEmbed = new EmbedBuilder()
                     .setColor(0x0099FF)
-                    .setTitle(`New Ticket: #${ticketId}`)
-                    .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+                    .setTitle('New Ticket Submission')
+                    .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
                     .addFields(
-                        { name: 'User', value: `<@${member.id}>`, inline: true },
+                        { name: 'User', value: `<@${user.id}>`, inline: true },
                         { name: 'Status', value: 'Open', inline: true },
+                        { name: 'AI Tags', value: aiTagsText, inline: false },
                         { name: 'Issue', value: issueDescription }
                     )
                     .setTimestamp();
-                
-                if (aiTags && aiTags.length > 0) {
-                    ticketEmbed.addFields({ name: 'AI Suggested Tags', value: `\`${aiTags.join('`, `')}\`` });
-                }
-                
-                try {
-                    const ticketMessage = await (modmailChannel as TextChannel).send({ embeds: [ticketEmbed] });
 
-                    const thread = await ticketMessage.startThread({
-                        name: `ticket-${ticketId}-${member.user.username}`,
-                        autoArchiveDuration: 1440, // 24 hours
-                        reason: `Ticket created by ${member.user.tag}`,
-                    });
+                const ticketMessage = await modmailChannel.send({
+                    embeds: [ticketEmbed]
+                });
+                localMessagesSent++;
 
-                    activeTickets.set(member.id, thread.id);
+                const thread = await ticketMessage.startThread({
+                    name: `Ticket-${user.username.substring(0, 50)}`, // Ensure name is not too long
+                    autoArchiveDuration: 1440, // 24 hours
+                    reason: `Support ticket for ${user.tag}`
+                });
+                localMessagesSent++;
 
-                    const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff');
-                    const mentionString = staffRole ? `<@&${staffRole.id}>` : '@Staff';
+                activeTickets.set(user.id, thread.id);
+                console.log(`[TicketSystem] Created ticket thread ${thread.id} for user ${user.id}`);
 
-                    await thread.send(`A new ticket has been created by <@${member.id}>. ${mentionString}, please assist.`);
-                    
-                    // --- AI Suggested Reply ---
-                    const suggestedReply = await generateSuggestedReply(issueDescription);
-                    if (suggestedReply) {
-                        const suggestionEmbed = new EmbedBuilder()
-                            .setColor(0x74e2d7)
-                            .setTitle('🧠 AI-Suggested Reply')
-                            .setDescription(suggestedReply)
-                            .setFooter({ text: 'You can edit this message before sending.' });
-                        
-                        const row = new ActionRowBuilder<ButtonBuilder>()
-                            .addComponents(
-                                new ButtonBuilder()
-                                    .setCustomId(`ai_send_reply_${thread.id}`)
-                                    .setLabel('Send This Reply')
-                                    .setStyle(ButtonStyle.Success),
-                                new ButtonBuilder()
-                                    .setCustomId(`ai_copy_reply_${thread.id}`)
-                                    .setLabel('Copy Text')
-                                    .setStyle(ButtonStyle.Secondary),
-                                new ButtonBuilder()
-                                    .setCustomId(`ai_ignore_reply_${thread.id}`)
-                                    .setLabel('Ignore')
-                                    .setStyle(ButtonStyle.Danger)
-                            );
-                        
-                        await thread.send({ embeds: [suggestionEmbed], components: [row] });
-                    }
-                    // --------------------------
+                // Send AI suggestion in the new thread
+                if (aiReply) {
+                    const suggestionEmbed = new EmbedBuilder()
+                        .setColor(0xfde047) // A nice yellow for suggestions
+                        .setTitle('🤖 AI Suggested Reply')
+                        .setDescription(aiReply)
+                        .setFooter({ text: 'You can use the buttons below to manage this suggestion.' });
 
-                    await member.send(`Thank you for reaching out! Your ticket (#${ticketId}) has been created.\n\nYou can reply directly to me in this DM to send messages to the staff. They will reply to you here as well.`);
-
-                    await interaction.editReply({ content: `Your ticket (#${ticketId}) has been submitted successfully! I have sent you a DM to continue.` });
+                    const suggestionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                        new ButtonBuilder().setCustomId(`ai_reply_send_${thread.id}`).setLabel('Send Reply').setStyle(ButtonStyle.Success),
+                        new ButtonBuilder().setCustomId(`ai_reply_copy_${thread.id}`).setLabel('Copy Text').setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder().setCustomId(`ai_reply_ignore_${thread.id}`).setLabel('Ignore').setStyle(ButtonStyle.Danger)
+                    );
+                    await thread.send({ embeds: [suggestionEmbed], components: [suggestionButtons] });
                     localMessagesSent++;
-                } catch (error) {
-                    console.error('[TicketSystem] Failed to create ticket thread or DM user:', error);
+                }
 
-                    if (error instanceof Error && 'code' in error && error.code === 50007) { // Cannot send messages to this user
-                         await interaction.editReply({ content: 'I was able to submit your ticket, but I cannot send you a DM. Please check your privacy settings to allow DMs from server members.' });
-                    } else {
-                        await interaction.editReply({ content: 'An error occurred while creating your ticket. Please try again or contact staff directly.' });
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        console.error('[interactionCreateHandler] A top-level error occurred:', error);
-        if (interaction.isRepliable()) {
-            try {
-                const errorMessage = { content: 'A critical error occurred. The issue has been logged.', ephemeral: true };
-                if (interaction.deferred || interaction.replied) {
-                    await interaction.followUp(errorMessage);
+                // Finally, let the user know everything is done.
+                await interaction.editReply({ content: `I have sent you a DM to continue this conversation.` });
+
+            } else if (customId === 'createTaskModal') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                localMessagesSent++;
+                // ... logic for task creation
+                await interaction.editReply({ content: 'Modal submission for task creation is not fully implemented yet.' });
+            } else if (customId.startsWith('addNoteModal')) {
+                await interaction.deferReply({ flags: 1 << 6 });
+                localMessagesSent++;
+                const taskId = customId.split('_')[1];
+                if (!taskId) {
+                    await interaction.editReply({ content: "Could not find the task ID to add the note to."});
                 } else {
-                    await interaction.reply(errorMessage);
+                    // ... logic for adding note
+                    await interaction.editReply({ content: 'Note added (not implemented).' });
                 }
-            } catch (replyError) {
-                console.error('[interactionCreateHandler] Failed to send error reply to user:', replyError);
+            } else if (customId.startsWith('addSnippetModal')) {
+                 await interaction.deferReply({ flags: 1 << 6 });
+                 localMessagesSent++;
+                // ... logic for adding snippet
+                await interaction.editReply({ content: 'Snippet added (not implemented).' });
+            }
+
+        } else if (interaction.isAutocomplete()) {
+            // Autocomplete logic can be handled here.
+        } else {
+            console.log(`[interactionCreateHandler.ts] Unhandled interaction type: ${interaction.type}`);
+        }
+    } catch (error: any) {
+        console.error('[interactionCreateHandler.ts] An error occurred in the interaction handler:', error);
+        if (interaction.isRepliable()) {
+            const errorMessage = { content: 'An unexpected error occurred. Please try again later.', flags: 1 << 6 };
+            if (interaction.deferred || interaction.replied) {
+                await interaction.followUp(errorMessage).catch(e => console.error('Failed to send error follow-up:', e));
+            } else {
+                await interaction.reply(errorMessage).catch(e => console.error('Failed to send error reply:', e));
             }
         }
     }
