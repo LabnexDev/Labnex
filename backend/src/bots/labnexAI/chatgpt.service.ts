@@ -220,6 +220,33 @@ Return the tags as a JSON object with a single key "tags" containing an array of
     }
 }
 
+export async function generateSuggestedReply(userMessage: string): Promise<string | null> {
+    const systemMessage = `You are a support agent AI for Labnex. A user has submitted a support ticket. 
+Your task is to generate a brief, helpful, and polite initial response. 
+The reply should acknowledge the user's issue and, if possible, ask a clarifying question or suggest a common first step. 
+Keep the tone professional and empathetic. Do not make up features.
+Return ONLY the suggested reply text, without any extra formatting, titles, or quotation marks.`;
+    const userPrompt = `Generate a reply for this user message: "${userMessage}"`;
+
+    try {
+        const response = await callOpenAICompletion(
+            systemMessage,
+            userPrompt,
+            "gpt-3.5-turbo",
+            0.7,
+            150
+        );
+
+        if (response && !response.startsWith("Error:")) {
+            return response.trim();
+        }
+        return null;
+    } catch (error) {
+        console.error('[generateSuggestedReply] Failed to generate reply:', error);
+        return null;
+    }
+}
+
 export async function askChatGPT(question: string, conversationHistory?: OpenAI.Chat.ChatCompletionMessageParam[]): Promise<string> {
     if (!openai) {
         return "I'm sorry, but my connection to the OpenAI service is not configured. Please tell my administrator.";

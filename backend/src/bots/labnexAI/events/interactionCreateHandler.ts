@@ -1,5 +1,5 @@
 // This is a test comment to reset the file state.
-import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType, TextChannel } from 'discord.js';
+import { CommandInteraction, CacheType, EmbedBuilder, Interaction, GuildMember, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ChannelType, TextChannel, ButtonBuilder, ButtonStyle, ThreadChannel } from 'discord.js';
 import axios from 'axios';
 import {
     handleLinkAccount,
@@ -20,7 +20,8 @@ import { execute as handleSendRulesCommand } from '../commands/sendrules';
 import { execute as handleSendInfoCommand } from '../commands/sendinfo';
 import { execute as handleSendWelcomeCommand } from '../commands/sendwelcome';
 import { execute as handleSendRoleSelectCommand } from '../commands/sendroleselect';
-import { generateTagsForTicket } from '../chatgpt.service';
+import { generateTagsForTicket, generateSuggestedReply } from '../chatgpt.service';
+import { handleAiReplyButtons } from '../interactions/aiReplyHandler';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -347,36 +348,60 @@ export async function handleInteractionCreateEvent(
             const { customId } = interaction;
             console.log(`[interactionCreateHandler.ts] Event: Button "${customId}" from ${interaction.user.tag}`);
 
+            if (customId.startsWith('ai_')) {
+                await handleAiReplyButtons(interaction);
+                return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+            }
+
             if (!interaction.inGuild()) { 
                 await interaction.reply({ content: "This action can only be performed within a server.", ephemeral: true });
                 localMessagesSent++;
                 return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
             }
-
-            const member = interaction.member as GuildMember;
+            
+            // Role assignment button handling
             const guild = interaction.guild!;
+            const member = interaction.member as GuildMember;
             const testerRole = guild.roles.cache.find(role => role.name === 'Tester');
             const devRole = guild.roles.cache.find(role => role.name === 'Developer');
             let replyMessage = "An unexpected error occurred while assigning the role.";
 
             if (customId === 'assign_tester') {
                 if (testerRole) {
-                    await member.roles.add(testerRole);
-                    replyMessage = "✅ You've been assigned the **Tester** role!";
+                    try {
+                        await member.roles.add(testerRole);
+                        replyMessage = "✅ You've been assigned the **Tester** role!";
+                    } catch (roleError) {
+                        console.error(`[InteractionCreate/Button/assign_tester] Error adding role:`, roleError);
+                        replyMessage = "There was an error assigning the Tester role. Please contact an admin.";
+                    }
                 } else {
+                    console.warn(`[interactionCreateHandler.ts] 'Tester' role not found in guild ${guild.name}.`);
                     replyMessage = "The \"Tester\" role could not be found. Please contact an admin.";
                 }
             } else if (customId === 'assign_developer') {
                 if (devRole) {
-                    await member.roles.add(devRole);
-                    replyMessage = "✅ You've been assigned the **Developer** role!";
+                    try {
+                        await member.roles.add(devRole);
+                        replyMessage = "✅ You've been assigned the **Developer** role!";
+                    } catch (roleError) {
+                        console.error(`[InteractionCreate/Button/assign_developer] Error adding role:`, roleError);
+                        replyMessage = "There was an error assigning the Developer role. Please contact an admin.";
+                    }
                 } else {
+                    console.warn(`[interactionCreateHandler.ts] 'Developer' role not found in guild ${guild.name}.`);
                     replyMessage = "The \"Developer\" role could not be found. Please contact an admin.";
                 }
             }
-            
-            await interaction.reply({ content: replyMessage, ephemeral: true });
-            localMessagesSent++;
+
+            try {
+                if (!interaction.replied && !interaction.deferred) {
+                await interaction.reply({ content: replyMessage, ephemeral: true });
+                localMessagesSent++;
+                }
+            } catch (finalReplyError) {
+                console.error('[InteractionCreate/Button] Error sending final confirmation reply:', finalReplyError);
+            }
 
         } else if (interaction.isModalSubmit()) {
             localMessagesReceived++;
@@ -431,7 +456,6 @@ export async function handleInteractionCreateEvent(
                         reason: `Ticket created by ${member.user.tag}`,
                     });
 
-                    // Link the user's ID to the new thread's ID
                     activeTickets.set(member.id, thread.id);
 
                     const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff');
@@ -439,6 +463,35 @@ export async function handleInteractionCreateEvent(
 
                     await thread.send(`A new ticket has been created by <@${member.id}>. ${mentionString}, please assist.`);
                     
+                    // --- AI Suggested Reply ---
+                    const suggestedReply = await generateSuggestedReply(issueDescription);
+                    if (suggestedReply) {
+                        const suggestionEmbed = new EmbedBuilder()
+                            .setColor(0x74e2d7)
+                            .setTitle('🧠 AI-Suggested Reply')
+                            .setDescription(suggestedReply)
+                            .setFooter({ text: 'You can edit this message before sending.' });
+                        
+                        const row = new ActionRowBuilder<ButtonBuilder>()
+                            .addComponents(
+                                new ButtonBuilder()
+                                    .setCustomId(`ai_send_reply_${thread.id}`)
+                                    .setLabel('Send This Reply')
+                                    .setStyle(ButtonStyle.Success),
+                                new ButtonBuilder()
+                                    .setCustomId(`ai_copy_reply_${thread.id}`)
+                                    .setLabel('Copy Text')
+                                    .setStyle(ButtonStyle.Secondary),
+                                new ButtonBuilder()
+                                    .setCustomId(`ai_ignore_reply_${thread.id}`)
+                                    .setLabel('Ignore')
+                                    .setStyle(ButtonStyle.Danger)
+                            );
+                        
+                        await thread.send({ embeds: [suggestionEmbed], components: [row] });
+                    }
+                    // --------------------------
+
                     await member.send(`Thank you for reaching out! Your ticket (#${ticketId}) has been created.\n\nYou can reply directly to me in this DM to send messages to the staff. They will reply to you here as well.`);
 
                     await interaction.editReply({ content: `Your ticket (#${ticketId}) has been submitted successfully! I have sent you a DM to continue.` });
