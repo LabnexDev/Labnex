@@ -26,12 +26,25 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('create')
-                .setDescription('Create a new support ticket.'))
+                .setDescription('Creates a new support ticket.'))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('close')
-                .setDescription('Close an active ticket thread.')
-                .addStringOption(option => option.setName('reason').setDescription('Reason for closing').setRequired(false)))
+                .setDescription('Closes the current ticket channel.')
+                .addStringOption(option => option.setName('reason').setDescription('The reason for closing the ticket.')))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('escalate')
+                .setDescription('Escalates the current ticket to the admins.'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('delete')
+                .setDescription('[STAFF ONLY] Deletes the current ticket channel.'))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('reply')
+                .setDescription('Sends a reply to the user who created the ticket.')
+                .addStringOption(option => option.setName('message').setDescription('Your reply message').setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('reply')

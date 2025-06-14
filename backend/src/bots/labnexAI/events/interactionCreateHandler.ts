@@ -43,38 +43,17 @@ import { handleAiReplyButtons } from '../interactions/aiReplyHandler';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
-// These will be imported from the main bot file initially
-// For a cleaner approach, these could be part of a shared context or class instance
+// This is a stand-in for a proper database or persistent storage solution.
+// It maps ChannelID to the UserID of the person who created the ticket.
+// Note: This map will reset every time the bot restarts.
+export const activeTickets = new Map<string, string>(); 
+
 let messagesReceivedFromDiscord = 0;
 let messagesSentToUser = 0;
 
 // Constants that would also ideally be managed better (e.g. config service)
 const LABNEX_API_URL = process.env.LABNEX_API_URL;
 const LABNEX_API_BOT_SECRET = process.env.LABNEX_API_BOT_SECRET;
-
-// Map to track active tickets, linking a user's ID to their ticket thread's ID
-export const activeTickets = new Map<string, string>(); // Map<userId, threadId>
-
-// Helper function for Slash Command Option Parsing (moved from main bot file)
-/* // Removing this local definition
-function getInteractionStringOption(
-    interaction: CommandInteraction<CacheType>,
-    name: string,
-    required: boolean
-): string | null {
-    const option = interaction.options.get(name, required);
-    if (option && typeof option.value === 'string') {
-        return option.value;
-    }
-    if (option && typeof option.value === 'number') {
-        return option.value.toString();
-    }
-    if (option && typeof option.value === 'boolean') {
-        return option.value.toString();
-    }
-    return null;
-}
-*/
 
 export function updateInteractionCounters(newReceived: number, newSent: number) {
     messagesReceivedFromDiscord = newReceived;
@@ -281,10 +260,12 @@ export async function handleInteractionCreateEvent(
             
             if (commandName === 'ticket') {
                 const subcommand = (interaction.options as CommandInteractionOptionResolver).getSubcommand();
+                const member = interaction.member as GuildMember;
+                
                 if (subcommand === 'create') {
                     const modal = new ModalBuilder()
-                        .setCustomId('ticketModal')
-                        .setTitle('Submit a new ticket');
+                        .setCustomId('ticketModal-v2')
+                        .setTitle('Submit a New Ticket');
 
                     const issueDescriptionInput = new TextInputBuilder()
                         .setCustomId('issueDescription')
@@ -294,233 +275,156 @@ export async function handleInteractionCreateEvent(
                     
                     const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(issueDescriptionInput);
                     modal.addComponents(firstActionRow);
-                    await interaction.showModal(modal); // Acknowledge ASAP
+                    await interaction.showModal(modal);
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
-                // Handle other ticket subcommands if they exist, ensuring they reply or defer.
-            } else {
-                // Defer other commands immediately to avoid timeout
-                await interaction.deferReply({ flags: 1 << 6 });
-                localMessagesSent++;
 
-                const replyFunction = async (content: string, ephemeral = false) => {
-                    await interaction.editReply({ content });
-                };
-                const sendDmFunction = async (content: string) => {
-                    await interaction.user.send(content);
-                };
-                
-                if (commandName === 'my-projects') {
-                    await handleMyProjectsCommand(interaction.user.id, replyFunction, interaction);
-                } else if (commandName === 'project-tasks') {
-                    const projectIdentifier = getInteractionStringOption(interaction, 'project', true);
-                    await handleProjectTasksCommand(interaction.user.id, projectIdentifier, replyFunction, interaction);
-                } else if (commandName === 'create-task') {
-                    // This command handles its own reply via modal, so no defer needed here.
-                    const options: CreateTaskOptions = {
-                         discordUserId: interaction.user.id,
-                         projectIdentifier: getInteractionStringOption(interaction, 'project', true) || '',
-                         title: getInteractionStringOption(interaction, 'title', true) || '',
-                         description: getInteractionStringOption(interaction, 'description', false),
-                         priority: getInteractionStringOption(interaction, 'priority', false),
-                         status: getInteractionStringOption(interaction, 'status', false),
-                         dueDate: getInteractionStringOption(interaction, 'due_date', false),
-                     };
-                    await handleCreateTaskCommand(options, replyFunction, interaction);
-                } else if (commandName === 'task-info') {
-                    await interaction.deferReply({ flags: 1 << 6 });
-                    const taskIdentifier = getInteractionStringOption(interaction, 'task_identifier', true);
-                    if (taskIdentifier) {
-                        await handleTaskInfoCommand(interaction.user.id, taskIdentifier, replyFunction, interaction);
-                    } else {
-                        await reply({ content: 'Task identifier is required.', flags: 1 << 6 });
-                    }
-                } else if (commandName === 'update-task-status') {
-                    await handleUpdateTaskStatusCommand(interaction);
-                } else if (commandName === 'add-note') {
-                    await handleAddNoteSlashCommand(interaction);
-                } else if (commandName === 'list-notes') {
-                    await interaction.deferReply({ flags: 1 << 6 });
-                    await handleListNotesSlashCommand(interaction);
-                } else if (commandName === 'add-snippet') {
-                    await handleAddSnippetSlashCommand(interaction);
-                } else if (commandName === 'list-snippets') {
-                    await interaction.deferReply({ flags: 1 << 6 });
-                    await handleListSnippetsSlashCommand(interaction);
-                } else if (commandName === 'link-account') {
-                    await interaction.deferReply({ flags: 1 << 6 });
-                    await handleLinkAccount(interaction.user.id, interaction.user.tag, replyFunction, sendDmFunction);
-                } else if (['send-embed', 'send-rules', 'send-info', 'send-welcome', 'send-roleselect'].includes(commandName)) {
-                    if (!interaction.inGuild()) {
-                        await reply({ content: "This command can only be used in a server.", flags: 1 << 6 });
-                    } else {
-                        const guildInteraction = interaction as CommandInteraction<'cached'>;
-                        switch (commandName) {
-                            case 'send-embed': await handleSendEmbedCommand(guildInteraction); break;
-                            case 'send-rules': await handleSendRulesCommand(guildInteraction); break;
-                            case 'send-info': await handleSendInfoCommand(guildInteraction); break;
-                            case 'send-welcome': await handleSendWelcomeCommand(guildInteraction); break;
-                            case 'send-roleselect': await handleSendRoleSelectCommand(guildInteraction); break;
-                        }
-                    }
-                } else {
-                    await reply({ content: 'Unknown command!', flags: 1 << 6 });
+                // All commands below this point are staff-only
+                const staffRoleId = process.env.STAFF_ROLE_ID;
+                if (!staffRoleId || !member.roles.cache.has(staffRoleId)) {
+                    await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 });
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
+
+                if (subcommand === 'close') {
+                    await interaction.deferReply({ flags: 1 << 6 });
+                    const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
+                    const channel = interaction.channel;
+
+                    if (channel && channel.type === ChannelType.GuildText && channel.name.startsWith('ticket-')) {
+                        await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
+                        
+                        const userId = activeTickets.get(channel.id);
+                        if (userId) {
+                            await channel.permissionOverwrites.edit(userId, { SendMessages: false });
+                            activeTickets.delete(channel.id); // Remove from active map
+                        }
+                        
+                        await channel.setName(`closed-${channel.name}`);
+                        await interaction.editReply({ content: 'Ticket has been closed and locked for the user.' });
+                    } else {
+                        await interaction.editReply({ content: 'This command can only be used in an active ticket channel.' });
+                    }
+                }
+
+                if (subcommand === 'delete') {
+                    const channel = interaction.channel;
+                    if (channel?.isTextBased() && !channel.isDMBased() && (channel.name.startsWith('ticket-') || channel.name.startsWith('closed-ticket-'))) {
+                        await interaction.reply({ content: `This channel will be deleted in 5 seconds.`, flags: 1 << 6 });
+                        setTimeout(() => channel.delete('Ticket resolved and deleted by staff.').catch(console.error), 5000);
+                    } else {
+                        await interaction.reply({ content: 'This command can only be used in a ticket channel.', flags: 1 << 6 });
+                    }
+                }
+            } else {
+                // Handle other non-ticket commands here if necessary
+                await interaction.reply({ content: "This command is not handled by the ticket system.", flags: 1 << 6 });
             }
         } else if (interaction.isButton()) {
             localMessagesReceived++;
-            const { customId } = interaction;
-            console.log(`[interactionCreateHandler.ts] Event: Button Click "${customId}" from ${interaction.user.tag}`);
-
-            if (customId.startsWith('ai_reply_')) {
-                if (!interaction.deferred) {
-                    await interaction.deferUpdate();
-                }
+            // Button handlers must check for their own custom IDs
+            if (interaction.customId.startsWith('ai_reply_')) {
+                // The AI reply buttons are now handled by their own logic
                 await handleAiReplyButtons(interaction);
-
-            } else {
-                console.log(`[interactionCreateHandler.ts] Button interaction with unhandled customId: ${customId}`);
-                await reply({ content: 'This button is not configured.', flags: 1 << 6 });
             }
-
         } else if (interaction.isModalSubmit()) {
             localMessagesReceived++;
             const { customId } = interaction;
-            console.log(`[interactionCreateHandler.ts] Event: Modal Submit "${customId}" from ${interaction.user.tag}`);
 
-            if (customId === 'ticketModal') {
-                await interaction.deferReply({ flags: 1 << 6 }); // Acknowledge ASAP
-                localMessagesSent++;
+            if (customId === 'ticketModal-v2') {
+                await interaction.deferReply({ flags: 1 << 6 });
+                
+                const staffRoleId = process.env.STAFF_ROLE_ID;
+                if (!staffRoleId) {
+                    console.error('[TicketSystem] STAFF_ROLE_ID is not set in the environment variables!');
+                    await interaction.editReply({ content: 'The ticket system has a configuration error. Please contact an administrator.' });
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                }
 
                 const issueDescription = interaction.fields.getTextInputValue('issueDescription');
                 const user = interaction.user;
+                const ticketId = Date.now();
 
-                if (activeTickets.has(user.id)) {
-                    const threadId = activeTickets.get(user.id);
-                    const thread = interaction.guild?.channels.cache.get(threadId as string) as ThreadChannel | undefined;
-                    if (thread && !thread.archived) {
-                        await interaction.editReply({ content: `You already have an open ticket. Please use your existing ticket channel: <#${threadId}>` });
+                try {
+                    const channel = await interaction.guild?.channels.create({
+                        name: `ticket-${user.username}-${ticketId}`.substring(0, 100),
+                        type: ChannelType.GuildText,
+                        permissionOverwrites: [
+                            {
+                                id: interaction.guild.roles.everyone.id,
+                                deny: ['ViewChannel'],
+                            },
+                            {
+                                id: user.id,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'],
+                            },
+                            {
+                                id: staffRoleId,
+                                allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'],
+                            },
+                        ],
+                    });
+
+                    if (!channel) {
+                        console.error('[TicketSystem] Failed to create ticket channel, channel is undefined.');
+                        await interaction.editReply({ content: 'There was a critical error while creating your ticket channel. Please contact an administrator.' });
                         return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-                    } else {
-                        activeTickets.delete(user.id);
                     }
-                }
-                
-                const modmailChannelId = process.env.MODMAIL_CHANNEL_ID;
-                if (!modmailChannelId) {
-                    console.error('[TicketSystem] MODMAIL_CHANNEL_ID is not set in the environment variables.');
-                    await interaction.editReply({ content: 'The modmail channel has not been configured by the administrator.' });
-                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-                }
 
-                let modmailChannel: TextChannel | null = null;
-                try {
-                    const channel = await interaction.guild?.channels.fetch(modmailChannelId);
-                    if (channel && channel.isTextBased() && channel.type === ChannelType.GuildText) {
-                        modmailChannel = channel as TextChannel;
+                    console.log(`[TicketSystem] Created new ticket channel: ${channel.name} (${channel.id}) for user ${user.id}`);
+                    activeTickets.set(channel.id, user.id);
+
+                    let aiTagsText = 'Could not determine tags.';
+                    let aiReply = 'Could not generate a suggested reply.';
+                    try {
+                        const tagsResult = await generateTagsForTicket(issueDescription);
+                        if (tagsResult) aiTagsText = tagsResult.join(', ');
+
+                        const replyResult = await generateSuggestedReply(issueDescription);
+                        if (replyResult) aiReply = replyResult;
+                    } catch (e) {
+                        console.error('[TicketSystem] Failed to get AI suggestions:', e);
                     }
-                } catch (e) {
-                    console.error(`[TicketSystem] Could not fetch modmail channel with ID ${modmailChannelId}:`, e);
-                }
 
-                if (!modmailChannel) {
-                    await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
-                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-                }
-                
-                try {
-                    const dmEmbed = new EmbedBuilder()
+                    const ticketEmbed = new EmbedBuilder()
                         .setColor(0x0099FF)
-                        .setTitle('Ticket Submitted Successfully')
-                        .setDescription('Thank you for submitting your ticket. A staff member will be with you shortly. All further communication will happen in this DM channel.')
-                        .addFields({ name: 'Your Issue', value: issueDescription })
+                        .setTitle(`Ticket #${ticketId}`)
+                        .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+                        .addFields(
+                            { name: 'User', value: `<@${user.id}>`, inline: true },
+                            { name: 'Status', value: 'Open', inline: true },
+                            { name: 'AI Tags', value: aiTagsText, inline: false },
+                            { name: 'Issue', value: issueDescription }
+                        )
                         .setTimestamp();
-                    await user.send({ embeds: [dmEmbed] });
-                } catch (e) {
-                    await interaction.editReply({ content: 'I tried to DM you, but your DMs are disabled. Please enable them and try again.'});
-                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                    
+                    const staffRole = await interaction.guild?.roles.fetch(staffRoleId);
+                    await channel.send({
+                        content: `New ticket from <@${user.id}>. ${staffRole ? `Paging ${staffRole}` : ''}`,
+                        embeds: [ticketEmbed]
+                    });
+
+                    if (aiReply) {
+                        const suggestionEmbed = new EmbedBuilder()
+                            .setColor(0xfde047)
+                            .setTitle('🤖 AI Suggested Reply')
+                            .setDescription(aiReply)
+                            .setFooter({ text: 'Staff can use the buttons below.' });
+
+                        const suggestionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                            new ButtonBuilder().setCustomId(`ai_reply_send_${user.id}`).setLabel('Send to User via DM').setStyle(ButtonStyle.Success),
+                            new ButtonBuilder().setCustomId(`ai_copy_reply_${channel.id}`).setLabel('Copy Text').setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder().setCustomId(`ai_ignore_reply_${channel.id}`).setLabel('Ignore').setStyle(ButtonStyle.Danger)
+                        );
+                        await channel.send({ embeds: [suggestionEmbed], components: [suggestionButtons] });
+                    }
+
+                    await interaction.editReply({ content: `Your ticket has been created! Please see the new private channel: <#${channel.id}>` });
+
+                } catch (error) {
+                    console.error('[TicketSystem] Failed to create ticket channel:', error);
+                    await interaction.editReply({ content: 'There was a critical error while creating your ticket channel. Please contact an administrator.' });
                 }
-                
-                let aiTagsText = 'Could not determine tags.';
-                let aiReply = 'Could not generate a suggested reply.';
-                try {
-                    const tagsResult = await generateTagsForTicket(issueDescription);
-                    if (tagsResult) aiTagsText = tagsResult.join(', ');
-                    const replyResult = await generateSuggestedReply(issueDescription);
-                    if (replyResult) aiReply = replyResult;
-                } catch (e) {
-                    console.error('[TicketSystem] Failed to get AI suggestions:', e);
-                }
-
-                const ticketEmbed = new EmbedBuilder()
-                    .setColor(0x0099FF)
-                    .setTitle('New Ticket Submission')
-                    .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
-                    .addFields(
-                        { name: 'User', value: `<@${user.id}>`, inline: true },
-                        { name: 'Status', value: 'Open', inline: true },
-                        { name: 'AI Tags', value: aiTagsText, inline: false },
-                        { name: 'Issue', value: issueDescription }
-                    )
-                    .setTimestamp();
-
-                const ticketMessage = await modmailChannel.send({ embeds: [ticketEmbed] });
-
-                const thread = await ticketMessage.startThread({
-                    name: `Ticket-${user.username.substring(0, 50)}`,
-                    autoArchiveDuration: 1440,
-                    reason: `Support ticket for ${user.tag}`
-                });
-
-                activeTickets.set(user.id, thread.id);
-                console.log(`[TicketSystem] Created ticket thread ${thread.id} for user ${user.id}`);
-
-                // Send AI suggestion in the new thread
-                if (aiReply) {
-                    const suggestionEmbed = new EmbedBuilder()
-                        .setColor(0xfde047) // A nice yellow for suggestions
-                        .setTitle('🤖 AI Suggested Reply')
-                        .setDescription(aiReply)
-                        .setFooter({ text: 'You can use the buttons below to manage this suggestion.' });
-
-                    const suggestionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-                        new ButtonBuilder().setCustomId(`ai_reply_send_${thread.id}`).setLabel('Send Reply').setStyle(ButtonStyle.Success),
-                        new ButtonBuilder().setCustomId(`ai_reply_copy_${thread.id}`).setLabel('Copy Text').setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId(`ai_reply_ignore_${thread.id}`).setLabel('Ignore').setStyle(ButtonStyle.Danger)
-                    );
-                    await thread.send({ embeds: [suggestionEmbed], components: [suggestionButtons] });
-                    localMessagesSent++;
-                }
-
-                // Finally, let the user know everything is done.
-                await interaction.editReply({ content: `I have sent you a DM to continue this conversation.` });
-            } else if (customId === 'createTaskModal') {
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
-                }
-                localMessagesSent++;
-                // ... logic for task creation
-                await interaction.editReply({ content: 'Modal submission for task creation is not fully implemented yet.' });
-            } else if (customId.startsWith('addNoteModal')) {
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
-                }
-                localMessagesSent++;
-                const taskId = customId.split('_')[1];
-
-                if (!taskId) {
-                    await interaction.editReply({ content: "Could not find the task ID to add the note to."});
-                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-                }
-                // ... logic for adding note
-                await interaction.editReply({ content: 'Note added (not implemented).' });
-            } else if (customId.startsWith('addSnippetModal')) {
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
-                }
-                localMessagesSent++;
-                // ... logic for adding snippet
-                await interaction.editReply({ content: 'Snippet added (not implemented).' });
             }
         } else if (interaction.isAutocomplete()) {
             // Autocomplete logic can be handled here.
@@ -529,15 +433,18 @@ export async function handleInteractionCreateEvent(
         }
     } catch (error: any) {
         console.error('[interactionCreateHandler.ts] An error occurred in the interaction handler:', error);
-        // Avoid replying if the interaction is no longer valid
         if (error.code === 10062) { // Unknown Interaction
-            console.error('[interactionCreateHandler.ts] Cannot reply to an unknown interaction.');
+            console.error('[interactionCreateHandler.ts] Cannot reply to an unknown interaction. It likely timed out.');
         } else if (interaction.isRepliable()) {
             const errorMessage = { content: 'An unexpected error occurred. Please try again later.', flags: 1 << 6 };
-            if (interaction.deferred || interaction.replied) {
-                await interaction.followUp(errorMessage).catch(e => console.error('Failed to send error follow-up:', e));
-            } else {
-                await interaction.reply(errorMessage).catch(e => console.error('Failed to send error reply:', e));
+            try {
+                if (interaction.deferred || interaction.replied) {
+                    await interaction.followUp(errorMessage);
+                } else {
+                    await interaction.reply(errorMessage);
+                }
+            } catch (e) {
+                console.error("Failed to send error reply:", e);
             }
         }
     }
