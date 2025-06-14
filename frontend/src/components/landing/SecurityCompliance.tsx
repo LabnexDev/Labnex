@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SectionWrapper from './SectionWrapper';
 import { useModal } from '../../contexts/ModalContext';
+import { Link } from 'react-router-dom';
 
 interface SecurityFeature {
   id: string;
@@ -326,11 +327,11 @@ const SecurityCompliance: React.FC = () => {
               className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
               Contact Us
             </button>
-            <button 
-              onClick={() => openModal('info', { infoPageType: 'support' })}
+            <Link 
+              to="/support"
               className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 text-slate-200 hover:bg-white/15 hover:text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]">
               View Documentation
-            </button>
+            </Link>
           </div>
         </div>
       </div>

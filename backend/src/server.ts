@@ -21,6 +21,7 @@ import testRunnerRoutes from './routes/testRunnerRoutes';
 import aiRoutes from './routes/aiRoutes';
 import statsRoutes from './routes/statsRoutes';
 import adminRoutes from './routes/adminRoutes';
+import supportRoutes from './routes/support.routes';
 import { setupWebSocket } from './utils/websocket';
 import { createServer } from 'http';
 import { fork, ChildProcess } from 'child_process';
@@ -112,6 +113,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', testRunnerRoutes);
+app.use('/api/support', supportRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {

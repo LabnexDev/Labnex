@@ -116,7 +116,7 @@ const FinalCTA: React.FC = () => {
             <Link to="/changelog" className="hover:text-slate-300 transition-colors duration-300">Changelog</Link>
             <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors duration-300">Privacy Policy</Link>
             <Link to="/terms-of-service" className="hover:text-slate-300 transition-colors duration-300">Terms of Service</Link>
-            <button onClick={() => openModal('info', { infoPageType: 'support' })} className="hover:text-slate-300 transition-colors duration-300">Support</button>
+            <Link to="/support" className="hover:text-slate-300 transition-colors duration-300">Support</Link>
             <button onClick={() => openModal('info', { infoPageType: 'contact' })} className="hover:text-slate-300 transition-colors duration-300">Contact</button>
           </div>
           <div className="mt-6 text-slate-500 text-sm">

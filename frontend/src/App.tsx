@@ -34,6 +34,7 @@ import LandingPage from './pages/LandingPage';
 import ChangelogPage from './pages/ChangelogPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import Support from './pages/Support';
 import { SystemRoleType } from './types/roles';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeaturePage';
@@ -156,6 +157,7 @@ function AppRoutes() {
       <Route path="/changelog" element={<SimpleLayout><ChangelogPage /></SimpleLayout>} />
       <Route path="/privacy-policy" element={<SimpleLayout><PrivacyPolicy /></SimpleLayout>} />
       <Route path="/terms-of-service" element={<SimpleLayout><TermsOfService /></SimpleLayout>} />
+      <Route path="/support" element={<SimpleLayout><Support /></SimpleLayout>} />
       <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />
