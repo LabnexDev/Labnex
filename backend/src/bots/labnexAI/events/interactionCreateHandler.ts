@@ -122,17 +122,20 @@ export async function handleInteractionCreateEvent(
                     case 'close': {
                         await interaction.deferReply({ flags: 1 << 6 });
                         const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
-    
-                        if (channel && channel.type === ChannelType.GuildText && channel.name.startsWith('ticket-')) {
+                        
+                        if ((channel instanceof TextChannel || channel instanceof ThreadChannel) && (channel.name.startsWith('ticket-') || channel.name.startsWith('[ESCALATED] ticket-'))) {
                             await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
                             
                             const userId = activeTickets.get(channel.id);
-                            if (userId) {
+                            if (userId && channel instanceof TextChannel) {
                                 await channel.permissionOverwrites.edit(userId, { SendMessages: false });
-                                activeTickets.delete(channel.id); // Remove from active map
+                                activeTickets.delete(channel.id);
                             }
                             
                             await channel.setName(`closed-${channel.name}`);
+                            if (channel.isThread()) {
+                                await channel.setArchived(true);
+                            }
                             await interaction.editReply({ content: 'Ticket has been closed and locked for the user.' });
                         } else {
                             await interaction.editReply({ content: 'This command can only be used in an active ticket channel.' });
@@ -141,11 +144,12 @@ export async function handleInteractionCreateEvent(
                     }
     
                     case 'delete': {
-                        if (channel?.isTextBased() && !channel.isDMBased() && (channel.name.startsWith('ticket-') || channel.name.startsWith('closed-ticket-'))) {
-                            await interaction.reply({ content: `This channel will be deleted in 5 seconds.`, flags: 1 << 6 });
+                        await interaction.deferReply({ ephemeral: true });
+                        if ((channel instanceof TextChannel || channel instanceof ThreadChannel) && (channel.name.startsWith('ticket-') || channel.name.startsWith('closed-ticket-') || channel.name.startsWith('[ESCALATED] ticket-'))) {
+                            await interaction.editReply({ content: `This channel will be deleted in 5 seconds.`});
                             setTimeout(() => channel.delete('Ticket resolved and deleted by staff.').catch(console.error), 5000);
                         } else {
-                            await interaction.reply({ content: 'This command can only be used in a ticket channel.', flags: 1 << 6 });
+                            await interaction.editReply({ content: 'This command can only be used in a ticket channel.' });
                         }
                         break;
                     }
