@@ -20,6 +20,7 @@ import { execute as handleSendRulesCommand } from '../commands/sendrules';
 import { execute as handleSendInfoCommand } from '../commands/sendinfo';
 import { execute as handleSendWelcomeCommand } from '../commands/sendwelcome';
 import { execute as handleSendRoleSelectCommand } from '../commands/sendroleselect';
+import { generateTagsForTicket } from '../chatgpt.service';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -138,6 +139,14 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
                 await user.send(`Your ticket has been closed by **${member.user.tag}**. Reason: *${reason}*`);
             }
 
+            // Rename the thread to show it's closed
+            try {
+                const closedName = `[CLOSED] ${channel.name.replace('[ESCALATED] ', '')}`;
+                await channel.setName(closedName.substring(0, 100));
+            } catch (e) {
+                console.error(`[TicketSystem] Failed to rename thread ${channel.id} on close.`, e);
+            }
+
             await channel.send(`This ticket has been closed by <@${member.id}>.`);
             await channel.setLocked(true);
             await channel.setArchived(true);
@@ -191,6 +200,8 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
 
         case 'escalate': {
             await interaction.deferReply({ ephemeral: true });
+            const reason = getInteractionStringOption(interaction, 'reason', true);
+
             const adminRole = interaction.guild?.roles.cache.find(role => role.name === 'Admin');
             const adminMention = adminRole ? `<@&${adminRole.id}>` : '@Admin';
 
@@ -198,10 +209,21 @@ async function handleTicketCommand(interaction: CommandInteraction<CacheType>) {
                 .setColor(0xffff00) // Yellow for escalation
                 .setTitle('Ticket Escalated')
                 .setDescription(`<@${member.id}> has escalated this ticket. ${adminMention}, your attention is requested.`)
+                .addFields({ name: 'Reason for Escalation', value: reason || 'No reason provided.' })
                 .setTimestamp();
 
             await channel.send({ embeds: [escalateEmbed] });
             
+            // Rename the thread to show it's escalated
+            try {
+                if (!channel.name.startsWith('[ESCALATED]')) {
+                    const escalatedName = `[ESCALATED] ${channel.name}`;
+                    await channel.setName(escalatedName.substring(0, 100));
+                }
+            } catch (e) {
+                console.error(`[TicketSystem] Failed to rename thread ${channel.id} on escalation.`, e);
+            }
+
             await interaction.editReply({ content: 'Ticket has been escalated.' });
             break;
         }
@@ -374,6 +396,17 @@ export async function handleInteractionCreateEvent(
                 }
 
                 const ticketId = Date.now().toString();
+                
+                // --- AI Tag Generation ---
+                let aiTags: string[] | null = null;
+                try {
+                    aiTags = await generateTagsForTicket(issueDescription);
+                } catch (e) {
+                    console.error('[TicketSystem] AI tag generation failed:', e);
+                    // Fail silently, ticket creation should not stop.
+                }
+                // -------------------------
+
                 const ticketEmbed = new EmbedBuilder()
                     .setColor(0x0099FF)
                     .setTitle(`New Ticket: #${ticketId}`)
@@ -384,6 +417,10 @@ export async function handleInteractionCreateEvent(
                         { name: 'Issue', value: issueDescription }
                     )
                     .setTimestamp();
+                
+                if (aiTags && aiTags.length > 0) {
+                    ticketEmbed.addFields({ name: 'AI Suggested Tags', value: `\`${aiTags.join('`, `')}\`` });
+                }
                 
                 try {
                     const ticketMessage = await (modmailChannel as TextChannel).send({ embeds: [ticketEmbed] });
@@ -397,10 +434,10 @@ export async function handleInteractionCreateEvent(
                     // Link the user's ID to the new thread's ID
                     activeTickets.set(member.id, thread.id);
 
-                    const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff' || role.name === 'Admin');
-                    const staffMention = staffRole ? `<@&${staffRole.id}>` : '@staff';
-                    
-                    await thread.send(`A new ticket has been created by <@${member.id}>. ${staffMention}, please assist.`);
+                    const staffRole = interaction.guild?.roles.cache.find(role => role.name === 'Staff');
+                    const mentionString = staffRole ? `<@&${staffRole.id}>` : '@Staff';
+
+                    await thread.send(`A new ticket has been created by <@${member.id}>. ${mentionString}, please assist.`);
                     
                     await member.send(`Thank you for reaching out! Your ticket (#${ticketId}) has been created.\n\nYou can reply directly to me in this DM to send messages to the staff. They will reply to you here as well.`);
 

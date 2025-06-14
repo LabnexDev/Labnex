@@ -192,6 +192,34 @@ Return ONLY the project description, without any additional text or explanations
     return description ? description.trim() : "Default project description.";
 }
 
+export async function generateTagsForTicket(issueDescription: string): Promise<string[] | null> {
+    const systemMessage = `You are a ticket processing AI. Your task is to analyze a user's issue description and generate 2-3 relevant, single-word, lowercase tags that categorize the issue.
+Return the tags as a JSON object with a single key "tags" containing an array of strings. For example: {"tags": ["bug", "ui", "login"]}`;
+    const userPrompt = `Generate tags for the following issue: "${issueDescription}"`;
+
+    try {
+        const response = await callOpenAICompletion(
+            systemMessage,
+            userPrompt,
+            "gpt-3.5-turbo",
+            0.5,
+            50,
+            { type: "json_object" }
+        );
+
+        if (response && !response.startsWith("Error:")) {
+            const parsed = JSON.parse(response);
+            if (parsed.tags && Array.isArray(parsed.tags)) {
+                return parsed.tags;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('[generateTagsForTicket] Failed to generate or parse tags:', error);
+        return null;
+    }
+}
+
 export async function askChatGPT(question: string, conversationHistory?: OpenAI.Chat.ChatCompletionMessageParam[]): Promise<string> {
     if (!openai) {
         return "I'm sorry, but my connection to the OpenAI service is not configured. Please tell my administrator.";

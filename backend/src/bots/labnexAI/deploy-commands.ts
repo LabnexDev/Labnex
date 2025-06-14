@@ -40,7 +40,8 @@ const commands = [
         .addSubcommand(subcommand =>
             subcommand
                 .setName('escalate')
-                .setDescription('Escalate a ticket to higher-level staff.')),
+                .setDescription('Escalate a ticket to higher-level staff.')
+                .addStringOption(option => option.setName('reason').setDescription('Reason for escalating the ticket').setRequired(true))),
     // Basic structure for tasks - can be expanded
     new SlashCommandBuilder().setName('tasks')
         .setDescription('Lists tasks for a specified project.')
