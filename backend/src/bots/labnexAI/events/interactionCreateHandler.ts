@@ -370,12 +370,14 @@ export async function handleInteractionCreateEvent(
             console.log(`[interactionCreateHandler.ts] Event: Modal Submit "${customId}" from ${interaction.user.tag}`);
 
             if (customId === 'ticketModal') {
-                await interaction.deferReply({ flags: 1 << 6 });
+                // Safeguard against double-replying
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
+                }
 
                 const issueDescription = interaction.fields.getTextInputValue('issueDescription');
                 const user = interaction.user;
 
-                // Check if user already has an active ticket
                 if (activeTickets.has(user.id)) {
                     const threadId = activeTickets.get(user.id);
                     const thread = interaction.guild?.channels.cache.get(threadId as string) as ThreadChannel | undefined;
@@ -383,34 +385,32 @@ export async function handleInteractionCreateEvent(
                         await interaction.editReply({ content: `You already have an open ticket. Please use your existing ticket channel: <#${threadId}>` });
                         return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                     } else {
-                        // If ticket was archived for some reason but not cleared from map
                         activeTickets.delete(user.id);
                     }
                 }
                 
-                // Defer the reply to prevent timeout
-                await interaction.deferReply({ flags: 1 << 6 });
-
-                const modmailChannelId = '1122550689405730966'; // Replace with your actual ModMail channel ID
+                const modmailChannelId = '1122550689405730966';
                 const modmailChannel = interaction.guild?.channels.cache.get(modmailChannelId) as TextChannel | null;
 
                 if (!modmailChannel) {
-                    console.error('[TicketSystem] Modmail channel not found.');
                     await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
                 
-                // DM user confirmation
                 try {
-                    await user.send({ content: 'Thank you for submitting your ticket. A staff member will be with you shortly. All further communication will happen in this DM channel.' });
+                    const dmEmbed = new EmbedBuilder()
+                        .setColor(0x0099FF)
+                        .setTitle('Ticket Submitted Successfully')
+                        .setDescription('Thank you for submitting your ticket. A staff member will be with you shortly. All further communication will happen in this DM channel.')
+                        .addFields({ name: 'Your Issue', value: issueDescription })
+                        .setTimestamp();
+                    await user.send({ embeds: [dmEmbed] });
                     localMessagesSent++;
                 } catch (e) {
-                    console.error(`[TicketSystem] Could not send DM to user ${user.id}. They may have DMs disabled.`);
                     await interaction.editReply({ content: 'I tried to DM you, but your DMs are disabled. Please enable them and try again.'});
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
                 
-                // AI Processing for tags and initial reply
                 let aiTagsText = 'Could not determine tags.';
                 let aiReply = 'Could not generate a suggested reply.';
                 try {
@@ -471,23 +471,30 @@ export async function handleInteractionCreateEvent(
                 await interaction.editReply({ content: `I have sent you a DM to continue this conversation.` });
 
             } else if (customId === 'createTaskModal') {
-                await interaction.deferReply({ flags: 1 << 6 });
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
+                }
                 localMessagesSent++;
                 // ... logic for task creation
                 await interaction.editReply({ content: 'Modal submission for task creation is not fully implemented yet.' });
             } else if (customId.startsWith('addNoteModal')) {
-                await interaction.deferReply({ flags: 1 << 6 });
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
+                }
                 localMessagesSent++;
                 const taskId = customId.split('_')[1];
+
                 if (!taskId) {
                     await interaction.editReply({ content: "Could not find the task ID to add the note to."});
-                } else {
-                    // ... logic for adding note
-                    await interaction.editReply({ content: 'Note added (not implemented).' });
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
+                // ... logic for adding note
+                await interaction.editReply({ content: 'Note added (not implemented).' });
             } else if (customId.startsWith('addSnippetModal')) {
-                 await interaction.deferReply({ flags: 1 << 6 });
-                 localMessagesSent++;
+                if (!interaction.replied && !interaction.deferred) {
+                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
+                }
+                localMessagesSent++;
                 // ... logic for adding snippet
                 await interaction.editReply({ content: 'Snippet added (not implemented).' });
             }
