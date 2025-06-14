@@ -62,6 +62,46 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  console.log(`OptionalAuth middleware: Checking for token on path: ${req.path}`);
+  let token: string | undefined;
+
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+    console.log('OptionalAuth middleware: Token found in cookie.');
+  } else {
+    const authHeader = req.header('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.replace('Bearer ', '');
+      console.log('OptionalAuth middleware: Token found in Authorization header.');
+    }
+  }
+
+  if (!token) {
+    console.log('OptionalAuth middleware: No token provided, proceeding as guest.');
+    return next();
+  }
+
+  try {
+    console.log('OptionalAuth middleware: Verifying token.');
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+      // Don't expose server configuration errors to the client, just log and proceed as guest.
+      return next();
+    }
+
+    const decoded = jwt.verify(token, secret) as JwtPayload;
+    console.log('OptionalAuth middleware: Token verified, attaching user to request.');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.warn('OptionalAuth middleware: Token provided but is invalid. Proceeding as guest.', error);
+    // If token is invalid (expired, etc.), just proceed without authenticating the user.
+    next();
+  }
+};
+
 // Middleware to authorize admin users
 export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.systemRole !== SystemRoleType.ADMIN) {

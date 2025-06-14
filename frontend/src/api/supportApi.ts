@@ -1,6 +1,8 @@
 import axios from './axios';
 
 interface SupportRequestPayload {
+  name: string;
+  email: string;
   subject: string;
   message: string;
   category: 'technical' | 'billing' | 'feedback' | 'other';

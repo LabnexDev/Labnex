@@ -2,21 +2,20 @@ import { Request, Response } from 'express';
 import { sendSupportEmail } from '../services/email.service';
 
 export const handleSupportRequest = async (req: Request, res: Response) => {
-    const { subject, message, category } = req.body;
+    const { subject, message, category, name: bodyName, email: bodyEmail } = req.body;
     const user = req.user;
 
-    if (!subject || !message || !category) {
-        return res.status(400).json({ message: 'Subject, message, and category are required' });
-    }
+    const fromEmail = user?.email || bodyEmail;
+    const fromName = user?.name || bodyName;
 
-    if (!user) {
-        return res.status(401).json({ message: 'User not authenticated' });
+    if (!subject || !message || !category || !fromName || !fromEmail) {
+        return res.status(400).json({ message: 'Name, email, subject, message, and category are required' });
     }
 
     try {
         await sendSupportEmail({
-            from: user.email,
-            name: user.name,
+            from: fromEmail,
+            name: fromName,
             subject,
             message,
             category

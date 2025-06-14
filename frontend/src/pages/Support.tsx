@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { BookOpenIcon, PaperAirplaneIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '../components/common/Button';
 import { sendSupportRequest } from '../api/supportApi';
+import { useAuth } from '../contexts/AuthContext';
 
 const DiscordIcon = () => (
     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 127 96">
@@ -15,6 +16,8 @@ const DiscordIcon = () => (
 );
 
 const supportSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters long.'),
+  email: z.string().email('Invalid email address.'),
   category: z.enum(['technical', 'billing', 'feedback', 'other'], {
     errorMap: () => ({ message: 'Please select a category.' }),
   }),
@@ -25,9 +28,24 @@ const supportSchema = z.object({
 type SupportFormData = z.infer<typeof supportSchema>;
 
 const Support: React.FC = () => {
-    const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<SupportFormData>({
+    const { user } = useAuth();
+    const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<SupportFormData>({
         resolver: zodResolver(supportSchema),
+        defaultValues: {
+            name: '',
+            email: '',
+            category: undefined,
+            subject: '',
+            message: ''
+        }
     });
+
+    useEffect(() => {
+        if (user) {
+            setValue('name', user.name || '');
+            setValue('email', user.email || '');
+        }
+    }, [user, setValue]);
 
     const onSubmit = async (data: SupportFormData) => {
         const toastId = toast.loading('Sending your message...');
@@ -35,6 +53,10 @@ const Support: React.FC = () => {
             await sendSupportRequest(data);
             toast.success('Your message has been sent! We will get back to you shortly.', { id: toastId });
             reset();
+            if (user) {
+                setValue('name', user.name || '');
+                setValue('email', user.email || '');
+            }
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'An unexpected error occurred. Please try again.';
             toast.error(errorMessage, { id: toastId });
@@ -62,6 +84,32 @@ const Support: React.FC = () => {
                     Send a Message
                 </h2>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                            <input
+                                type="text"
+                                id="name"
+                                {...register('name')}
+                                className="w-full bg-slate-800/60 border-slate-700 rounded-md p-3 text-white focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-700 disabled:cursor-not-allowed"
+                                placeholder="Your Name"
+                                disabled={!!user}
+                            />
+                            {errors.name && <p className="text-red-400 text-sm mt-2">{errors.name.message}</p>}
+                        </div>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                {...register('email')}
+                                className="w-full bg-slate-800/60 border-slate-700 rounded-md p-3 text-white focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-slate-700 disabled:cursor-not-allowed"
+                                placeholder="your@email.com"
+                                disabled={!!user}
+                            />
+                            {errors.email && <p className="text-red-400 text-sm mt-2">{errors.email.message}</p>}
+                        </div>
+                    </div>
                     <div>
                         <label htmlFor="category" className="block text-sm font-medium text-slate-300 mb-2">Category</label>
                         <select
