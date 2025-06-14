@@ -2,7 +2,6 @@ import React from 'react';
 import { changelogData } from '../data/changelog';
 import './ChangelogPage.css';
 import { TagIcon, ArrowUpCircleIcon, WrenchScrewdriverIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
 
 const typeDetails = {
   feature: {
@@ -42,24 +41,12 @@ const ChangelogPage: React.FC = () => {
           <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
             We're constantly improving Labnex. Here's a timeline of our latest updates and features.
           </p>
-          <Link to="/" className="inline-block mt-6 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">
-            &larr; Back to Home
-          </Link>
         </div>
 
-        <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-1/2 -ml-px w-0.5 h-full bg-slate-700" aria-hidden="true"></div>
-
+        <div className="timeline-container">
           {changelogData.map((release, index) => (
-            <div key={release.version} className="relative mb-16">
-              <div className="flex items-center justify-center mb-8 relative">
-                <div className="z-10 flex items-center justify-center w-8 h-8 bg-slate-800 border-2 border-blue-500 rounded-full">
-                  <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                </div>
-              </div>
-              
-              <div className={`relative w-full max-w-lg mx-auto p-6 sm:p-8 rounded-2xl shadow-2xl bg-slate-900/50 border border-white/10 backdrop-blur-md ${index % 2 === 0 ? 'sm:ml-auto sm:mr-0' : 'sm:mr-auto sm:ml-0'}`}>
+            <div key={release.version} className={`timeline-item ${index % 2 === 0 ? 'timeline-left' : 'timeline-right'}`}>
+              <div className="timeline-content shadow-2xl">
                 {/* Version and Date */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="px-3 py-1 text-sm font-semibold text-blue-300 bg-blue-900/50 rounded-full border border-blue-800">

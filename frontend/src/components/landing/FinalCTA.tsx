@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '../common/Button';
 import SectionWrapper from './SectionWrapper';
 import { useModal } from '../../contexts/ModalContext';
+import { Link } from 'react-router-dom';
 
 const FinalCTA: React.FC = () => {
   const { openModal } = useModal();
@@ -111,17 +112,12 @@ const FinalCTA: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-16 text-center">
-          <div className="flex flex-wrap justify-center items-center gap-8 text-slate-500 text-sm">
-            {[
-              { text: "Privacy Policy", action: () => openModal('info', { infoPageType: 'privacy' }) },
-              { text: "Terms of Service", action: () => openModal('info', { infoPageType: 'terms' }) },
-              { text: "Support", action: () => openModal('info', { infoPageType: 'support' }) },
-              { text: "Contact", action: () => openModal('info', { infoPageType: 'contact' }) }
-            ].map((link, index) => (
-              <button key={index} onClick={link.action} className="hover:text-slate-300 transition-colors duration-300">
-                {link.text}
-              </button>
-            ))}
+          <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-slate-500 text-sm">
+            <Link to="/changelog" className="hover:text-slate-300 transition-colors duration-300">Changelog</Link>
+            <Link to="/privacy-policy" className="hover:text-slate-300 transition-colors duration-300">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-slate-300 transition-colors duration-300">Terms of Service</Link>
+            <button onClick={() => openModal('info', { infoPageType: 'support' })} className="hover:text-slate-300 transition-colors duration-300">Support</button>
+            <button onClick={() => openModal('info', { infoPageType: 'contact' })} className="hover:text-slate-300 transition-colors duration-300">Contact</button>
           </div>
           <div className="mt-6 text-slate-500 text-sm">
             © {new Date().getFullYear()} Labnex. A new platform for modern development teams.

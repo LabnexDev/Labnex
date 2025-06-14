@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Layout } from './components/layout/Layout';
+import { SimpleLayout } from './components/layout/SimpleLayout';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { Dashboard } from './pages/dashboard/Dashboard';
@@ -152,9 +153,9 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<LandingPage />} />
-      <Route path="/changelog" element={<ChangelogPage />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route path="/changelog" element={<SimpleLayout><ChangelogPage /></SimpleLayout>} />
+      <Route path="/privacy-policy" element={<SimpleLayout><PrivacyPolicy /></SimpleLayout>} />
+      <Route path="/terms-of-service" element={<SimpleLayout><TermsOfService /></SimpleLayout>} />
       <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />

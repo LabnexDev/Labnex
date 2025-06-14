@@ -192,20 +192,6 @@ const LandingPage: React.FC = () => {
       <AIHighlights aiHighlightsData={aiHighlightsData} />
       <FinalCTA />
 
-      {/* Footer */}
-      <footer className="relative z-10 p-8 text-slate-400 border-t border-white/10 bg-slate-950/70 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
-          <div className="mb-4 sm:mb-0">
-            <p className="text-sm">© {new Date().getFullYear()} Labnex. All rights reserved.</p>
-            <p className="text-xs mt-2 text-slate-500">Built with passion for developers and testers.</p>
-          </div>
-          <div className="flex space-x-6">
-            <Link to="/changelog" className="text-sm hover:text-white transition-colors duration-300">Changelog</Link>
-            <Link to="/privacy-policy" className="text-sm hover:text-white transition-colors duration-300">Privacy Policy</Link>
-            <Link to="/terms-of-service" className="text-sm hover:text-white transition-colors duration-300">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
