@@ -406,7 +406,13 @@ export async function handleInteractionCreateEvent(
                     }
                 }
                 
-                const modmailChannelId = '1122550689405730966';
+                const modmailChannelId = process.env.MODMAIL_CHANNEL_ID;
+                if (!modmailChannelId) {
+                    console.error('[TicketSystem] MODMAIL_CHANNEL_ID is not set in the environment variables.');
+                    await interaction.editReply({ content: 'The modmail channel has not been configured by the administrator.' });
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                }
+
                 let modmailChannel: TextChannel | null = null;
                 try {
                     const channel = await interaction.guild?.channels.fetch(modmailChannelId);
@@ -537,4 +543,4 @@ export async function handleInteractionCreateEvent(
     }
 
     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
-} 
+}
