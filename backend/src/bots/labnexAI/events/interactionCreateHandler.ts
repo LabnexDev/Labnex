@@ -393,17 +393,30 @@ export async function handleInteractionCreateEvent(
                 let modmailChannel: TextChannel | null = null;
 
                 try {
+                    console.log(`[TicketSystem] Attempting to fetch channel with ID: ${modmailChannelId}`);
                     const channel = await interaction.guild?.channels.fetch(modmailChannelId);
-                    // Ensure the fetched channel is a text channel before casting
-                    if (channel && channel.isTextBased() && channel.type === ChannelType.GuildText) {
-                        modmailChannel = channel as TextChannel;
+                    
+                    if (channel) {
+                        console.log(`[TicketSystem] Fetched channel: ${channel.name} (${channel.id}), Type: ${channel.type}`);
+                        // Ensure the fetched channel is a text channel before casting
+                        if (channel.isTextBased() && channel.type === ChannelType.GuildText) {
+                            modmailChannel = channel as TextChannel;
+                            console.log(`[TicketSystem] Channel is a valid TextChannel.`);
+                        } else {
+                            console.warn(`[TicketSystem] Channel with ID ${modmailChannelId} is not a GuildText channel. It's type ${channel.type}.`);
+                        }
+                    } else {
+                        console.error(`[TicketSystem] Fetch returned null or undefined for channel ID ${modmailChannelId}.`);
+                        // For debugging, list available channels to see what the bot can access.
+                        const availableChannels = interaction.guild?.channels.cache.map(c => ` - ${c.name} (${c.id}, type: ${c.type})`).join('\n');
+                        console.log(`[TicketSystem] List of channels visible to the bot in this guild:\n${availableChannels}`);
                     }
                 } catch (e) {
-                    console.error(`[TicketSystem] Could not fetch modmail channel with ID ${modmailChannelId}:`, e);
+                    console.error(`[TicketSystem] An error occurred while fetching channel with ID ${modmailChannelId}:`, e);
                 }
 
                 if (!modmailChannel) {
-                    console.error(`[TicketSystem] Modmail channel with ID ${modmailChannelId} not found or is not a text channel.`);
+                    console.error(`[TicketSystem] Final check failed: modmailChannel is null. Replying with error.`);
                     await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
