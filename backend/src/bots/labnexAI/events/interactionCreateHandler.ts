@@ -342,15 +342,15 @@ export async function handleInteractionCreateEvent(
                 const ticketId = Date.now();
 
                 try {
-                    const modmailCategory = interaction.guild?.channels.cache.find(c => c.name.toLowerCase() === 'modmail' && c.type === ChannelType.GuildCategory);
-                    if (!modmailCategory) {
-                        console.warn('[TicketSystem] "modmail" category not found. Creating ticket at top level.');
+                    const ticketsCategory = interaction.guild?.channels.cache.find(c => c.name.toLowerCase() === 'tickets' && c.type === ChannelType.GuildCategory);
+                    if (!ticketsCategory) {
+                        console.warn('[TicketSystem] "tickets" category not found. Creating ticket at top level.');
                     }
 
                     const channel = await interaction.guild?.channels.create({
                         name: `ticket-${user.username}-${ticketId}`.substring(0, 100),
                         type: ChannelType.GuildText,
-                        parent: modmailCategory?.id,
+                        parent: ticketsCategory?.id,
                         permissionOverwrites: [
                             {
                                 id: interaction.guild.roles.everyone.id,
