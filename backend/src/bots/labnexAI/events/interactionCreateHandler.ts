@@ -11,8 +11,6 @@ import {
     ActionRowBuilder,
     ChannelType,
     TextChannel,
-    ButtonBuilder,
-    ButtonStyle,
     ThreadChannel,
     InteractionReplyOptions,
     MessagePayload,
@@ -38,8 +36,7 @@ import { execute as handleSendRulesCommand } from '../commands/sendrules';
 import { execute as handleSendInfoCommand } from '../commands/sendinfo';
 import { execute as handleSendWelcomeCommand } from '../commands/sendwelcome';
 import { execute as handleSendRoleSelectCommand } from '../commands/sendroleselect';
-import { generateTagsForTicket, generateSuggestedReply } from '../chatgpt.service';
-import { handleAiReplyButtons } from '../interactions/aiReplyHandler';
+import { generateTagsForTicket } from '../chatgpt.service';
 import { CreateTaskOptions, LabnexNote, LabnexSnippet } from '../types/labnexAI.types';
 import { getInteractionStringOption } from '../utils/discordHelpers';
 
@@ -257,11 +254,11 @@ export async function handleInteractionCreateEvent(
             localMessagesReceived++;
             const { commandName } = interaction;
             console.log(`[interactionCreateHandler.ts] Event: ChatInput Command "${commandName}" from ${interaction.user.tag}`);
-            
+
             if (commandName === 'ticket') {
                 const subcommand = (interaction.options as CommandInteractionOptionResolver).getSubcommand();
                 const member = interaction.member as GuildMember;
-                
+
                 if (subcommand === 'create') {
                     const modal = new ModalBuilder()
                         .setCustomId('ticketModal-v2')
@@ -281,7 +278,10 @@ export async function handleInteractionCreateEvent(
 
                 // All commands below this point are staff-only
                 const staffRoleId = process.env.STAFF_ROLE_ID;
-                if (!staffRoleId || !member.roles.cache.has(staffRoleId)) {
+                const hasStaffRole = staffRoleId ? member.roles.cache.has(staffRoleId) : false;
+                const isAdmin = member.permissions.has('Administrator');
+
+                if (!hasStaffRole && !isAdmin) {
                     await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
@@ -322,11 +322,7 @@ export async function handleInteractionCreateEvent(
             }
         } else if (interaction.isButton()) {
             localMessagesReceived++;
-            // Button handlers must check for their own custom IDs
-            if (interaction.customId.startsWith('ai_reply_')) {
-                // The AI reply buttons are now handled by their own logic
-                await handleAiReplyButtons(interaction);
-            }
+            // Button handlers can be placed here if any other buttons are added.
         } else if (interaction.isModalSubmit()) {
             localMessagesReceived++;
             const { customId } = interaction;
@@ -346,9 +342,15 @@ export async function handleInteractionCreateEvent(
                 const ticketId = Date.now();
 
                 try {
+                    const modmailCategory = interaction.guild?.channels.cache.find(c => c.name.toLowerCase() === 'modmail' && c.type === ChannelType.GuildCategory);
+                    if (!modmailCategory) {
+                        console.warn('[TicketSystem] "modmail" category not found. Creating ticket at top level.');
+                    }
+
                     const channel = await interaction.guild?.channels.create({
                         name: `ticket-${user.username}-${ticketId}`.substring(0, 100),
                         type: ChannelType.GuildText,
+                        parent: modmailCategory?.id,
                         permissionOverwrites: [
                             {
                                 id: interaction.guild.roles.everyone.id,
@@ -375,13 +377,9 @@ export async function handleInteractionCreateEvent(
                     activeTickets.set(channel.id, user.id);
 
                     let aiTagsText = 'Could not determine tags.';
-                    let aiReply = 'Could not generate a suggested reply.';
                     try {
                         const tagsResult = await generateTagsForTicket(issueDescription);
                         if (tagsResult) aiTagsText = tagsResult.join(', ');
-
-                        const replyResult = await generateSuggestedReply(issueDescription);
-                        if (replyResult) aiReply = replyResult;
                     } catch (e) {
                         console.error('[TicketSystem] Failed to get AI suggestions:', e);
                     }
@@ -397,27 +395,12 @@ export async function handleInteractionCreateEvent(
                             { name: 'Issue', value: issueDescription }
                         )
                         .setTimestamp();
-                    
+                
                     const staffRole = await interaction.guild?.roles.fetch(staffRoleId);
                     await channel.send({
                         content: `New ticket from <@${user.id}>. ${staffRole ? `Paging ${staffRole}` : ''}`,
                         embeds: [ticketEmbed]
                     });
-
-                    if (aiReply) {
-                        const suggestionEmbed = new EmbedBuilder()
-                            .setColor(0xfde047)
-                            .setTitle('🤖 AI Suggested Reply')
-                            .setDescription(aiReply)
-                            .setFooter({ text: 'Staff can use the buttons below.' });
-
-                        const suggestionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-                            new ButtonBuilder().setCustomId(`ai_reply_send_${user.id}`).setLabel('Send to User via DM').setStyle(ButtonStyle.Success),
-                            new ButtonBuilder().setCustomId(`ai_copy_reply_${channel.id}`).setLabel('Copy Text').setStyle(ButtonStyle.Secondary),
-                            new ButtonBuilder().setCustomId(`ai_ignore_reply_${channel.id}`).setLabel('Ignore').setStyle(ButtonStyle.Danger)
-                        );
-                        await channel.send({ embeds: [suggestionEmbed], components: [suggestionButtons] });
-                    }
 
                     await interaction.editReply({ content: `Your ticket has been created! Please see the new private channel: <#${channel.id}>` });
 
