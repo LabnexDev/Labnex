@@ -390,9 +390,20 @@ export async function handleInteractionCreateEvent(
                 }
                 
                 const modmailChannelId = '1122550689405730966';
-                const modmailChannel = interaction.guild?.channels.cache.get(modmailChannelId) as TextChannel | null;
+                let modmailChannel: TextChannel | null = null;
+
+                try {
+                    const channel = await interaction.guild?.channels.fetch(modmailChannelId);
+                    // Ensure the fetched channel is a text channel before casting
+                    if (channel && channel.isTextBased() && channel.type === ChannelType.GuildText) {
+                        modmailChannel = channel as TextChannel;
+                    }
+                } catch (e) {
+                    console.error(`[TicketSystem] Could not fetch modmail channel with ID ${modmailChannelId}:`, e);
+                }
 
                 if (!modmailChannel) {
+                    console.error(`[TicketSystem] Modmail channel with ID ${modmailChannelId} not found or is not a text channel.`);
                     await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
