@@ -34,22 +34,8 @@ const commands = [
                 .addStringOption(option => option.setName('reason').setDescription('The reason for closing the ticket.')))
         .addSubcommand(subcommand =>
             subcommand
-                .setName('escalate')
-                .setDescription('Escalates the current ticket to the admins.'))
-        .addSubcommand(subcommand =>
-            subcommand
                 .setName('delete')
                 .setDescription('[STAFF ONLY] Deletes the current ticket channel.'))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('reply')
-                .setDescription('Sends a reply to the user who created the ticket.')
-                .addStringOption(option => option.setName('message').setDescription('Your reply message').setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('reply')
-                .setDescription('Send a reply in a ticket thread.')
-                .addStringOption(option => option.setName('message').setDescription('Your reply message').setRequired(true)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('escalate')

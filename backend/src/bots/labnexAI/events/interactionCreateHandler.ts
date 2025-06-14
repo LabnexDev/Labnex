@@ -57,179 +57,6 @@ export function updateInteractionCounters(newReceived: number, newSent: number) 
     messagesSentToUser = newSent;
 }
 
-async function handleTicketCommand(interaction: CommandInteraction) {
-    if (!interaction.isChatInputCommand()) return;
-
-    const subcommand = (interaction.options as CommandInteractionOptionResolver).getSubcommand();
-    const member = interaction.member as GuildMember;
-    const channel = interaction.channel;
-
-    // Helper to check for Staff role or Admin role
-    const isStaff = () => member.roles.cache.some(role => role.name === 'Staff' || role.name === 'Admin');
-
-    if (subcommand === 'create') {
-        const modal = new ModalBuilder()
-            .setCustomId('ticketModal')
-            .setTitle('Submit a new ticket');
-
-        const issueDescriptionInput = new TextInputBuilder()
-            .setCustomId('issueDescription')
-            .setLabel("Please describe your issue in detail")
-            .setStyle(TextInputStyle.Paragraph)
-            .setRequired(true);
-        
-        const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(issueDescriptionInput);
-
-        modal.addComponents(firstActionRow);
-
-        await interaction.showModal(modal);
-        return;
-    }
-
-    // All other subcommands are staff-only and must be in a thread
-    if (!channel || !channel.isThread()) {
-        await interaction.reply({ content: 'This command can only be used within a ticket thread.', flags: 1 << 6 });
-        return;
-    }
-
-    if (!isStaff()) {
-        await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 });
-        return;
-    }
-    
-    switch (subcommand) {
-        case 'close': {
-            await interaction.deferReply({ flags: 1 << 6 });
-            const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
-            let userIdToNotify: string | undefined;
-
-            try {
-                if (channel.parentId) {
-                    const modmailChannel = await interaction.guild?.channels.fetch(channel.parentId);
-                    if (modmailChannel?.isTextBased()) {
-                        const originalMessage = await modmailChannel.messages.fetch(channel.id);
-                        if (originalMessage && originalMessage.embeds.length > 0) {
-                            const originalEmbed = originalMessage.embeds[0];
-                            const userField = originalEmbed.fields.find(f => f.name === 'User');
-                            userIdToNotify = userField?.value.match(/<@(\d+)>/)?.[1];
-                            
-                            const updatedEmbed = new EmbedBuilder(originalEmbed.data)
-                                .setColor(0xff0000)
-                                .spliceFields(1, 1, { name: 'Status', value: 'Closed', inline: true })
-                                .addFields(
-                                    { name: 'Closed By', value: member.user.tag, inline: true },
-                                    { name: 'Reason', value: reason }
-                                );
-                            await originalMessage.edit({ embeds: [updatedEmbed] });
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('[TicketSystem] Failed to update the original ticket embed.', e);
-            }
-
-            if (userIdToNotify) {
-                activeTickets.delete(userIdToNotify);
-                const user = await interaction.client.users.fetch(userIdToNotify);
-                await user.send(`Your ticket has been closed by **${member.user.tag}**. Reason: *${reason}*`);
-            }
-
-            // Rename the thread to show it's closed
-            try {
-                const closedName = `[CLOSED] ${channel.name.replace('[ESCALATED] ', '')}`;
-                await channel.setName(closedName.substring(0, 100));
-            } catch (e) {
-                console.error(`[TicketSystem] Failed to rename thread ${channel.id} on close.`, e);
-            }
-
-            await channel.send(`This ticket has been closed by <@${member.id}>.`);
-            await channel.setLocked(true);
-            await channel.setArchived(true);
-            
-            await interaction.editReply({ content: 'Ticket has been closed and archived.' });
-            break;
-        }
-
-        case 'reply': {
-            await interaction.deferReply({ flags: 1 << 6 });
-            const message = getInteractionStringOption(interaction, 'message', true);
-            let userIdToNotify: string | undefined;
-
-            if (!message) {
-                await interaction.editReply({ content: 'You must provide a message to reply with.' });
-                return;
-            }
-
-            try {
-                if (channel.parentId) {
-                    const modmailChannel = await interaction.guild?.channels.fetch(channel.parentId);
-                    if (modmailChannel?.isTextBased()) {
-                        const originalMessage = await modmailChannel.messages.fetch(channel.id);
-                        const userField = originalMessage.embeds[0]?.fields.find(f => f.name === 'User');
-                        userIdToNotify = userField?.value.match(/<@(\d+)>/)?.[1];
-                    }
-                }
-
-                if (userIdToNotify) {
-                    const user = await interaction.client.users.fetch(userIdToNotify);
-                    const replyEmbed = new EmbedBuilder()
-                        .setColor(0x0099FF)
-                        .setAuthor({ name: `${member.user.tag} (Staff)`, iconURL: member.user.displayAvatarURL() })
-                        .setDescription(message)
-                        .setTimestamp();
-                    
-                    await user.send({ embeds: [replyEmbed] });
-
-                    // Also post in thread for staff record
-                    await channel.send({ embeds: [replyEmbed] });
-                    await interaction.editReply({ content: 'Your reply has been sent to the user.' });
-                } else {
-                    await interaction.editReply({ content: 'Could not find the user to reply to.' });
-                }
-            } catch (e) {
-                console.error('[TicketSystem] Failed to send reply DM.', e);
-                await interaction.editReply({ content: 'There was an error sending the reply. The user may have DMs disabled.' });
-            }
-            break;
-        }
-
-        case 'escalate': {
-            await interaction.deferReply({ flags: 1 << 6 });
-            const reason = getInteractionStringOption(interaction, 'reason', true);
-
-            if (!reason) {
-                await interaction.editReply({ content: 'A reason is required to escalate.' });
-                return;
-            }
-
-            const adminRole = interaction.guild?.roles.cache.find(role => role.name === 'Admin');
-            const adminMention = adminRole ? `<@&${adminRole.id}>` : '@Admin';
-
-            const escalateEmbed = new EmbedBuilder()
-                .setColor(0xffff00) // Yellow for escalation
-                .setTitle('Ticket Escalated')
-                .setDescription(`<@${member.id}> has escalated this ticket. ${adminMention}, your attention is requested.`)
-                .addFields({ name: 'Reason for Escalation', value: reason })
-                .setTimestamp();
-
-            await channel.send({ embeds: [escalateEmbed] });
-            
-            // Rename the thread to show it's escalated
-            try {
-                if (!channel.name.startsWith('[ESCALATED]')) {
-                    const escalatedName = `[ESCALATED] ${channel.name}`;
-                    await channel.setName(escalatedName.substring(0, 100));
-                }
-            } catch (e) {
-                console.error(`[TicketSystem] Failed to rename thread ${channel.id} on escalation.`, e);
-            }
-
-            await interaction.editReply({ content: 'Ticket has been escalated.' });
-            break;
-        }
-    }
-}
-
 export async function handleInteractionCreateEvent(
     interaction: Interaction,
     currentMessagesReceived: number,
@@ -285,35 +112,79 @@ export async function handleInteractionCreateEvent(
                     await interaction.reply({ content: 'You do not have permission to use this command.', flags: 1 << 6 });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
-
-                if (subcommand === 'close') {
-                    await interaction.deferReply({ flags: 1 << 6 });
-                    const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
-                    const channel = interaction.channel;
-
-                    if (channel && channel.type === ChannelType.GuildText && channel.name.startsWith('ticket-')) {
-                        await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
-                        
-                        const userId = activeTickets.get(channel.id);
-                        if (userId) {
-                            await channel.permissionOverwrites.edit(userId, { SendMessages: false });
-                            activeTickets.delete(channel.id); // Remove from active map
-                        }
-                        
-                        await channel.setName(`closed-${channel.name}`);
-                        await interaction.editReply({ content: 'Ticket has been closed and locked for the user.' });
-                    } else {
-                        await interaction.editReply({ content: 'This command can only be used in an active ticket channel.' });
-                    }
+                const channel = interaction.channel;
+                if (!channel || channel.type === ChannelType.DM) {
+                    await interaction.reply({ content: 'This command cannot be used in DMs.', flags: 1 << 6 });
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
 
-                if (subcommand === 'delete') {
-                    const channel = interaction.channel;
-                    if (channel?.isTextBased() && !channel.isDMBased() && (channel.name.startsWith('ticket-') || channel.name.startsWith('closed-ticket-'))) {
-                        await interaction.reply({ content: `This channel will be deleted in 5 seconds.`, flags: 1 << 6 });
-                        setTimeout(() => channel.delete('Ticket resolved and deleted by staff.').catch(console.error), 5000);
-                    } else {
-                        await interaction.reply({ content: 'This command can only be used in a ticket channel.', flags: 1 << 6 });
+                switch (subcommand) {
+                    case 'close': {
+                        await interaction.deferReply({ flags: 1 << 6 });
+                        const reason = getInteractionStringOption(interaction, 'reason', false) || 'No reason provided.';
+    
+                        if (channel && channel.type === ChannelType.GuildText && channel.name.startsWith('ticket-')) {
+                            await channel.send(`This ticket has been closed by <@${member.id}>. Reason: ${reason}`);
+                            
+                            const userId = activeTickets.get(channel.id);
+                            if (userId) {
+                                await channel.permissionOverwrites.edit(userId, { SendMessages: false });
+                                activeTickets.delete(channel.id); // Remove from active map
+                            }
+                            
+                            await channel.setName(`closed-${channel.name}`);
+                            await interaction.editReply({ content: 'Ticket has been closed and locked for the user.' });
+                        } else {
+                            await interaction.editReply({ content: 'This command can only be used in an active ticket channel.' });
+                        }
+                        break;
+                    }
+    
+                    case 'delete': {
+                        if (channel?.isTextBased() && !channel.isDMBased() && (channel.name.startsWith('ticket-') || channel.name.startsWith('closed-ticket-'))) {
+                            await interaction.reply({ content: `This channel will be deleted in 5 seconds.`, flags: 1 << 6 });
+                            setTimeout(() => channel.delete('Ticket resolved and deleted by staff.').catch(console.error), 5000);
+                        } else {
+                            await interaction.reply({ content: 'This command can only be used in a ticket channel.', flags: 1 << 6 });
+                        }
+                        break;
+                    }
+                    case 'escalate': {
+                        if (!(channel instanceof TextChannel) && !(channel instanceof ThreadChannel)) {
+                            await interaction.reply({ content: 'This command can only be used in a text or thread channel.', flags: 1 << 6 });
+                            return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                        }
+                        await interaction.deferReply({ flags: 1 << 6 });
+                        const reason = getInteractionStringOption(interaction, 'reason', true);
+    
+                        if (!reason) {
+                            await interaction.editReply({ content: 'A reason is required to escalate.' });
+                            return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+                        }
+    
+                        const adminRole = interaction.guild?.roles.cache.find(role => role.name === 'Admin');
+                        const adminMention = adminRole ? `<@&${adminRole.id}>` : '@Admin';
+    
+                        const escalateEmbed = new EmbedBuilder()
+                            .setColor(0xffff00) // Yellow for escalation
+                            .setTitle('Ticket Escalated')
+                            .setDescription(`<@${member.id}> has escalated this ticket. ${adminMention}, your attention is requested.`)
+                            .addFields({ name: 'Reason for Escalation', value: reason })
+                            .setTimestamp();
+    
+                        await channel.send({ embeds: [escalateEmbed] });
+                        
+                        try {
+                            if (!channel.name.startsWith('[ESCALATED]')) {
+                                const escalatedName = `[ESCALATED] ${channel.name}`;
+                                await channel.setName(escalatedName.substring(0, 100));
+                            }
+                        } catch (e) {
+                            console.error(`[TicketSystem] Failed to rename channel ${channel.id} on escalation.`, e);
+                        }
+    
+                        await interaction.editReply({ content: 'Ticket has been escalated.' });
+                        break;
                     }
                 }
             } else {
@@ -398,7 +269,7 @@ export async function handleInteractionCreateEvent(
                 
                     const staffRole = await interaction.guild?.roles.fetch(staffRoleId);
                     await channel.send({
-                        content: `New ticket from <@${user.id}>. ${staffRole ? `Paging ${staffRole}` : ''}`,
+                        content: `New ticket from <@${user.id}>.`,
                         embeds: [ticketEmbed]
                     });
 
