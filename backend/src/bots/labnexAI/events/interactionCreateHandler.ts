@@ -279,75 +279,94 @@ export async function handleInteractionCreateEvent(
             const { commandName } = interaction;
             console.log(`[interactionCreateHandler.ts] Event: ChatInput Command "${commandName}" from ${interaction.user.tag}`);
             
-            const replyFunction = async (content: string, ephemeral = false) => {
-                await reply({ content, flags: ephemeral ? (1 << 6) : undefined });
-            };
-
-            const sendDmFunction = async (content: string) => {
-                await interaction.user.send(content);
-            };
-
             if (commandName === 'ticket') {
-                await handleTicketCommand(interaction);
-            } else if (commandName === 'my-projects') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                await handleMyProjectsCommand(interaction.user.id, replyFunction, interaction);
-            } else if (commandName === 'project-tasks') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                const projectIdentifier = getInteractionStringOption(interaction, 'project', true);
-                await handleProjectTasksCommand(interaction.user.id, projectIdentifier, replyFunction, interaction);
-            } else if (commandName === 'create-task') {
-                // This command handles its own reply via modal, so no defer needed here.
-                const options: CreateTaskOptions = {
-                     discordUserId: interaction.user.id,
-                     projectIdentifier: getInteractionStringOption(interaction, 'project', true) || '',
-                     title: getInteractionStringOption(interaction, 'title', true) || '',
-                     description: getInteractionStringOption(interaction, 'description', false),
-                     priority: getInteractionStringOption(interaction, 'priority', false),
-                     status: getInteractionStringOption(interaction, 'status', false),
-                     dueDate: getInteractionStringOption(interaction, 'due_date', false),
-                 };
-                await handleCreateTaskCommand(options, replyFunction, interaction);
-            } else if (commandName === 'task-info') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                const taskIdentifier = getInteractionStringOption(interaction, 'task_identifier', true);
-                if (taskIdentifier) {
-                    await handleTaskInfoCommand(interaction.user.id, taskIdentifier, replyFunction, interaction);
-                } else {
-                    await reply({ content: 'Task identifier is required.', flags: 1 << 6 });
+                const subcommand = (interaction.options as CommandInteractionOptionResolver).getSubcommand();
+                if (subcommand === 'create') {
+                    const modal = new ModalBuilder()
+                        .setCustomId('ticketModal')
+                        .setTitle('Submit a new ticket');
+
+                    const issueDescriptionInput = new TextInputBuilder()
+                        .setCustomId('issueDescription')
+                        .setLabel("Please describe your issue in detail")
+                        .setStyle(TextInputStyle.Paragraph)
+                        .setRequired(true);
+                    
+                    const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(issueDescriptionInput);
+                    modal.addComponents(firstActionRow);
+                    await interaction.showModal(modal); // Acknowledge ASAP
+                    return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
-            } else if (commandName === 'update-task-status') {
-                await handleUpdateTaskStatusCommand(interaction);
-            } else if (commandName === 'add-note') {
-                await handleAddNoteSlashCommand(interaction);
-            } else if (commandName === 'list-notes') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                await handleListNotesSlashCommand(interaction);
-            } else if (commandName === 'add-snippet') {
-                await handleAddSnippetSlashCommand(interaction);
-            } else if (commandName === 'list-snippets') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                await handleListSnippetsSlashCommand(interaction);
-            } else if (commandName === 'link-account') {
-                await interaction.deferReply({ flags: 1 << 6 });
-                await handleLinkAccount(interaction.user.id, interaction.user.tag, replyFunction, sendDmFunction);
-            } else if (['send-embed', 'send-rules', 'send-info', 'send-welcome', 'send-roleselect'].includes(commandName)) {
-                if (!interaction.inGuild()) {
-                    await reply({ content: "This command can only be used in a server.", flags: 1 << 6 });
-                } else {
-                    const guildInteraction = interaction as CommandInteraction<'cached'>;
-                    switch (commandName) {
-                        case 'send-embed': await handleSendEmbedCommand(guildInteraction); break;
-                        case 'send-rules': await handleSendRulesCommand(guildInteraction); break;
-                        case 'send-info': await handleSendInfoCommand(guildInteraction); break;
-                        case 'send-welcome': await handleSendWelcomeCommand(guildInteraction); break;
-                        case 'send-roleselect': await handleSendRoleSelectCommand(guildInteraction); break;
-                    }
-                }
+                // Handle other ticket subcommands if they exist, ensuring they reply or defer.
             } else {
-                await reply({ content: 'Unknown command!', flags: 1 << 6 });
+                // Defer other commands immediately to avoid timeout
+                await interaction.deferReply({ flags: 1 << 6 });
+                localMessagesSent++;
+
+                const replyFunction = async (content: string, ephemeral = false) => {
+                    await interaction.editReply({ content });
+                };
+                const sendDmFunction = async (content: string) => {
+                    await interaction.user.send(content);
+                };
+                
+                if (commandName === 'my-projects') {
+                    await handleMyProjectsCommand(interaction.user.id, replyFunction, interaction);
+                } else if (commandName === 'project-tasks') {
+                    const projectIdentifier = getInteractionStringOption(interaction, 'project', true);
+                    await handleProjectTasksCommand(interaction.user.id, projectIdentifier, replyFunction, interaction);
+                } else if (commandName === 'create-task') {
+                    // This command handles its own reply via modal, so no defer needed here.
+                    const options: CreateTaskOptions = {
+                         discordUserId: interaction.user.id,
+                         projectIdentifier: getInteractionStringOption(interaction, 'project', true) || '',
+                         title: getInteractionStringOption(interaction, 'title', true) || '',
+                         description: getInteractionStringOption(interaction, 'description', false),
+                         priority: getInteractionStringOption(interaction, 'priority', false),
+                         status: getInteractionStringOption(interaction, 'status', false),
+                         dueDate: getInteractionStringOption(interaction, 'due_date', false),
+                     };
+                    await handleCreateTaskCommand(options, replyFunction, interaction);
+                } else if (commandName === 'task-info') {
+                    await interaction.deferReply({ flags: 1 << 6 });
+                    const taskIdentifier = getInteractionStringOption(interaction, 'task_identifier', true);
+                    if (taskIdentifier) {
+                        await handleTaskInfoCommand(interaction.user.id, taskIdentifier, replyFunction, interaction);
+                    } else {
+                        await reply({ content: 'Task identifier is required.', flags: 1 << 6 });
+                    }
+                } else if (commandName === 'update-task-status') {
+                    await handleUpdateTaskStatusCommand(interaction);
+                } else if (commandName === 'add-note') {
+                    await handleAddNoteSlashCommand(interaction);
+                } else if (commandName === 'list-notes') {
+                    await interaction.deferReply({ flags: 1 << 6 });
+                    await handleListNotesSlashCommand(interaction);
+                } else if (commandName === 'add-snippet') {
+                    await handleAddSnippetSlashCommand(interaction);
+                } else if (commandName === 'list-snippets') {
+                    await interaction.deferReply({ flags: 1 << 6 });
+                    await handleListSnippetsSlashCommand(interaction);
+                } else if (commandName === 'link-account') {
+                    await interaction.deferReply({ flags: 1 << 6 });
+                    await handleLinkAccount(interaction.user.id, interaction.user.tag, replyFunction, sendDmFunction);
+                } else if (['send-embed', 'send-rules', 'send-info', 'send-welcome', 'send-roleselect'].includes(commandName)) {
+                    if (!interaction.inGuild()) {
+                        await reply({ content: "This command can only be used in a server.", flags: 1 << 6 });
+                    } else {
+                        const guildInteraction = interaction as CommandInteraction<'cached'>;
+                        switch (commandName) {
+                            case 'send-embed': await handleSendEmbedCommand(guildInteraction); break;
+                            case 'send-rules': await handleSendRulesCommand(guildInteraction); break;
+                            case 'send-info': await handleSendInfoCommand(guildInteraction); break;
+                            case 'send-welcome': await handleSendWelcomeCommand(guildInteraction); break;
+                            case 'send-roleselect': await handleSendRoleSelectCommand(guildInteraction); break;
+                        }
+                    }
+                } else {
+                    await reply({ content: 'Unknown command!', flags: 1 << 6 });
+                }
             }
-            localMessagesSent++;
         } else if (interaction.isButton()) {
             localMessagesReceived++;
             const { customId } = interaction;
@@ -370,10 +389,8 @@ export async function handleInteractionCreateEvent(
             console.log(`[interactionCreateHandler.ts] Event: Modal Submit "${customId}" from ${interaction.user.tag}`);
 
             if (customId === 'ticketModal') {
-                // Safeguard against double-replying
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
-                }
+                await interaction.deferReply({ flags: 1 << 6 }); // Acknowledge ASAP
+                localMessagesSent++;
 
                 const issueDescription = interaction.fields.getTextInputValue('issueDescription');
                 const user = interaction.user;
@@ -391,32 +408,16 @@ export async function handleInteractionCreateEvent(
                 
                 const modmailChannelId = '1122550689405730966';
                 let modmailChannel: TextChannel | null = null;
-
                 try {
-                    console.log(`[TicketSystem] Attempting to fetch channel with ID: ${modmailChannelId}`);
                     const channel = await interaction.guild?.channels.fetch(modmailChannelId);
-                    
-                    if (channel) {
-                        console.log(`[TicketSystem] Fetched channel: ${channel.name} (${channel.id}), Type: ${channel.type}`);
-                        // Ensure the fetched channel is a text channel before casting
-                        if (channel.isTextBased() && channel.type === ChannelType.GuildText) {
-                            modmailChannel = channel as TextChannel;
-                            console.log(`[TicketSystem] Channel is a valid TextChannel.`);
-                        } else {
-                            console.warn(`[TicketSystem] Channel with ID ${modmailChannelId} is not a GuildText channel. It's type ${channel.type}.`);
-                        }
-                    } else {
-                        console.error(`[TicketSystem] Fetch returned null or undefined for channel ID ${modmailChannelId}.`);
-                        // For debugging, list available channels to see what the bot can access.
-                        const availableChannels = interaction.guild?.channels.cache.map(c => ` - ${c.name} (${c.id}, type: ${c.type})`).join('\n');
-                        console.log(`[TicketSystem] List of channels visible to the bot in this guild:\n${availableChannels}`);
+                    if (channel && channel.isTextBased() && channel.type === ChannelType.GuildText) {
+                        modmailChannel = channel as TextChannel;
                     }
                 } catch (e) {
-                    console.error(`[TicketSystem] An error occurred while fetching channel with ID ${modmailChannelId}:`, e);
+                    console.error(`[TicketSystem] Could not fetch modmail channel with ID ${modmailChannelId}:`, e);
                 }
 
                 if (!modmailChannel) {
-                    console.error(`[TicketSystem] Final check failed: modmailChannel is null. Replying with error.`);
                     await interaction.editReply({ content: 'Could not find the modmail channel. Please contact an admin.' });
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
                 }
@@ -429,7 +430,6 @@ export async function handleInteractionCreateEvent(
                         .addFields({ name: 'Your Issue', value: issueDescription })
                         .setTimestamp();
                     await user.send({ embeds: [dmEmbed] });
-                    localMessagesSent++;
                 } catch (e) {
                     await interaction.editReply({ content: 'I tried to DM you, but your DMs are disabled. Please enable them and try again.'});
                     return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
@@ -440,7 +440,6 @@ export async function handleInteractionCreateEvent(
                 try {
                     const tagsResult = await generateTagsForTicket(issueDescription);
                     if (tagsResult) aiTagsText = tagsResult.join(', ');
-
                     const replyResult = await generateSuggestedReply(issueDescription);
                     if (replyResult) aiReply = replyResult;
                 } catch (e) {
@@ -459,17 +458,13 @@ export async function handleInteractionCreateEvent(
                     )
                     .setTimestamp();
 
-                const ticketMessage = await modmailChannel.send({
-                    embeds: [ticketEmbed]
-                });
-                localMessagesSent++;
+                const ticketMessage = await modmailChannel.send({ embeds: [ticketEmbed] });
 
                 const thread = await ticketMessage.startThread({
-                    name: `Ticket-${user.username.substring(0, 50)}`, // Ensure name is not too long
-                    autoArchiveDuration: 1440, // 24 hours
+                    name: `Ticket-${user.username.substring(0, 50)}`,
+                    autoArchiveDuration: 1440,
                     reason: `Support ticket for ${user.tag}`
                 });
-                localMessagesSent++;
 
                 activeTickets.set(user.id, thread.id);
                 console.log(`[TicketSystem] Created ticket thread ${thread.id} for user ${user.id}`);
@@ -493,7 +488,6 @@ export async function handleInteractionCreateEvent(
 
                 // Finally, let the user know everything is done.
                 await interaction.editReply({ content: `I have sent you a DM to continue this conversation.` });
-
             } else if (customId === 'createTaskModal') {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.deferReply({ flags: 1 << 6 /* Ephemeral */ });
@@ -522,7 +516,6 @@ export async function handleInteractionCreateEvent(
                 // ... logic for adding snippet
                 await interaction.editReply({ content: 'Snippet added (not implemented).' });
             }
-
         } else if (interaction.isAutocomplete()) {
             // Autocomplete logic can be handled here.
         } else {
@@ -530,7 +523,10 @@ export async function handleInteractionCreateEvent(
         }
     } catch (error: any) {
         console.error('[interactionCreateHandler.ts] An error occurred in the interaction handler:', error);
-        if (interaction.isRepliable()) {
+        // Avoid replying if the interaction is no longer valid
+        if (error.code === 10062) { // Unknown Interaction
+            console.error('[interactionCreateHandler.ts] Cannot reply to an unknown interaction.');
+        } else if (interaction.isRepliable()) {
             const errorMessage = { content: 'An unexpected error occurred. Please try again later.', flags: 1 << 6 };
             if (interaction.deferred || interaction.replied) {
                 await interaction.followUp(errorMessage).catch(e => console.error('Failed to send error follow-up:', e));
