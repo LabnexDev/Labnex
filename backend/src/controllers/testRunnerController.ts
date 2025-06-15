@@ -6,6 +6,7 @@ import { Role } from '../models/roleModel';
 import WebSocket from 'ws';
 import { BrowserTestExecutor } from '../services/testAutomation/browserTestExecutor';
 import { JwtPayload } from '../middleware/auth';
+import mongoose from 'mongoose';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
@@ -466,6 +467,10 @@ export const listTestRuns = async (req: AuthRequest, res: Response) => {
     }
 
     const projectId = req.params.projectId;
+
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return res.status(400).json({ success: false, error: 'Invalid project ID format' });
+    }
 
     // Check access
     const hasAccess = await checkProjectAccess(projectId, currentUser.id);
