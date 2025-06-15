@@ -104,10 +104,7 @@ export const getUserEngagementStats = async (): Promise<UserEngagementStat[]> =>
 
 // --- NEW: Runner API key generation ------------------------------------
 interface GenerateRunnerKeySuccessResponse {
-  success: true;
-  data: {
-    token: string;
-  };
+  token: string;
 }
 
 /**
@@ -116,11 +113,11 @@ interface GenerateRunnerKeySuccessResponse {
  */
 export const generateRunnerApiKey = async (): Promise<string> => {
   const response = await axiosInstance.post<GenerateRunnerKeySuccessResponse | AdminActionErrorResponse>(
-    '/admin/api-keys',
-    { role: 'runner' }
+    '/api/api-keys',
+    { label: 'Runner Key' }
   );
-  if (response.data.success) {
-    return response.data.data.token;
+  if ('token' in response.data) {
+    return response.data.token;
   }
   throw new Error((response.data as AdminActionErrorResponse).message || 'Failed to generate runner API key');
 }; 
