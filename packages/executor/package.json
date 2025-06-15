@@ -10,5 +10,8 @@
   "dependencies": {
     "puppeteer": "^24.9.0",
     "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11"
   }
 } 
