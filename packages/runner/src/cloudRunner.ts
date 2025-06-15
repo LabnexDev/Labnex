@@ -29,6 +29,9 @@ const api = axios.create({
   timeout: 20_000,
 });
 
+// Lazy import for executor so runner starts even if build order differs
+let LocalBrowserExecutor: any;
+
 async function pollAndRun() {
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -53,45 +56,65 @@ async function pollAndRun() {
 }
 
 async function executeRun(run: TestRun) {
-  // Simulate running tests by iterating over test cases.
-  const total = run.testCases.length;
-  let passed = 0;
-
-  for (let i = 0; i < total; i += 1) {
-    const tcId = run.testCases[i];
-    // Pretend each test takes ~2s.
-    await new Promise((r) => setTimeout(r, 2_000));
-
-    passed += 1; // mark as passed for demo purposes
-
-    // Send lightweight progress (backend may ignore if format differs)
-    try {
-      await api.patch(`/test-runs/${run._id}/progress`, {
-        testResults: [], // placeholder – real implementation would send per-test details
-      });
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(chalk.yellow('Progress update failed (ignored):'), (err as any).message);
+  try {
+    // Lazy-load executor
+    if (!LocalBrowserExecutor) {
+      const mod = await import('@labnex/executor');
+      LocalBrowserExecutor = mod.LocalBrowserExecutor;
     }
 
+    // Fetch full test case details for the project
+    const tcRes = await api.get(`/projects/${run.project}/test-cases`);
+    const allTestCases: any[] = tcRes.data || [];
+    const casesToRun = allTestCases.filter((tc) => run.testCases.includes(tc._id));
+
+    const executor = new LocalBrowserExecutor({ headless: true, aiOptimizationEnabled: false });
+    await executor.initialize();
+
+    const results: any[] = [];
+    for (const tc of casesToRun) {
+      // eslint-disable-next-line no-console
+      console.log(chalk.blue(`▶ Executing ${tc.title}`));
+      const result = await executor.executeTestCase(
+        tc._id,
+        tc.steps,
+        tc.expectedResult,
+        tc.baseUrl || '',
+        tc.title
+      );
+      results.push(result);
+
+      await api.patch(`/test-runs/${run._id}/progress`, {
+        testResults: [result],
+      });
+    }
+
+    await executor.cleanup();
+
+    const passed = results.filter((r) => r.status === 'passed').length;
+    const failed = results.length - passed;
+    const duration = results.reduce((acc, r) => acc + (r.duration || 0), 0);
+
+    await api.patch(`/test-runs/${run._id}/complete`, {
+      status: 'completed',
+      results: {
+        total: results.length,
+        passed,
+        failed,
+        pending: 0,
+        duration,
+      },
+    });
+
     // eslint-disable-next-line no-console
-    console.log(chalk.green(`✓ Finished ${tcId} (${i + 1}/${total})`));
+    console.log(chalk.greenBright(`✅ Completed run ${run._id}`));
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(chalk.red('Run execution failed:'), err);
+    await api.patch(`/test-runs/${run._id}/complete`, {
+      status: 'failed',
+    });
   }
-
-  // Complete the run.
-  await api.patch(`/test-runs/${run._id}/complete`, {
-    status: 'completed',
-    results: {
-      total,
-      passed,
-      failed: 0,
-      pending: 0,
-      duration: total * 2000,
-    },
-  });
-
-  // eslint-disable-next-line no-console
-  console.log(chalk.greenBright(`✅ Completed run ${run._id}`));
 }
 
 pollAndRun(); 
