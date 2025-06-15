@@ -3,6 +3,7 @@
     "module": "commonjs",
     "target": "es2020",
     "outDir": "dist",
+    "rootDir": "../",
     "baseUrl": "./",
     "paths": {
       "@labnex/cli/*": ["../cli/src/*"],
