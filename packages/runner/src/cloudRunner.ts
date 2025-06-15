@@ -22,7 +22,7 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'X-RUNNER-TOKEN': RUNNER_TOKEN,
+    Authorization: `Bearer ${RUNNER_TOKEN}`,
   },
   timeout: 20_000,
 });
