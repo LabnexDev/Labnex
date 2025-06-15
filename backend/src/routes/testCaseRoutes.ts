@@ -1,5 +1,6 @@
 import express from 'express';
 import { auth } from '../middleware/auth';
+import { authRunner } from '../middleware/runnerAuth';
 import {
   createTestCase,
   getTestCases,
@@ -11,11 +12,10 @@ import {
 
 const router = express.Router({ mergeParams: true });
 
-router.use(auth);
-
 router.post('/', createTestCase);
 router.get('/', getTestCases);
-router.get('/:testCaseId', getTestCase);
+router.get('/runner/:testCaseId', authRunner, getTestCase);
+router.use(auth);
 router.put('/:testCaseId', updateTestCase);
 router.patch('/:testCaseId/status', updateTestCaseStatus);
 router.delete('/:testCaseId', deleteTestCase);
