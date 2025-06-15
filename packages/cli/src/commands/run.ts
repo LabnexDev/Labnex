@@ -14,6 +14,7 @@ export const runCommand = new Command('run')
     .option('--test-ids <ids>', 'Comma-separated list of test case IDs to run')
     .option('-e, --environment <env>', 'Environment to run tests against', 'staging')
     .option('-m, --mode <mode>', 'Execution mode: local or cloud', 'local')
+    .option('--cloud', 'Shortcut for --mode cloud')
     .option('-b, --base-url <url>', 'Base URL of the application under test')
     .option('--optimize-ai', 'Enable AI optimization for element finding (deprecated – use --ai-optimize)')
     .option('--ai-optimize', 'Enable AI optimization for element finding')
@@ -33,6 +34,11 @@ export const runCommand = new Command('run')
                 }
             } else if (options.projectId) {
                 projectId = options.projectId;
+            }
+
+            // Map --cloud flag to mode
+            if (options.cloud) {
+                options.mode = 'cloud';
             }
 
             // If we received a project *code*, look up its ID first.
