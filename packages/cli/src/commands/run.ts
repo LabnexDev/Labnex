@@ -218,7 +218,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
     console.log(chalk.gray(`Timeout per test: ${timeout}ms`));
 
     if (!LocalBrowserExecutor) {
-        const mod = await import('@labnex/executor');
+        const mod = await import('../localBrowserExecutor');
         LocalBrowserExecutor = mod.LocalBrowserExecutor;
     }
     const executor = new LocalBrowserExecutor({
