@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const mockInitialize = jest.fn();
 const mockCleanup = jest.fn();
 
-jest.mock('./localBrowserExecutor', () => ({
+jest.mock('@labnex/executor', () => ({
   LocalBrowserExecutor: jest.fn().mockImplementation(({ aiOptimizationEnabled }) => {
     return {
       initialize: mockInitialize,
@@ -40,7 +40,7 @@ describe('AI optimization flag', () => {
     });
 
     // LocalBrowserExecutor constructor should be called with flag true
-    const { LocalBrowserExecutor } = require('./localBrowserExecutor');
+    const { LocalBrowserExecutor } = require('@labnex/executor');
     expect(LocalBrowserExecutor).toHaveBeenCalledWith(expect.objectContaining({ aiOptimizationEnabled: true }));
   });
 }); 

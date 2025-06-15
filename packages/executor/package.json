@@ -1,0 +1,14 @@
+{
+  "name": "@labnex/executor",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "puppeteer": "^24.9.0",
+    "chalk": "^4.1.2"
+  }
+} 

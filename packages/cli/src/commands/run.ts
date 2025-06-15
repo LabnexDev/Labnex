@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { apiClient } from '../api/client';
-import { LocalBrowserExecutor } from '../localBrowserExecutor';
+import { LocalBrowserExecutor } from '@labnex/executor';
 import { TestCaseResult } from '../lib/testTypes';
 
 export const runCommand = new Command('run')

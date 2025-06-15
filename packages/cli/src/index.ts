@@ -11,7 +11,7 @@ import { setupConfigCommands } from './commands/config';
 import { listCommand } from './commands/list';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
-import { LocalBrowserExecutor } from './localBrowserExecutor';
+import { LocalBrowserExecutor } from '@labnex/executor';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { runCommand } from './commands/run';

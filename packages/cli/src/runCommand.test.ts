@@ -18,7 +18,7 @@ jest.mock('./api/client', () => ({
 } as any));
 
 // Mock LocalBrowserExecutor to bypass real browser work
-jest.mock('./localBrowserExecutor', () => ({
+jest.mock('@labnex/executor', () => ({
   LocalBrowserExecutor: jest.fn().mockImplementation(() => ({
     initialize: jest.fn(),
     executeTestCase: (jest.fn() as any).mockResolvedValue({

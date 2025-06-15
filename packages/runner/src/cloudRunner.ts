@@ -1,5 +1,6 @@
 import axios from 'axios';
 import chalk from 'chalk';
+import { LocalBrowserExecutor } from '@labnex/executor';
 
 interface TestRun {
   _id: string;
