@@ -21,7 +21,7 @@ const hashApiKey = (key: string) => {
 export const createApiKey = async (req: Request & { user?: any }, res: Response) => {
   try {
     const { label } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?.id || req.user?._id;
 
     if (!label) {
       return res.status(400).json({ message: 'A label is required for the API key.' });
@@ -65,7 +65,7 @@ export const createApiKey = async (req: Request & { user?: any }, res: Response)
  */
 export const listApiKeys = async (req: Request & { user?: any }, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id || req.user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated.' });
     }
@@ -84,7 +84,7 @@ export const listApiKeys = async (req: Request & { user?: any }, res: Response) 
 export const revokeApiKey = async (req: Request & { user?: any }, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = req.user?._id;
+    const userId = req.user?.id || req.user?._id;
 
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated.' });
