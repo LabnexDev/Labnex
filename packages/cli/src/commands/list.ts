@@ -1,66 +1,89 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { apiClient } from '../api/client';
 import ora from 'ora';
+import Table from 'cli-table3';
+import { apiClient } from '../api/client';
 
 export const listCommand = new Command('list')
   .description('List resources like projects and test cases.')
-  .action(() => {
-    // This is the action for the base 'list' command.
-    // It will now show help by default because subcommands are required.
-    console.log(chalk.yellow('Please specify what you want to list.'));
-    console.log(`Example: ${chalk.cyan('labnex list projects')}`);
-    listCommand.outputHelp();
-  });
+  .addCommand(
+    new Command('projects')
+      .description('List all available projects.')
+      .action(async () => {
+        try {
+          const spinner = ora('Fetching projects...').start();
+          const response = await apiClient.getProjects();
 
-// Subcommand for listing projects
-listCommand
-  .command('projects')
-  .description('List all available projects.')
-  .action(async () => {
-    const spinner = ora('Fetching projects...').start();
-    try {
-      const response = await apiClient.getProjects();
-      if (response.success && response.data) {
-        spinner.succeed(chalk.green('✅ Projects retrieved successfully!\n'));
-        console.log(chalk.bold.underline('Available Projects:\n'));
-        response.data.forEach((project: any) => {
-          console.log(`  ${chalk.cyan(project.name)} (${chalk.gray(`ID: ${project._id}`)})`);
-          console.log(`    ${chalk.gray(project.description || 'No description')}\n`);
-        });
-      } else {
-        spinner.fail(chalk.red(`Failed to fetch projects: ${response.message}`));
-      }
-    } catch (error: any) {
-      spinner.fail(chalk.red(`❌ Error fetching projects: ${error.message}`));
-    }
-  });
-
-// Subcommand for listing test cases
-listCommand
-  .command('tests <projectId>')
-  .description('List all test cases for a specific project.')
-  .action(async (projectId: string) => {
-    const spinner = ora(`Fetching test cases for project ${projectId}...`).start();
-    try {
-      const response = await apiClient.getTestCases(projectId);
-      if (response.success && response.data) {
-        spinner.succeed(chalk.green('✅ Test cases retrieved successfully!\n'));
-        console.log(chalk.bold.underline(`Test Cases for Project ${projectId}:\n`));
-        if (response.data.length === 0) {
-          console.log(chalk.yellow('  No test cases found for this project.'));
-        } else {
-          response.data.forEach((testCase: any) => {
-            console.log(`  ${chalk.cyan(testCase.name)} (${chalk.gray(`ID: ${testCase._id}`)})`);
-            console.log(`    ${chalk.gray(`Description: ${testCase.description || 'N/A'}`)}`);
-            console.log(`    ${chalk.gray(`Priority: ${testCase.priority}`)}`);
-            console.log(`    ${chalk.gray(`Last Run: ${testCase.lastRunStatus || 'Never'}`)}\n`);
-          });
+          if (response.success) {
+            spinner.succeed('✅ Projects retrieved successfully!');
+            
+            console.log('\nAvailable Projects:\n');
+            response.data.forEach((project: any) => {
+              console.log(`  ${chalk.bold(project.name)} (Code: ${chalk.cyan(project.projectCode)}, ID: ${project._id})`);
+              if (project.description) {
+                console.log(`    ${chalk.gray(project.description)}`);
+              }
+            });
+          } else {
+            spinner.fail(chalk.red(`Failed to fetch projects: ${response.error}`));
+          }
+        } catch (error: any) {
+          console.error(chalk.red(`Error: ${error.message}`));
         }
-      } else {
-        spinner.fail(chalk.red(`Failed to fetch test cases: ${response.message}`));
-      }
-    } catch (error: any) {
-      spinner.fail(chalk.red(`❌ Error fetching test cases: ${error.message}`));
-    }
-  }); 
+      })
+  )
+  .addCommand(
+    new Command('tests')
+      .description('List test cases for a specific project.')
+      .argument('<projectCode>', 'The code of the project')
+      .option('--format <fmt>', 'table or json', 'table')
+      .action(async (projectCode, options) => {
+        const spinner = ora(`Fetching test cases for project ${chalk.cyan(projectCode)}...`).start();
+        try {
+          // First, get the project ID from the code
+          const projectsResponse = await apiClient.getProjects();
+          if (!projectsResponse.success) {
+            spinner.fail(chalk.red(`Failed to fetch projects: ${projectsResponse.error}`));
+            return;
+          }
+
+          const project = projectsResponse.data.find(p => p.projectCode === projectCode.toUpperCase());
+          if (!project) {
+            spinner.fail(chalk.red(`Project with code "${projectCode}" not found.`));
+            return;
+          }
+
+          const response = await apiClient.getTestCases(project._id);
+
+          if (response.success) {
+            spinner.succeed(`✅ Found ${response.data.length} test cases.`);
+            
+            if (options.format === 'json') {
+              console.log(JSON.stringify(response.data, null, 2));
+              return;
+            }
+
+            if (response.data.length === 0) {
+              console.log(chalk.yellow('No test cases found for this project.'));
+              return;
+            }
+
+            const table = new Table({
+              head: ['ID', 'Title', 'Priority', 'Status'],
+              colWidths: [30, 50, 10, 10],
+            });
+
+            response.data.forEach((test: any) => {
+              table.push([test._id, test.title, test.priority, test.status]);
+            });
+
+            console.log(table.toString());
+          } else {
+            spinner.fail(chalk.red(`Failed to fetch test cases: ${response.error}`));
+          }
+        } catch (error: any) {
+          spinner.fail(chalk.red(`Error: ${error.message}`));
+          console.error(chalk.red(`Error details: ${error.stack}`));
+        }
+      })
+  ); 

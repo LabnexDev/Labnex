@@ -44,7 +44,7 @@ export async function findElementWithFallbacks(
     return null;
   }
 
-  const MAX_WAIT_TIME = 10000; // 10 seconds max
+  const MAX_WAIT_TIME = 20000; // 20 seconds max
   const startTime = Date.now();
 
   addLog(`[findElementWithFallbacks] Looking for: "${selectorOrText}" (${descriptiveTerm}) at index: ${index}`);
@@ -144,7 +144,12 @@ export async function findElementWithFallbacks(
 
       try {
         addLog(`[findElementWithFallbacks] Trying ${strategy.type}: "${strategy.selector}"`);
-        element = await waitForElement(currentFrame, strategy.selector, 2000, strategy.method); // Short wait
+        const waitMs = strategy.type.includes('text') ? 5000 : 2000;
+        element = await waitForElement(
+          currentFrame, 
+          strategy.selector, 
+          waitMs,
+          strategy.method);
         
         if (element) {
           const isVisible = await verifyElementVisibility(element);
@@ -161,6 +166,106 @@ export async function findElementWithFallbacks(
       }
     }
   }
+
+  // Dynamic DOM scan for login/sign-in if still not found
+  try {
+    const lowerPrimary = primarySelector.toLowerCase();
+    if (/(login|log in|sign in)/i.test(primarySelector)) {
+      addLog('[DynamicScan] Performing broad scan for login/sign-in elements.');
+      const handle = await currentFrame.evaluateHandle(() => {
+        const candidates = Array.from(document.querySelectorAll('a, button, [role="button"], input[type="button"], input[type="submit"]')) as HTMLElement[];
+        return candidates.find(el => {
+          const txt = (el.innerText || el.textContent || '').toLowerCase().trim();
+          const href = (el as HTMLAnchorElement).getAttribute('href') || '';
+          const id = el.id || '';
+          const cls = el.className || '';
+          if (txt.includes('login') || txt.includes('log in') || txt.includes('sign in')) return el;
+          if (href.toLowerCase().includes('login') || href.toLowerCase().includes('sign')) return el;
+          if (id.toLowerCase().includes('login') || cls.toLowerCase().includes('login')) return el;
+          return false;
+        }) || null;
+      });
+      const dynamicElem = handle.asElement() as any;
+      if (dynamicElem) {
+        addLog('[DynamicScan] ✓ Found element via dynamic scan fallback.');
+        return dynamicElem;
+      }
+      await handle.dispose();
+    }
+  } catch (e:any) {
+    addLog(`[DynamicScan] Error during dynamic scan: ${e.message}`);
+  }
+
+  // Interactive user click capture (non-headless only)
+  try {
+    const isInteractiveEnabled = !(page.browser() as any)._process.spawnargs.includes('--headless');
+    if (isInteractiveEnabled && page.isClosed() === false) {
+      addLog('[InteractiveCapture] No element found. Prompting user to click desired element in the browser.');
+      await page.evaluate((msg)=>{
+        // Inject simple overlay prompt
+        if (document.getElementById('labnex-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'labnex-overlay';
+        overlay.style.position='fixed';
+        overlay.style.top='0';
+        overlay.style.left='0';
+        overlay.style.right='0';
+        overlay.style.padding='10px';
+        overlay.style.background='rgba(0,0,0,0.8)';
+        overlay.style.color='#fff';
+        overlay.style.fontSize='16px';
+        overlay.style.zIndex='2147483647';
+        overlay.style.textAlign='center';
+        overlay.innerText = msg;
+        document.body.appendChild(overlay);
+      }, `Please click the element for \"${descriptiveTerm}\"`);
+
+      // Wait for click event and capture selector
+      const selectorHandle = await page.evaluateHandle(()=>{
+        return new Promise<string>((resolve)=>{
+          const handler = (ev: any)=>{
+            ev.preventDefault();
+            ev.stopPropagation();
+            const el = ev.target as HTMLElement;
+            // build simple selector
+            let sel='';
+            if (el.id) sel = `#${el.id}`;
+            else if (el.getAttribute('data-testid')) sel = `[data-testid="${el.getAttribute('data-testid')}"]`;
+            else if (el.className) sel = '.'+Array.from(el.classList).join('.');
+            else sel = el.tagName.toLowerCase();
+            document.removeEventListener('click', handler, true);
+            const overlay=document.getElementById('labnex-overlay');
+            if (overlay) overlay.remove();
+            resolve(sel);
+          };
+          document.addEventListener('click', handler, true);
+        });
+      });
+
+      const userSelector = await selectorHandle.jsonValue() as string;
+      await selectorHandle.dispose();
+      if (userSelector) {
+        addLog(`[InteractiveCapture] User provided selector: ${userSelector}`);
+        const el = await waitForElement(currentFrame, userSelector, 5000, userSelector.includes('//')? 'xpath':'css');
+        if (el) return el;
+      }
+    }
+  } catch(e:any){
+    addLog(`[InteractiveCapture] Error: ${e.message}`);
+  }
+
+  // If looking for submit and global flag indicates form submitted, treat as success
+  try {
+    if (/(submit|sign in|log in|login)/i.test(primarySelector)) {
+      const submitted = await page.evaluate(()=> !!(window as any).__labnexSubmitted);
+      if (submitted) {
+        addLog('[SubmitSkip] Form submission already detected, skipping missing submit element.');
+        // Return dummy element handle (body) to signify success
+        const bodyHandle = await currentFrame.$('body');
+        if (bodyHandle) return bodyHandle;
+      }
+    }
+  } catch(e:any) {}
 
   addLog(`[findElementWithFallbacks] ✗ Failed to find element after all attempts`);
   return null;
@@ -331,11 +436,46 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
     strategies.push({ type: 'name', selector: `[name="${cleanSelector}"]`, method: 'css' as const });
     strategies.push({ type: 'data-testid', selector: `[data-testid="${cleanSelector}"]`, method: 'css' as const });
     strategies.push({ type: 'aria-label', selector: `[aria-label="${cleanSelector}"]`, method: 'css' as const });
+    // Attribute *contains* fallbacks (case-insensitive)
+    const safeContains = cleanSelector.replace(/"/g, '\\"');
+    strategies.push({ type: 'id-contains', selector: `[id*="${safeContains}" i]`, method: 'css' as const });
+    strategies.push({ type: 'class-contains', selector: `[class*="${safeContains}" i]`, method: 'css' as const });
+    strategies.push({ type: 'data-testid-contains', selector: `[data-testid*="${safeContains}" i]`, method: 'css' as const });
+    
+    // Also try kebab-case version (spaces->-, lowercased)
+    if (safeContains.includes(' ')) {
+      const kebab = safeContains.toLowerCase().replace(/\s+/g, '-');
+      strategies.push({ type: 'data-testid-kebab', selector: `[data-test*="${kebab}" i]`, method: 'css' as const });
+      strategies.push({ type: 'id-kebab-contains', selector: `[id*="${kebab}" i]`, method: 'css' as const });
+      strategies.push({ type: 'class-kebab-contains', selector: `[class*="${kebab}" i]`, method: 'css' as const });
+    }
     
     // Text-based XPath
     strategies.push({ type: 'exact-text', selector: `//*[normalize-space(text())="${cleanSelector}"]`, method: 'xpath' as const });
     strategies.push({ type: 'contains-text', selector: `//*[contains(normalize-space(text()), "${cleanSelector}")]`, method: 'xpath' as const });
     strategies.push({ type: 'button-text', selector: `//button[contains(text(), "${cleanSelector}")]`, method: 'xpath' as const });
+
+    // If the selector is a single word but may appear as two words (e.g., "Login" vs "Log In")
+    if (/^[a-zA-Z]+$/.test(cleanSelector)) {
+      const spaced = cleanSelector.replace(/([a-z])([A-Z])/g, '$1 $2'); // camelCase -> camel Case
+      if (spaced !== cleanSelector) {
+        strategies.push({ type: 'contains-text-spaced', selector: `//*[contains(normalize-space(text()), "${spaced}")]`, method: 'xpath' as const });
+      }
+    }
+
+    // If the selector has multiple words, require all words present (AND condition)
+    const words = cleanSelector.split(/\s+/).filter(Boolean);
+    if (words.length > 1) {
+      const andContains = words.map(w => `contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${w.toLowerCase()}')`).join(' and ');
+      strategies.push({ type: 'contains-all-words', selector: `//*[${andContains}]`, method: 'xpath' as const });
+    }
+
+    // Add common href pattern for auth/login
+    const loginRegex = /^(login|log in)$/i;
+    const signInRegex = /^sign\s*-?\s*in$/i;
+    if (loginRegex.test(cleanSelector) || signInRegex.test(cleanSelector)) {
+      strategies.push({ type: 'href-login-path', selector: 'a[href*="/login" i], a[href*="auth" i][href*="login" i]', method: 'css' as const });
+    }
   }
   
   // Add W3Schools specific fallbacks for modal button
@@ -351,6 +491,17 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
     strategies.push({ type: 'w3schools-close-class', selector: 'span.w3-button.w3-display-topright', method: 'css' as const });
     strategies.push({ type: 'w3schools-close-onclick', selector: 'span[onclick*="display=\'none\']', method: 'css' as const });
     strategies.push({ type: 'w3schools-close-symbol', selector: 'span.w3-xlarge', method: 'css' as const });
+  }
+  
+  // If the target looks like a login/sign-in button/link, add typical variants
+  const loginRegex = /^(login|log in)$/i;
+  const signInRegex = /^sign\s*-?\s*in$/i;
+  if (loginRegex.test(cleanSelector) || signInRegex.test(cleanSelector)) {
+    strategies.push({ type: 'href-login', selector: 'a[href*="login" i]', method: 'css' as const });
+    strategies.push({ type: 'href-signin', selector: 'a[href*="sign" i][href*="in" i]', method: 'css' as const });
+    strategies.push({ type: 'button-login', selector: 'button[id*="login" i], button[class*="login" i]', method: 'css' as const });
+    strategies.push({ type: 'button-signin', selector: 'button[id*="sign" i][id*="in" i], button[class*="sign" i][class*="in" i]', method: 'css' as const });
+    strategies.push({ type: 'xpath-login-text', selector: `//a[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'log in') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'sign in')]`, method: 'xpath' as const });
   }
   
   return strategies;

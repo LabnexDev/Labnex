@@ -521,7 +521,7 @@ export class TestStepParser {
     //
     // 2) "navigate/go to/open/visit" pattern
     //
-    if (matchesPattern(normalizedCurrentStep, ['navigate', 'go to', 'open', 'visit'])) {
+    if (matchesPattern(normalizedCurrentStep, ['navigate', 'go to', 'open', 'visit', 'launch', 'start', 'access', 'load'])) {
       const url =
         extractQuotedText(currentStep) ||
         extractUrl(currentStep) ||
@@ -567,6 +567,15 @@ export class TestStepParser {
           valueToType = emailMatch[0];
           addLog(`[TypeActionAttempt] Extracted email: "${valueToType}" from "${rawValueToType}"`);
         }
+      } else if (/^(?:a\s+)?(?:valid|correct)\s+password$/i.test(valueToType)) {
+        // Placeholder for valid/correct password
+        if (process.env.LABNEX_VALID_PASSWORD) {
+          valueToType = process.env.LABNEX_VALID_PASSWORD;
+        } else {
+          valueToType = '__PROMPT_VALID_PASSWORD__';
+        }
+        addLog(`[TypeActionAttempt] Placeholder 'valid/correct password' detected.`);
+
       } else if (valueToType.toLowerCase().includes('password')) {
         // If it looks like "password fooBar!", capture just fooBar! 
         const passwordMatch = valueToType.match(/(?:password\s+)([^\s].*?)$/i);
@@ -576,6 +585,30 @@ export class TestStepParser {
             `[TypeActionAttempt] Extracted password: "${valueToType}" from "${rawValueToType}"`
           );
         }
+      } else if (valueToType.toLowerCase().startsWith('username ')) {
+        valueToType = valueToType.replace(/^username\s+/i, '');
+        addLog(`[TypeActionAttempt] Stripped 'username' prefix. New value: "${valueToType}"`);
+      } else if (valueToType.toLowerCase().startsWith('first name ')) {
+        valueToType = valueToType.replace(/^first name\s+/i, '');
+        addLog(`[TypeActionAttempt] Stripped 'first name' prefix. New value: "${valueToType}"`);
+      } else if (valueToType.toLowerCase().startsWith('last name ')) {
+        valueToType = valueToType.replace(/^last name\s+/i, '');
+        addLog(`[TypeActionAttempt] Stripped 'last name' prefix. New value: "${valueToType}"`);
+      } else if (valueToType.toLowerCase().startsWith('zip ')) {
+        valueToType = valueToType.replace(/^zip\s+/i, '');
+        addLog(`[TypeActionAttempt] Stripped 'zip' prefix. New value: "${valueToType}"`);
+        if (/^\d{1,4}$/.test(valueToType)) {
+          const needed = 5 - valueToType.length;
+          valueToType = valueToType + ''.padEnd(needed, '0');
+          addLog(`[TypeActionAttempt] Padded ZIP to 5 digits: "${valueToType}"`);
+        }
+      } else if (/^a\s+(valid|correct)\s+username$/i.test(valueToType) || /^(valid|correct)\s+username$/i.test(valueToType)) {
+        if (process.env.LABNEX_VALID_USERNAME) {
+          valueToType = process.env.LABNEX_VALID_USERNAME;
+        } else {
+          valueToType = '__PROMPT_VALID_USERNAME__';
+        }
+        addLog(`[TypeActionAttempt] Placeholder 'valid username' detected.`);
       }
 
       let finalTargetSelector: string | undefined;
@@ -596,14 +629,20 @@ export class TestStepParser {
             `[TypeActionAttempt] Target field parsed as hint. Type: ${safeType}, Final: "${finalTargetSelector}"`
           );
         } else {
-          // No hint, so either quoted selector or fallback to any generic form
+          // No hint, so either quoted selector or generic phrases
           const unquotedTarget = extractQuotedText(rawTargetField) || rawTargetField;
-          finalTargetSelector  =
-            extractGeneralSelector(unquotedTarget) || unquotedTarget;
 
-          addLog(
-            `[TypeActionAttempt] Target field parsed as non-hint. Using: "${finalTargetSelector}"`
-          );
+          const lowerTarg = unquotedTarget.toLowerCase();
+          if (lowerTarg.includes('username')) {
+            finalTargetSelector = 'input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
+            addLog(`[TypeActionAttempt] Inferred username selector from target field: "${finalTargetSelector}"`);
+          } else if (lowerTarg.includes('password')) {
+            finalTargetSelector = 'input[type="password"], #password, input[name="password"], input[placeholder*="password" i]';
+            addLog(`[TypeActionAttempt] Inferred password selector from target field: "${finalTargetSelector}"`);
+          } else {
+            finalTargetSelector = extractGeneralSelector(unquotedTarget) || unquotedTarget;
+            addLog(`[TypeActionAttempt] Target field parsed as non-hint. Using: "${finalTargetSelector}"`);
+          }
         }
       } else if (mainHintedSelectorValue) {
         addLog(`[TypeActionAttempt] No explicit target field. Using pre-parsed main hint selector.`);
@@ -617,7 +656,7 @@ export class TestStepParser {
 
         if (valueToType.toLowerCase().includes('email') || valueToType.includes('@')) {
           finalTargetSelector =
-            'input[type="email"], #email, input[name="email"], input[placeholder*="email" i]';
+            'input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
           addLog(
             `[TypeActionAttempt] Inferred email input target: "${finalTargetSelector}"`
           );
@@ -631,10 +670,25 @@ export class TestStepParser {
             `[TypeActionAttempt] Inferred password input target: "${finalTargetSelector}"`
           );
         } else {
-          finalTargetSelector = 'input, textarea';
-          addLog(
-            `[TypeActionAttempt] No specific content match, using generic input target: "${finalTargetSelector}"`
-          );
+          const lowerOriginal = originalStepInput.toLowerCase();
+          if (lowerOriginal.includes('first name')) {
+            finalTargetSelector = 'input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]';
+            addLog(`[TypeActionAttempt] Inferred first-name input selector: "${finalTargetSelector}"`);
+          } else if (lowerOriginal.includes('last name')) {
+            finalTargetSelector = 'input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]';
+            addLog(`[TypeActionAttempt] Inferred last-name input selector: "${finalTargetSelector}"`);
+          } else if (lowerOriginal.includes('zip') || lowerOriginal.includes('postal')) {
+            finalTargetSelector = 'input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]';
+            addLog(`[TypeActionAttempt] Inferred zip input selector: "${finalTargetSelector}"`);
+          } else if (lowerOriginal.includes('username') || lowerOriginal.includes('user name')) {
+            finalTargetSelector = 'input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
+            addLog(`[TypeActionAttempt] Inferred username input selector: "${finalTargetSelector}"`);
+          } else {
+            finalTargetSelector = 'input, textarea';
+            addLog(
+              `[TypeActionAttempt] No specific content match, using generic input target: "${finalTargetSelector}"`
+            );
+          }
         }
       }
 
@@ -911,6 +965,18 @@ export class TestStepParser {
     const dialogExpectation  = dialogResult.expectation;
     currentStep             = dialogResult.remainingStep;
     normalizedCurrentStep   = currentStep.toLowerCase().trim();
+
+    // Narrative navigation phrases like "Launch the application..." or "Start the website..."
+    const narrativeNavRegex = /^(launch|start|open|access|load)\b.+(application|website|app)\b/i;
+    if (narrativeNavRegex.test(originalStepInput) && !extractUrl(originalStepInput)) {
+      addLog(`[NarrativeNavigate] Detected high-level navigation step. Treating as navigate to base URL.`);
+      return {
+        action: 'navigate',
+        target: '', // Will be resolved to baseUrl in executor
+        originalStep: originalStepInput,
+        expectsDialog: undefined
+      };
+    }
 
     //
     // 9) Everything else falls through to "standard actions + fallback":

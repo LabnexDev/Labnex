@@ -15,6 +15,7 @@ export class LocalBrowserExecutor {
   private logs: string[] = [];
   private headlessMode = false;
   private aiOptimizationEnabled = false; // Added AI flag
+  private baseUrlGlobal: string = ''; // New persistent baseUrl across steps
 
   constructor(options: { headless?: boolean; aiOptimizationEnabled?: boolean } = {}) {
     this.headlessMode = options.headless !== undefined ? options.headless : false;
@@ -97,6 +98,11 @@ export class LocalBrowserExecutor {
     const startTime = Date.now();
     this.addLog(`Starting test case: ${testCaseId}`);
     this.addLog(`[AI] Resetting context for new test case ${testCaseId}.`);
+
+    // Persist provided baseUrl for later heuristic use
+    if (baseUrl) {
+      this.baseUrlGlobal = baseUrl;
+    }
 
     // Check if test case likely targets saucedemo.com and does not include login steps
     let modifiedStepDescriptions = [...stepDescriptions];
@@ -269,6 +275,77 @@ export class LocalBrowserExecutor {
           this.addLog(`[AI Retry Fallback] Manual extraction failed for: ${stepDescriptionToParse}`);
         }
       }
+    }
+
+    // Heuristic: If the parsed step is a navigation with no explicit URL, attempt to derive one.
+    if (initialStepObject && initialStepObject.action === 'navigate') {
+      let navTarget = initialStepObject.target || '';
+      const promptForBaseUrl = async (): Promise<string> => {
+        const inquirer = await import('inquirer');
+        const answer = await inquirer.default.prompt([
+          {
+            type: 'input',
+            name: 'base',
+            message: 'Base URL (e.g., https://example.com):',
+            validate: (input: string) =>
+              /^https?:\/\//i.test(input) || 'Please enter a valid http(s) URL',
+          },
+        ]);
+        return answer.base as string;
+      };
+
+      // Helper to slugify a page name -> "/login"
+      const pageNameToPath = (name: string): string => {
+        const slug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/-page$/, '') // remove trailing "-page" if present
+          .replace(/-screen$/, '') // common synonyms
+          .replace(/-view$/, '');
+        if (slug === 'login') {
+          return '';
+        }
+        return `/${slug || ''}`;
+      };
+
+      if (!navTarget) {
+        // Pattern: "navigate to the login page" or "navigate to login page"
+        const pageMatch = stepDescription.match(/navigate\s+to\s+(?:the\s+)?([a-zA-Z0-9\s-]+?)(?:\s+page)?(?:\s|$)/i);
+        if (pageMatch && pageMatch[1]) {
+          navTarget = pageNameToPath(pageMatch[1]);
+        }
+
+        // Pattern: "via src/components/Login.tsx" – extract file name
+        const viaMatch = stepDescription.match(/via\s+([^\s]+\.(?:tsx?|jsx?|html?))/i);
+        if (!navTarget && viaMatch && viaMatch[1]) {
+          const fileName = viaMatch[1].split(/[\\/]/).pop() || '';
+          const nameWithoutExt = fileName.replace(/\.[^.]+$/, '');
+          navTarget = pageNameToPath(nameWithoutExt);
+        }
+      }
+
+      // Determine the effective base URL (priority: provided => persisted => prompt)
+      let effectiveBase = baseUrl || this.baseUrlGlobal;
+      if (!effectiveBase) {
+        // Interactive prompt (only first time)
+        this.addLog('[Base URL Prompt] Asking user for base URL because it is not set.');
+        effectiveBase = await promptForBaseUrl();
+        this.baseUrlGlobal = effectiveBase; // Persist for remainder of session
+      }
+
+      // If navTarget is still empty or just '/', rely on effectiveBase
+      if (!navTarget || navTarget === '/') {
+        navTarget = effectiveBase;
+      } else if (!/^https?:\/\//i.test(navTarget)) {
+        // If navTarget is relative and baseUrl provided, prefix it
+        if (effectiveBase) {
+          navTarget = `${effectiveBase.replace(/\/$/, '')}/${navTarget.replace(/^\//, '')}`;
+        }
+      }
+
+      // Update target in place so downstream execution uses the derived URL
+      initialStepObject.target = navTarget;
     }
 
     if (!initialStepObject || !initialStepObject.action) {

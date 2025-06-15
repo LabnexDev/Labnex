@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import chalk from 'chalk';
 import { loadConfig } from '../utils/config';
+import Table from 'cli-table3';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -82,7 +83,8 @@ export class LabnexApiClient {
     this.api.interceptors.request.use(async (config) => {
       const userConfig = await loadConfig();
       
-      this.verboseLogging = userConfig.verbose || false; // Set verbose logging based on config
+      // Verbose if set in config OR via global env flag (e.g. --verbose passed to CLI)
+      this.verboseLogging = process.env.LABNEX_VERBOSE === 'true' || userConfig.verbose || false;
 
       config.baseURL = userConfig.apiUrl;
       
@@ -115,6 +117,18 @@ export class LabnexApiClient {
         return Promise.reject(error);
       }
     );
+  }
+
+  public setVerbose(verbose: boolean): void {
+    this.verboseLogging = verbose;
+  }
+
+  /**
+   * Allow commands to turn on verbose logging after the client has been constructed.
+   * (Helpful for sub-commands that parse --verbose themselves.)
+   */
+  public enableVerbose(): void {
+    this.verboseLogging = true;
   }
 
   // Authentication
@@ -176,9 +190,59 @@ export class LabnexApiClient {
     } catch (error: unknown) {
       return {
         success: false,
-        data: null as unknown as Project,
+        data: {
+          _id: '',
+          name: '',
+          projectCode: '',
+          description: '',
+          isActive: false,
+          testCaseCount: 0,
+          taskCount: 0,
+          owner: {
+            _id: '',
+            name: '',
+            email: ''
+          },
+          members: [],
+          createdAt: '',
+          updatedAt: ''
+        },
         error: error instanceof Error ? error.message : 'Unknown error'
       };
+    }
+  }
+
+  async displayProjectDetails(project: Project) {
+    console.log(chalk.cyan(`\n📁 ${project.name} (${project.projectCode})`));
+    console.log(chalk.gray('─'.repeat(50)));
+    
+    console.log(`${chalk.bold('Description:')} ${project.description || 'No description'}`);
+    console.log(`${chalk.bold('Status:')} ${project.isActive ? chalk.green('Active') : chalk.gray('Inactive')}`);
+    console.log(`${chalk.bold('Owner:')} ${project.owner.name} (${project.owner.email})`);
+    console.log(`${chalk.bold('Created:')} ${new Date(project.createdAt).toLocaleDateString()}`);
+    console.log(`${chalk.bold('Updated:')} ${new Date(project.updatedAt).toLocaleDateString()}`);
+    
+    console.log(`\n${chalk.bold('Statistics:')}`);
+    console.log(`  Test Cases: ${chalk.cyan(project.testCaseCount)}`);
+    console.log(`  Tasks: ${chalk.cyan(project.taskCount)}`);
+    console.log(`  Team Members: ${chalk.cyan(project.members.length)}`);
+
+    if (project.members.length > 0) {
+      console.log(`\n${chalk.bold('Team Members:')}`);
+      const membersTable = new Table({
+        head: ['Name', 'Email', 'Role'],
+        colWidths: [20, 30, 15]
+      });
+
+      project.members.forEach((member: any) => {
+        membersTable.push([
+          member.name,
+          member.email,
+          member.role
+        ]);
+      });
+
+      console.log(membersTable.toString());
     }
   }
 
@@ -248,19 +312,24 @@ export class LabnexApiClient {
       };
     } catch (error: unknown) {
       if (this.verboseLogging) {
-        console.log(chalk.red(`[DEBUG] Error creating test case: ${error instanceof Error ? error.message : 'Unknown error'}`));
-        if (error instanceof Error && 'response' in error) {
-          console.log(chalk.red(`[DEBUG] Response status: ${(error as any).response.status}`));
-          console.log(chalk.red(`[DEBUG] Response data: ${JSON.stringify((error as any).response.data, null, 2)}`));
+        if (error instanceof Error) {
+          let errorMessage = error.message;
+          if ((error as any).response?.data) {
+            errorMessage += `\n${JSON.stringify((error as any).response.data)}`;
+          }
+          console.log(chalk.red(`[DEBUG] Error creating test case: ${errorMessage}`));
+        } else {
+          console.log(chalk.red(`[DEBUG] Unknown error creating test case: ${error}`));
         }
       }
       return {
         success: false,
         data: null as unknown as TestCase,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error during test case creation'
       };
     }
   }
+
 
   // Test Runs
   async createTestRun(projectId: string, config: {
@@ -269,17 +338,17 @@ export class LabnexApiClient {
     environment?: string;
     aiOptimization?: boolean;
   }): Promise<ApiResponse<TestRun>> {
-    const response = await this.api.post(`/projects/${projectId}/test-runs`, config);
+    const response = await this.api.post(`/projects/${projectId}/runs`, config);
     return response.data;
   }
 
   async getTestRun(runId: string): Promise<ApiResponse<TestRun>> {
-    const response = await this.api.get(`/test-runs/${runId}`);
+    const response = await this.api.get(`/runs/${runId}`);
     return response.data;
   }
 
   async getTestRunResults(runId: string): Promise<ApiResponse<{ total: number; passed: number; failed: number; duration: number; }>> {
-    const response = await this.api.get(`/test-runs/${runId}/results`);
+    const response = await this.api.get(`/runs/${runId}/results`);
     return response.data;
   }
 
@@ -298,12 +367,21 @@ export class LabnexApiClient {
     selectedTests: string[];
     reasoning: string;
   }>> {
+    if (this.verboseLogging) {
+      console.log(chalk.gray(`[DEBUG] Optimizing test suite for project ${projectId}`));
+      console.log(chalk.gray(`[DEBUG] Payload: ${JSON.stringify({ codeChanges }, null, 2)}`));
+    }
     const response = await this.api.post(`/ai/optimize-test-suite/${projectId}`, { codeChanges });
+    if (this.verboseLogging) {
+      console.log(chalk.gray(`[DEBUG] Response status: ${response.status}`));
+      console.log(chalk.gray(`[DEBUG] Response data: ${JSON.stringify(response.data, null, 2)}`));
+    }
     return response.data;
   }
 
+  // Failure Analysis
   async analyzeFailure(testRunId: string, failureId: string): Promise<ApiResponse<{ analysis: string; suggestions: string[] }>> {
-    const response = await this.api.post(`/ai/analyze-failure/${testRunId}/${failureId}`);
+    const response = await this.api.post(`/ai/analyze-failure`, { testRunId, failureId });
     return response.data;
   }
 
@@ -313,7 +391,7 @@ export class LabnexApiClient {
     conversationHistory: any[], 
     question: string
   ): Promise<ApiResponse<{ analysis: string; suggestions: string[] }>> {
-    const response = await this.api.post(`/ai/analyze-failure/conversational`, {
+    const response = await this.api.post('/ai/analyze-failure-conversational', {
       testRunId,
       failureId,
       conversationHistory,
@@ -321,61 +399,66 @@ export class LabnexApiClient {
     });
     return response.data;
   }
-
-  // New AI methods for step interpretation and suggestion
+  
+  // AI-assisted Test Step Execution
   async interpretTestStep(stepDescription: string): Promise<ApiResponse<string>> {
-    if (this.verboseLogging) console.log(`[AI Client] POST /ai/interpret Request:`, { description: stepDescription });
     try {
-      const response = await this.api.post<string | { suggestion: string; confidence?: number; error?: string; }>('/ai/interpret', { description: stepDescription }); 
-      if (this.verboseLogging) console.log('[AI Client] POST /ai/interpret Response:', response.data);
-      
-      // Handle potentially varied response structures from this endpoint
-      if (typeof response.data === 'string') {
-        return { success: true, data: response.data };
-      } else if (response.data && typeof (response.data as any).suggestion === 'string') {
-        // If it's an object with a 'suggestion' field
-        return { success: true, data: (response.data as any).suggestion };
-      } else if (response.data && (response.data as any).error) {
-        // Use console.error for client-side logging of an error reported by the API
-        console.error(`[AI Client] interpretTestStep returned error structure: ${(response.data as any).error}`);
-        return { success: false, data: '', error: (response.data as any).error };
+      if (this.verboseLogging) {
+        console.log(chalk.gray(`[DEBUG] Interpreting step: "${stepDescription}"`));
       }
-      
-      console.warn(`[AI Client] interpretTestStep received unexpected response format: ${JSON.stringify(response.data).substring(0,100)}`);
-      return { success: false, data: '', error: 'Unexpected response format from /ai/interpret' };
+      const response = await this.api.post('/ai/interpret-step', {
+        description: stepDescription,
+      });
+      if (this.verboseLogging) {
+        console.log(chalk.gray(`[DEBUG] Interpretation response: ${JSON.stringify(response.data)}`));
+      }
+      if (response.data.success) {
+        return {
+          success: true,
+          data: response.data.data.interpretedStep // Assuming the API returns { success: true, data: { interpretedStep: '...' } }
+        };
+      } else {
+        return {
+          success: false,
+          data: '',
+          error: response.data.error || 'Failed to interpret step'
+        };
+      }
     } catch (error: any) {
-      console.error(`[AI Client] Error calling /ai/interpret: ${error.message}`);
       return {
         success: false,
         data: '',
-        error: error.response?.data?.message || error.response?.data?.error || error.message,
+        error: error.response?.data?.message || error.message || 'Unknown error'
       };
     }
   }
 
   async suggestAlternative(step: string, pageContext = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
-    if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-alternative Request:', { step, pageContext });
     try {
-      const response = await this.api.post<string | ApiResponse<string>>('/ai/suggest-alternative', { step, pageContext });
-      if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-alternative Response:', response.data);
-
-      if (typeof response.data === 'string') {
-        return { success: true, data: response.data };
-      } else if (response.data && typeof response.data.data === 'string' && typeof response.data.success === 'boolean') {
-        return response.data; // It's already in ApiResponse<string> format
+      if (this.verboseLogging) {
+        console.log(chalk.gray(`[DEBUG] Suggesting alternative for step: "${step}"`));
+        console.log(chalk.gray(`[DEBUG] Page context length: ${pageContext.length}`));
       }
-      console.warn(`[AI Client] suggestAlternative received unexpected response format: ${JSON.stringify(response.data).substring(0,100)}`);
-      return { success: false, data: '', error: 'Unexpected response format' };
+      const response = await this.api.post('/ai/suggest-alternative', {
+        step,
+        pageContext,
+      });
+      if (this.verboseLogging) {
+        console.log(chalk.gray(`[DEBUG] Suggestion response: ${JSON.stringify(response.data)}`));
+      }
+      return response.data; // Assuming API returns ApiResponse<string> directly
     } catch (error: any) {
-      console.error(`[AI Client] Error calling /ai/suggest-alternative: ${error.message}`);
+      if (this.verboseLogging) {
+        console.log(chalk.red(`[DEBUG] Error suggesting alternative: ${error.message}`));
+      }
       return {
         success: false,
         data: '',
-        error: error.response?.data?.message || error.response?.data?.error || error.message,
+        error: error.response?.data?.message || error.message || 'Unknown error',
       };
     }
   }
-
+  
   async getDynamicSelectorSuggestion(context: {
     failedSelector: string;
     descriptiveTerm: string;
@@ -383,71 +466,17 @@ export class LabnexApiClient {
     domSnippet: string;
     originalStep: string;
   }): Promise<ApiResponse<{ suggestedSelector: string; suggestedStrategy?: string; confidence?: number; reasoning?: string }>> {
-    if (this.verboseLogging) console.log('[AI Client] POST /ai/suggest-selector Request:', JSON.stringify(context, null, 2));
     try {
-      const response = await this.api.post<{ success: boolean; data: { suggestedSelector: string; suggestedStrategy?: string; confidence?: number; reasoning?: string }; error?: string }>('/ai/suggest-selector', context);
-      if (this.verboseLogging) {
-        console.log('[AI Client] POST /ai/suggest-selector Full Response Data:', JSON.stringify(response.data, null, 2));
-      }
-
-      // Corrected parsing for successful AI response
-      if (response.data && response.data.success && response.data.data && typeof response.data.data.suggestedSelector === 'string') {
-        return {
-          success: true,
-          data: {
-            suggestedSelector: response.data.data.suggestedSelector,
-            suggestedStrategy: response.data.data.suggestedStrategy,
-            confidence: response.data.data.confidence,
-            reasoning: response.data.data.reasoning
-          }
-        };
-      } else if (response.data && !response.data.success && typeof response.data === 'object' && 'suggestedSelector' in response.data && typeof response.data.suggestedSelector === 'string') {
-        // Handle older direct data structure if AI reverts or for other similar endpoints
-        console.warn('[AI Client] getDynamicSelectorSuggestion received direct data structure (fallback). Consider updating AI if this is common.');
-        return {
-          success: true,
-          data: {
-            suggestedSelector: response.data.suggestedSelector,
-            suggestedStrategy: 'suggestedStrategy' in response.data && typeof response.data.suggestedStrategy === 'string' ? response.data.suggestedStrategy : undefined,
-            confidence: 'confidence' in response.data && typeof response.data.confidence === 'number' ? response.data.confidence : undefined,
-            reasoning: 'reasoning' in response.data && typeof response.data.reasoning === 'string' ? response.data.reasoning : undefined
-          }
-        };
-      } else if (typeof response.data === 'string') {
-        // Handle if backend sends a stringified JSON as data
-        console.warn('[AI Client] getDynamicSelectorSuggestion received string data, attempting parse.');
-        try {
-          const parsedData = JSON.parse(response.data);
-          if (parsedData && typeof parsedData.suggestedSelector === 'string') {
-            return {
-              success: true,
-              data: {
-                suggestedSelector: parsedData.suggestedSelector,
-                suggestedStrategy: parsedData.suggestedStrategy,
-                confidence: parsedData.confidence,
-                reasoning: parsedData.reasoning
-              }
-            };
-          }
-        } catch (parseError) {
-          console.error(`[AI Client] Failed to parse string data from getDynamicSelectorSuggestion: ${(parseError as Error).message}`);
-          return { success: false, data: { suggestedSelector: '', suggestedStrategy: '' }, error: 'Failed to parse AI suggestion string.' };
-        }
-      }
-      
-      // Log more details if the format is unexpected, including the full problematic response.data
-      console.warn('[AI Client] getDynamicSelectorSuggestion received unexpected response format or missing selector. Full response.data:', JSON.stringify(response.data, null, 2));
-      return { success: false, data: { suggestedSelector: '', suggestedStrategy: '' }, error: response.data?.error || 'Unexpected response format or missing suggestedSelector' };
+      const response = await this.api.post('/ai/suggest-selector', context);
+      return response.data;
     } catch (error: any) {
-      console.error(`[AI Client] Error calling /ai/suggest-selector: ${error.message}`);
       return {
         success: false,
-        data: { suggestedSelector: '', suggestedStrategy: '' },
-        error: error.response?.data?.message || error.response?.data?.error || error.message,
+        data: { suggestedSelector: '' },
+        error: error.response?.data?.message || error.message || 'Unknown error'
       };
     }
   }
 }
 
-// Export singleton instance
 export const apiClient = new LabnexApiClient(); 

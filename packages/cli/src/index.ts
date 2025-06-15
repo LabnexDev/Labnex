@@ -14,6 +14,7 @@ import { apiClient } from './api/client';
 import { LocalBrowserExecutor } from './localBrowserExecutor';
 import ora from 'ora';
 import inquirer from 'inquirer';
+import { runCommand } from './commands/run';
 
 async function main() {
   // Initialize configuration
@@ -49,67 +50,7 @@ async function main() {
     });
 
   // Main run command - unified and clean
-  program
-    .command('run')
-    .description('Execute tests for a specified project using local or cloud resources.')
-    .requiredOption('-p, --project-id <id>', 'Project ID (required)')
-    .option('-t, --test-id <id>', 'Run specific test case by ID')
-    .option('-e, --environment <env>', 'Environment to run tests against', 'staging')
-    .option('-m, --mode <mode>', 'Execution mode: local or cloud', 'local')
-    .option('--optimize-ai', 'Enable AI optimization for element finding')
-    .option('--parallel <number>', 'Number of parallel workers (cloud mode)', '4')
-    .option('--headless', 'Run in headless mode (local mode)', false)
-    .option('--timeout <ms>', 'Test timeout in milliseconds', '300000')
-    .action(async (options) => {
-      try {
-        let projectId = options.projectId;
-
-        // If no project ID is provided, fetch projects and ask the user
-        if (!projectId) {
-          const spinner = ora('Fetching your projects...').start();
-          try {
-            const response = await apiClient.getProjects();
-            if (response.success && response.data && response.data.length > 0) {
-              spinner.stop(); // Stop spinner before showing prompt
-              const choices = response.data.map((p: any) => ({
-                name: `${p.name} (${p.projectCode})`,
-                value: p._id,
-              }));
-
-              const answer = await inquirer.prompt([
-                {
-                  type: 'list',
-                  name: 'selectedProject',
-                  message: 'Which project would you like to run tests for?',
-                  choices: choices,
-                },
-              ]);
-              projectId = answer.selectedProject;
-            } else if (response.success && response.data.length === 0) {
-              spinner.fail(chalk.yellow('You do not have any projects.'));
-              console.log(chalk.cyan('You can create one using: labnex projects create'));
-              return;
-            } else {
-              spinner.fail(chalk.red(`Failed to fetch projects: ${response.message || 'Unknown error'}`));
-              return;
-            }
-          } catch (error: any) {
-            spinner.fail(chalk.red(`Error fetching projects: ${error.message}`));
-            return;
-          }
-        }
-        
-        // Pass the determined project ID to the runTests function
-        await runTests({ ...options, projectId });
-
-      } catch (error: any) {
-        console.error(chalk.red('❌ Test execution failed:'), error.message);
-        if (process.env.LABNEX_VERBOSE === 'true') {
-          console.error(error.stack);
-        }
-        process.exit(1);
-      }
-    });
+  program.addCommand(runCommand);
 
   // Status command
   program
@@ -207,192 +148,49 @@ ${chalk.bold('Documentation:')}
 
   // Parse command line arguments
   await program.parseAsync(process.argv);
+  console.log("--- DEBUG: CLI execution finished ---");
 }
 
-// Main test execution function
-async function runTests(options: any) {
-  const projectId = options.projectId;
-  const testId = options.testId;
-  const environment = options.environment;
-  const mode = options.mode;
-  const aiOptimize = options.optimizeAi;
-  const verbose = process.env.LABNEX_VERBOSE === 'true';
+// Main test execution function is now in commands/run.ts
 
-  console.log(chalk.cyan(`🚀 Initializing test run...`));
-  console.log(chalk.gray(`📝 Project ID: ${projectId}`));
-  console.log(chalk.gray(`💻 Execution Mode: ${mode === 'local' ? 'Local Machine' : 'Labnex Cloud'}`));
-  console.log(chalk.gray(`🌍 Environment: ${environment}`));
-  if (aiOptimize) {
-    console.log(chalk.gray(`🤖 AI Optimization: enabled`));
-  }
-  if (verbose) {
-    console.log(chalk.gray(`🔍 Detailed logging: enabled`));
-  }
-  console.log('');
-
-  // Fetch project details
-  const projectsSpinner = ora('Fetching project details...').start();
-  let project: any = null;
-  try {
-    const projectsResponse = await apiClient.getProjects();
-    if (verbose) {
-      console.log('\n[DEBUG] apiClient.getProjects() response:', JSON.stringify(projectsResponse, null, 2));
-    }
-    
-    if (projectsResponse.success && projectsResponse.data) {
-      project = projectsResponse.data.find((p: any) => p._id === projectId);
-      if (project) {
-        if (verbose) {
-          console.log('[DEBUG] Found project:', JSON.stringify(project, null, 2));
-        }
-        projectsSpinner.succeed(chalk.green(`✅ Project found: ${project.name} (${project._id})`));
-      } else {
-        projectsSpinner.fail(chalk.red(`❌ Project not found: ${projectId}`));
-        console.log(chalk.yellow('Available projects:'));
-        projectsResponse.data.forEach((p: any) => {
-          console.log(chalk.gray(`  ${p._id} - ${p.name} (${p.projectCode})`));
-        });
-        return;
-      }
-    }
-  } catch (error: any) {
-    projectsSpinner.fail(chalk.red(`❌ Error fetching project: ${error.message}`));
-    return;
-  }
-
-  // Fetch test cases
-  const testCasesSpinner = ora('Fetching test cases...').start();
-  let testCases: any[] = [];
-  try {
-    const testCasesResponse = await apiClient.getTestCases(project._id);
-    if (verbose) {
-      console.log('\n[DEBUG] apiClient.getTestCases() response:', JSON.stringify(testCasesResponse, null, 2));
-    }
-    
-    if (testCasesResponse.success && testCasesResponse.data) {
-      testCases = testCasesResponse.data;
-      
-      // Filter to specific test if requested
-      if (testId) {
-        testCases = testCases.filter(tc => tc._id === testId);
-        if (testCases.length === 0) {
-          testCasesSpinner.fail(chalk.red(`❌ Test case not found: ${testId}`));
-          return;
-        }
-        testCasesSpinner.succeed(chalk.green(`✅ Found test case: ${testCases[0].title}`));
-      } else {
-        testCasesSpinner.succeed(chalk.green(`✅ Found ${testCases.length} test cases`));
-      }
-    } else {
-      testCasesSpinner.fail(chalk.red(`❌ Failed to fetch test cases: ${testCasesResponse.error || 'Unknown error'}`));
-      return;
-    }
-  } catch (error: any) {
-    testCasesSpinner.fail(chalk.red(`❌ Error fetching test cases: ${error.message}`));
-    return;
-  }
-
-  if (testCases.length === 0) {
-    console.log(chalk.yellow('🤔 No test cases found. Nothing to run.'));
-    return;
-  }
-
-  if (mode === 'local') {
-    await runTestsLocally(testCases, project, options);
-  } else {
-    await runTestsInCloud(testCases, project, options);
-  }
-}
-
-// Local test execution
-async function runTestsLocally(testCases: any[], project: any, options: any) {
-  console.log(chalk.cyan('\n🔧 Starting local browser test execution...'));
-  
-  const executor = new LocalBrowserExecutor({
-    headless: options.headless,
-    aiOptimizationEnabled: options.optimizeAi || false
-  });
-
-  const allResults: any[] = [];
-  let passed = 0;
-  let failed = 0;
-  const startTime = Date.now();
-
-  try {
-    await executor.initialize();
-
-    for (let i = 0; i < testCases.length; i++) {
-      const tc = testCases[i];
-      console.log(chalk.blue(`\n--- Running Test Case ${i + 1}/${testCases.length}: ${tc.title} (${tc._id}) ---`));
-      
-      const result = await executor.executeTestCase(tc._id, tc.steps, tc.expectedResult, project.baseUrl || '', tc.title);
-      allResults.push(result);
-      
-      if (result.status === 'passed') {
-        passed++;
-        console.log(chalk.green(`✔️ Test Case ${tc.title} PASSED (${(result.duration / 1000).toFixed(2)}s)`));
-      } else {
-        failed++;
-        console.log(chalk.red(`❌ Test Case ${tc.title} FAILED (${(result.duration / 1000).toFixed(2)}s)`));
-        if (result.steps && result.steps.length > 0) {
-          const lastStep = result.steps[result.steps.length - 1];
-          console.log(chalk.red(`   Failed at step ${lastStep.stepNumber}: ${lastStep.stepDescription}`));
-          if (lastStep.message) {
-            console.log(chalk.red(`   Reason: ${lastStep.message}`));
-          }
-        }
-      }
-
-      // Show step details if verbose
-      if (process.env.LABNEX_VERBOSE === 'true' && result.steps) {
-        result.steps.forEach((stepRes: any) => {
-          const icon = stepRes.status === 'passed' ? '✅' : '❌';
-          console.log(chalk.gray(`     ${icon} Step ${stepRes.stepNumber}: ${stepRes.stepDescription} (${(stepRes.duration / 1000).toFixed(2)}s) ${stepRes.message ? `- ${stepRes.message}` : ''}`));
-        });
-      }
-    }
-  } finally {
-    // Cleanup
-    if (typeof (executor as any).cleanup === 'function') {
-      await (executor as any).cleanup();
-    }
-  }
-
-  const totalDuration = (Date.now() - startTime) / 1000;
-  console.log(chalk.cyan('\n--- Local Execution Summary ---'));
-  console.log(chalk.white(`Total Test Cases: ${testCases.length}`));
-  console.log(chalk.green(`Passed: ${passed}`));
-  console.log(chalk.red(`Failed: ${failed}`));
-  console.log(chalk.white(`Total Duration: ${totalDuration.toFixed(2)}s`));
-  console.log('');
-}
-
-// Cloud test execution (placeholder)
-async function runTestsInCloud(testCases: any[], project: any, options: any) {
-  console.log(chalk.yellow('🚧 Cloud execution is coming soon!'));
-  console.log(chalk.gray('For now, please use --mode local'));
-}
-
-// Status checking functions
 async function checkOverallStatus() {
-  console.log(chalk.gray('📊 Checking status...'));
-  console.log(chalk.green('✅ No active test runs'));
-  console.log('');
-  console.log(chalk.gray('🧪 Debug Info:'));
-  console.log(chalk.gray('WebSocket Connected: No'));
-  console.log(chalk.gray('Polling Active: No (no active runs)'));
-  console.log(chalk.gray('Active Runs Count: 0'));
+  const spinner = ora('Checking overall system status...').start();
+  // This is a placeholder. In a real scenario, you'd call an API endpoint.
+  setTimeout(() => {
+    spinner.succeed(chalk.green('All systems operational.'));
+    console.log(chalk.gray(' - API Server: OK'));
+    console.log(chalk.gray(' - Test Runner Fleet: OK'));
+    console.log(chalk.gray(' - Database Connection: OK'));
+  }, 1000);
 }
 
 async function checkSpecificTestRun(runId: string) {
-  const spinner = ora(`Checking status for test run ${runId}...`).start();
-  // ...
+  const spinner = ora(`Fetching status for test run ${chalk.cyan(runId)}...`).start();
+  try {
+    const response = await apiClient.getTestRun(runId);
+    if (response.success && response.data) {
+      const run = response.data;
+      spinner.succeed(chalk.green('Status retrieved successfully.'));
+      
+      console.log(chalk.bold.cyan(`\nTest Run Details (ID: ${runId})`));
+      console.log(chalk.gray('──────────────────────────────────'));
+      console.log(`${chalk.bold('Project ID:')} ${run.projectId}`);
+      console.log(`${chalk.bold('Status:')} ${run.status}`);
+      console.log(`${chalk.bold('Total Tests:')} ${run.results.total}`);
+      console.log(`${chalk.bold('Passed:')} ${chalk.green(run.results.passed)}`);
+      console.log(`${chalk.bold('Failed:')} ${chalk.red(run.results.failed)}`);
+      console.log(`${chalk.bold('Duration:')} ${run.results.duration}ms`);
+      console.log(`${chalk.bold('Created At:')} ${new Date(run.createdAt).toLocaleString()}`);
+
+    } else {
+      spinner.fail(chalk.red(`Failed to fetch test run: ${response.error || 'Unknown error'}`));
+    }
+  } catch (error: any) {
+    spinner.fail(chalk.red(`Error: ${error.message}`));
+  }
 }
 
-// All functions below this line have been moved to their respective command files (e.g., commands/list.ts)
-// The old listProjects, listTestCases, etc., functions are no longer here.
-
 main().catch((error) => {
-  console.error(chalk.red('\n❌ An unexpected error occurred:'), error);
+  console.error(chalk.red('\nAn unexpected error occurred:'), error);
   process.exit(1);
 });

@@ -21,11 +21,8 @@ export const projectsCommand = new Command('projects')
           if (response.success) {
             spinner.succeed(`Found ${response.data.length} projects`);
             
-            if (options.format === 'json') {
-              console.log(JSON.stringify(response.data, null, 2));
-            } else {
-              displayProjectsTable(response.data);
-            }
+            console.log(JSON.stringify(response.data, null, 2));
+
           } else {
             spinner.fail(chalk.red('Failed to fetch projects'));
           }
@@ -149,32 +146,6 @@ export const projectsCommand = new Command('projects')
         }
       })
   );
-
-function displayProjectsTable(projects: any[]) {
-  if (projects.length === 0) {
-    console.log(chalk.yellow('No projects found'));
-    return;
-  }
-
-  const table = new Table({
-    head: ['Code', 'Name', 'Status', 'Tests', 'Tasks', 'Members', 'Owner'],
-    colWidths: [8, 25, 10, 8, 8, 10, 20]
-  });
-
-  projects.forEach(project => {
-    table.push([
-      chalk.cyan(project.projectCode),
-      project.name,
-      project.isActive ? chalk.green('Active') : chalk.gray('Inactive'),
-      project.testCaseCount.toString(),
-      project.taskCount.toString(),
-      project.members.length.toString(),
-      project.owner.name
-    ]);
-  });
-
-  console.log(table.toString());
-}
 
 function displayProjectDetails(project: any) {
   console.log(chalk.cyan(`\n📁 ${project.name} (${project.projectCode})`));

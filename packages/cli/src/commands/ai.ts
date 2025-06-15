@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
 import { apiClient } from '../api/client';
+import { runTests } from './run';
 
 export const aiCommand = new Command('ai')
   .description('Access AI-powered features like test generation and optimization.')
@@ -11,9 +12,14 @@ export const aiCommand = new Command('ai')
       .description('Generate a new test case using AI based on a description.')
       .option('-d, --description <description>', 'Test description')
       .option('-p, --project <code>', 'Project code to add test case to')
+      .option('-f, --files <paths>', 'Comma-separated list of source files this test covers')
       .action(async (options) => {
         try {
           let { description, project } = options;
+          let files: string[] = [];
+          if (options.files) {
+            files = options.files.split(',').map((p: string) => p.trim()).filter(Boolean);
+          }
 
           // Prompt for description if not provided
           if (!description) {
@@ -28,24 +34,33 @@ export const aiCommand = new Command('ai')
             description = descPrompt.description;
           }
 
+          if (files.length === 0) {
+            const fileAns = await inquirer.prompt({ type: 'input', name: 'paths', message: 'File(s) this test covers (comma-separated paths):' });
+            files = fileAns.paths.split(',').map((p: string) => p.trim()).filter(Boolean);
+          }
+
           const spinner = ora('Generating test case with AI...').start();
 
           try {
             const response = await apiClient.generateTestCase(description);
             
             if (response.success) {
-              spinner.succeed(chalk.green('Test case generated successfully'));
+              spinner.succeed(chalk.green('Test case generated successfully!'));
               
-              console.log(chalk.cyan('\n📝 Generated Test Case:'));
-              console.log(chalk.gray('─'.repeat(50)));
-              console.log(`${chalk.bold('Title:')} ${response.data.title}`);
-              console.log(`${chalk.bold('Description:')} ${response.data.description}`);
-              console.log(`${chalk.bold('Expected Result:')} ${response.data.expectedResult}`);
+              console.log(chalk.bold.cyan('\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓'));
+              console.log(chalk.bold.cyan('┃   🤖 AI Generated Test Case      ┃'));
+              console.log(chalk.bold.cyan('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛'));
+
+              console.log(`\n${chalk.bold.white('Title:')} ${chalk.yellow(response.data.title)}`);
+              console.log(`${chalk.bold.white('Description:')} ${response.data.description}`);
+              console.log(`${chalk.bold.white('Expected Result:')} ${response.data.expectedResult}`);
               
-              console.log(`\n${chalk.bold('Steps:')}`);
+              console.log(`\n${chalk.bold.white('Steps:')}`);
+              console.log(chalk.gray('┌──────────────────────────────────'));
               response.data.steps.forEach((step, index) => {
-                console.log(`  ${index + 1}. ${step}`);
+                console.log(`${chalk.gray('│')} ${chalk.magenta(index + 1)}. ${step}`);
               });
+              console.log(chalk.gray('└──────────────────────────────────'));
 
               // Save to project if provided
               if (project) {
@@ -62,11 +77,12 @@ export const aiCommand = new Command('ai')
                     description: response.data.description,
                     steps: response.data.steps,
                     expectedResult: response.data.expectedResult,
-                    priority: 'MEDIUM'
-                  });
+                    priority: 'MEDIUM',
+                    relatedFiles: files
+                  } as any);
                   
                   if (saveResponse.success) {
-                    saveSpinner.succeed(chalk.green('Test case saved to project'));
+                    saveSpinner.succeed(chalk.green('Test case saved to project ') + chalk.yellow.bold(projectData.name));
                   } else {
                     saveSpinner.fail(chalk.red('Failed to save test case: ' + (saveResponse.error || 'Unknown error')));
                   }
@@ -85,13 +101,22 @@ export const aiCommand = new Command('ai')
                 ]);
 
                 if (savePrompt.save) {
-                  const projects = await apiClient.getProjects();
+                  const projectsSpinner = ora('Fetching projects...').start();
+                  let projects;
+                  try {
+                    projects = await apiClient.getProjects();
+                    projectsSpinner.succeed();
+                  } catch (e) {
+                    projectsSpinner.fail('Could not fetch projects');
+                    return;
+                  }
+                  
                   if (projects.success && projects.data.length > 0) {
                     const projectPrompt = await inquirer.prompt([
                       {
                         type: 'list',
                         name: 'project',
-                        message: 'Select project:',
+                        message: 'Select a project to save the test case to:',
                         choices: projects.data.map(p => ({
                           name: `${p.name} (${p.projectCode})`,
                           value: p._id
@@ -107,11 +132,13 @@ export const aiCommand = new Command('ai')
                         description: response.data.description,
                         steps: response.data.steps,
                         expectedResult: response.data.expectedResult,
-                        priority: 'MEDIUM'
-                      });
+                        priority: 'MEDIUM',
+                        relatedFiles: files
+                      } as any);
                       
                       if (saveResponse.success) {
-                        saveSpinner.succeed(chalk.green('Test case saved to project'));
+                        const savedProject = projects.data.find(p => p._id === projectPrompt.project)
+                        saveSpinner.succeed(chalk.green('Test case saved to project ') + chalk.yellow.bold(savedProject?.name));
                       } else {
                         saveSpinner.fail(chalk.red('Failed to save test case: ' + (saveResponse.error || 'Unknown error')));
                       }
@@ -125,10 +152,10 @@ export const aiCommand = new Command('ai')
               spinner.fail(chalk.red('Failed to generate test case: ' + response.error));
             }
           } catch (error: any) {
-            spinner.fail(chalk.red('Generation failed: ' + error.message));
+            spinner.fail(chalk.red('Generation failed: ' + (error.response?.data?.message || error.message || 'Unknown error')));
           }
         } catch (error: any) {
-          console.error(chalk.red('Error:'), error.message);
+          console.error(chalk.red('An unexpected error occurred:'), error.message);
         }
       })
   )
@@ -140,6 +167,10 @@ export const aiCommand = new Command('ai')
       .action(async (options) => {
         try {
           let projectCode = options.project;
+
+          if (process.env.LABNEX_VERBOSE === 'true') {
+            apiClient.setVerbose(true);
+          }
 
           // Get project
           if (!projectCode) {
@@ -176,42 +207,123 @@ export const aiCommand = new Command('ai')
             const response = await apiClient.optimizeTestSuite(project._id, codeChanges);
             
             if (response.success) {
-              spinner.succeed(chalk.green('Test suite optimization completed'));
+              // ---------- CLIENT-SIDE FALLBACK (before any printing) ----------
+              if (response.data.selectedTests.length === 0) {
+                const allCases = await apiClient.getTestCases(project._id);
+                if (allCases.success) {
+                  const norm = (s:string)=>s.toLowerCase();
+                  const matches = allCases.data.filter(tc =>
+                    codeChanges?.some((ch:string) =>
+                      norm(tc.title).includes(norm(ch)) ||
+                      norm((tc.description||'')).includes(norm(ch)) ||
+                      (tc.steps||[]).some((st:string)=>norm(st).includes(norm(ch)))
+                    )
+                  ).map(tc=>tc._id);
+                  if (matches.length){
+                    response.data.selectedTests = matches;
+                    response.data.reasoning += ' | Client text-match fallback selected tests';
+                  }
+                }
+              }
+              // ---------- END FALLBACK ----------
+
+              spinner.succeed(chalk.green('Test suite optimization completed!'));
               
-              console.log(chalk.cyan('\n🧠 AI Optimization Results:'));
-              console.log(chalk.gray('─'.repeat(50)));
-              console.log(`${chalk.bold('Selected Tests:')} ${response.data.selectedTests.length}`);
-              console.log(`${chalk.bold('Reasoning:')} ${response.data.reasoning}`);
+              console.log(chalk.bold.cyan('\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓'));
+              console.log(chalk.bold.cyan('┃   🤖 AI Optimization Results     ┃'));
+              console.log(chalk.bold.cyan('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛'));
+
+              console.log(`\n${chalk.bold.white('Reasoning:')} ${chalk.italic(response.data.reasoning)}`);
+              console.log(`${chalk.bold.white('Selected Test Count:')} ${chalk.yellow(response.data.selectedTests.length)}`);
               
               if (response.data.selectedTests.length > 0) {
-                console.log(`\n${chalk.bold('Recommended Tests:')}`);
-                response.data.selectedTests.forEach((testId: string, index: number) => {
-                  console.log(`  ${index + 1}. ${testId}`);
-                });
+                const testCasesSpinner = ora('Fetching details for recommended tests...').start();
+                try {
+                  const testCasesResponse = await apiClient.getTestCases(project._id);
+                  testCasesSpinner.succeed();
+
+                  console.log(`\n${chalk.bold.white('Recommended Tests to Run:')}`);
+                  console.log(chalk.gray('┌──────────────────────────────────'));
+                  response.data.selectedTests.forEach((testId: string, index: number) => {
+                    const testCase = testCasesResponse.data.find(tc => tc._id === testId);
+                    const testTitle = testCase ? testCase.title : 'Unknown Test';
+                    console.log(`${chalk.gray('│')} ${chalk.magenta(index + 1)}. ${testTitle} ${chalk.gray(`(${testId})`)}`);
+                  });
+                  console.log(chalk.gray('└──────────────────────────────────'));
+
+                } catch (error) {
+                  testCasesSpinner.fail('Could not fetch test case details.');
+                  // Fallback to showing IDs
+                  console.log(`\n${chalk.bold.white('Recommended Tests to Run (by ID):')}`);
+                  console.log(chalk.gray('┌──────────────────────────────────'));
+                  response.data.selectedTests.forEach((testId: string, index: number) => {
+                    console.log(`${chalk.gray('│')} ${chalk.magenta(index + 1)}. ${testId}`);
+                  });
+                  console.log(chalk.gray('└──────────────────────────────────'));
+                }
 
                 const runPrompt = await inquirer.prompt([
                   {
                     type: 'confirm',
                     name: 'run',
-                    message: 'Run the optimized test suite now?',
+                    message: 'Do you want to run this optimized test suite now?',
                     default: false
                   }
                 ]);
 
                 if (runPrompt.run) {
                   console.log(chalk.cyan('\n🚀 Running optimized tests...'));
-                  // This would integrate with the test run command
-                  console.log(chalk.gray('Use: labnex test run --project ' + projectCode + ' --ai'));
+                  await runTests({
+                    projectId: project._id,
+                    testIds: response.data.selectedTests,
+                    mode: 'local', // Or detect from user config
+                    headless: true, // Default to headless for automated runs
+                    baseUrl: process.env.FRONTEND_URL || ''
+                  });
+                }
+              } else {
+                // ---------- CLIENT-SIDE FALLBACK ----------
+                const allCases = await apiClient.getTestCases(project._id);
+                if (allCases.success) {
+                  const norm = (s:string)=>s.toLowerCase();
+                  const matches = allCases.data.filter(tc =>
+                    codeChanges?.some((ch: string) =>
+                      norm(tc.title).includes(norm(ch)) ||
+                      norm(tc.description||'').includes(norm(ch)) ||
+                      tc.steps.some((st:string)=>norm(st).includes(norm(ch)))
+                    )
+                  ).map(tc=>tc._id);
+                  if (matches.length) {
+                    response.data.selectedTests = matches;
+                    response.data.reasoning +=
+                      ' | Client text-match fallback selected tests';
+                  }
+                }
+                // ---------- END FALLBACK ----------
+
+                if (response.data.selectedTests.length === 0) {
+                  const fallbackAns = await inquirer.prompt({ type: 'list', name: 'choice', message: 'No tests matched – choose fallback', choices: [{ name: 'Run ALL tests', value: 'all' }, { name: 'Run only HIGH priority', value: 'high' }, { name: 'Cancel', value: 'none' }] });
+                  if (fallbackAns.choice === 'all') {
+                    const all = await apiClient.getTestCases(project._id);
+                    if (all.success) { response.data.selectedTests = all.data.map((t: any) => t._id); }
+                  } else if (fallbackAns.choice === 'high') {
+                    const all = await apiClient.getTestCases(project._id);
+                    if (all.success) { response.data.selectedTests = all.data.filter((t: any) => t.priority === 'HIGH').map((t: any) => t._id); }
+                  }
+                  if (response.data.selectedTests.length === 0 && fallbackAns.choice === 'none') {
+                    spinner.fail(chalk.yellow('User cancelled run.'));
+                    return;
+                  }
                 }
               }
             } else {
               spinner.fail(chalk.red('Optimization failed: ' + response.error));
             }
           } catch (error: any) {
-            spinner.fail(chalk.red('Optimization failed: ' + error.message));
+            spinner.fail(chalk.red('Optimization failed: ' + (error.response?.data?.message || error.message || 'Unknown error')));
           }
         } catch (error: any) {
-          console.error(chalk.red('Error:'), error.message);
+          console.error(chalk.red('An unexpected error occurred:'), error.message);
         }
       })
   )
@@ -228,27 +340,31 @@ export const aiCommand = new Command('ai')
             const response = await apiClient.analyzeFailure(runId, failureId);
             
             if (response.success) {
-              spinner.succeed(chalk.green('Failure analysis completed'));
+              spinner.succeed(chalk.green('Failure analysis completed!'));
               
-              console.log(chalk.cyan('\n🔍 AI Failure Analysis:'));
-              console.log(chalk.gray('─'.repeat(50)));
-              console.log(`${chalk.bold('Analysis:')}`);
-              console.log(response.data.analysis);
+              console.log(chalk.bold.cyan('\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓'));
+              console.log(chalk.bold.cyan('┃   🤖 AI Failure Analysis         ┃'));
+              console.log(chalk.bold.cyan('┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛'));
+
+              console.log(`\n${chalk.bold.white('Analysis:')}`);
+              console.log(chalk.italic(response.data.analysis));
               
               if (response.data.suggestions.length > 0) {
-                console.log(`\n${chalk.bold('Suggestions:')}`);
+                console.log(`\n${chalk.bold.white('Suggestions:')}`);
+                console.log(chalk.gray('┌──────────────────────────────────'));
                 response.data.suggestions.forEach((suggestion: string, index: number) => {
-                  console.log(`  ${index + 1}. ${suggestion}`);
+                  console.log(`${chalk.gray('│')} ${chalk.magenta(index + 1)}. ${suggestion}`);
                 });
+                console.log(chalk.gray('└──────────────────────────────────'));
               }
             } else {
               spinner.fail(chalk.red('Analysis failed: ' + response.error));
             }
           } catch (error: any) {
-            spinner.fail(chalk.red('Analysis failed: ' + error.message));
+            spinner.fail(chalk.red('Analysis failed: ' + (error.response?.data?.message || error.message || 'Unknown error')));
           }
         } catch (error: any) {
-          console.error(chalk.red('Error:'), error.message);
+          console.error(chalk.red('An unexpected error occurred:'), error.message);
         }
       })
   ); 
