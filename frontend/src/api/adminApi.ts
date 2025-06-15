@@ -113,7 +113,7 @@ interface GenerateRunnerKeySuccessResponse {
  */
 export const generateRunnerApiKey = async (): Promise<string> => {
   const response = await axiosInstance.post<GenerateRunnerKeySuccessResponse | AdminActionErrorResponse>(
-    '/api/api-keys',
+    '/api-keys',
     { label: 'Runner Key' }
   );
   if ('token' in response.data) {
