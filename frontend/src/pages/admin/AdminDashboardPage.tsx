@@ -4,6 +4,7 @@ import {
   getWaitlistEntries,
   approveWaitlistUser,
   getUserEngagementStats,
+  generateRunnerApiKey,
 } from '../../api/adminApi';
 import type {
   WaitlistEntry as WaitlistEntryType,
@@ -22,6 +23,7 @@ type AdminTab = 'waitlist' | 'engagement';
 const AdminDashboardPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<AdminTab>('waitlist');
+  const [generatedRunnerKey, setGeneratedRunnerKey] = useState<string | null>(null);
 
   const {
     data: waitlistEntries,
@@ -55,6 +57,18 @@ const AdminDashboardPage: React.FC = () => {
     },
     onError: (error: Error, email: string) => {
       toast.error(`Failed to approve ${email}: ${error.message}`);
+    },
+  });
+
+  const generateKeyMutation = useMutation({
+    mutationFn: generateRunnerApiKey,
+    onSuccess: (token: string) => {
+      setGeneratedRunnerKey(token);
+      navigator.clipboard.writeText(token).catch(() => {/* ignore */});
+      toast.success('Runner API key generated and copied to clipboard!', { duration: 6000, id: 'runner-key' });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to generate key: ${error.message}`);
     },
   });
 
@@ -194,6 +208,22 @@ const AdminDashboardPage: React.FC = () => {
             User Engagement
           </button>
         </nav>
+      </div>
+
+      {/* Runner key section */}
+      <div className="mb-6 flex items-center space-x-4">
+        <Button
+          variant="primary"
+          onClick={() => generateKeyMutation.mutate()}
+          isLoading={generateKeyMutation.isPending}
+        >
+          Generate Runner API Key
+        </Button>
+        {generatedRunnerKey && (
+          <span className="text-sm text-green-400 break-all">
+            {generatedRunnerKey}
+          </span>
+        )}
       </div>
 
       {activeTab === 'waitlist' && renderWaitlistTable()}

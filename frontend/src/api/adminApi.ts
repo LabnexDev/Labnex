@@ -100,4 +100,27 @@ export const getUserEngagementStats = async (): Promise<UserEngagementStat[]> =>
   } else {
     throw new Error((response.data as AdminActionErrorResponse).message || 'Failed to fetch user engagement stats');
   }
+};
+
+// --- NEW: Runner API key generation ------------------------------------
+interface GenerateRunnerKeySuccessResponse {
+  success: true;
+  data: {
+    token: string;
+  };
+}
+
+/**
+ * Generates a new API key with runner privileges.
+ * Requires admin privileges.
+ */
+export const generateRunnerApiKey = async (): Promise<string> => {
+  const response = await axiosInstance.post<GenerateRunnerKeySuccessResponse | AdminActionErrorResponse>(
+    '/admin/api-keys',
+    { role: 'runner' }
+  );
+  if (response.data.success) {
+    return response.data.data.token;
+  }
+  throw new Error((response.data as AdminActionErrorResponse).message || 'Failed to generate runner API key');
 }; 
