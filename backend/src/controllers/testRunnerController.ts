@@ -90,8 +90,11 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
       startedBy: currentUser.id,
     });
 
-    // Start the test execution asynchronously
-    executeTestRun(testRun._id.toString());
+    // If not opting in to external/cloud runner, start execution immediately
+    if (!req.body.useCloudRunner) {
+      // Start the test execution asynchronously
+      executeTestRun(testRun._id.toString());
+    }
 
     res.status(201).json({
       success: true,

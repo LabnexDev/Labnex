@@ -305,7 +305,8 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
             testCases: testCases.map(tc => tc._id),
             parallel: parseInt(options.parallel, 10) || 2,
             environment: options.environment,
-            aiOptimization: !!options.optimizeAi
+            aiOptimization: !!options.optimizeAi,
+            useCloudRunner: true
         });
 
         if (!response.success) {
