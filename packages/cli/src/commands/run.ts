@@ -293,7 +293,34 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
 }
 
 async function runTestsInCloud(testCases: any[], project: any, options: any) {
-    console.log(chalk.cyan('\n☁️  Cloud execution is not yet implemented in this CLI version.'));
-    console.log('Please use your Labnex dashboard to run tests in the cloud.');
-    // Here you would add logic to call the Labnex API to trigger a cloud run
+    const spinner = ora('Creating cloud test run...').start();
+    try {
+        const response = await apiClient.createTestRun(project._id, {
+            testCases: testCases.map(tc => tc._id),
+            parallel: parseInt(options.parallel, 10) || 2,
+            environment: options.environment,
+            aiOptimization: !!options.optimizeAi
+        });
+
+        if (!response.success) {
+            spinner.fail(chalk.red(`Failed to create cloud run: ${response.error}`));
+            return;
+        }
+
+        spinner.succeed(chalk.green('✅ Cloud test run created.'));
+
+        const run = response.data;
+        console.log(chalk.bold.cyan('\n📡 Cloud Run Details'));
+        console.log(chalk.gray('─'.repeat(40)));
+        console.log(`${chalk.bold('Run ID:')} ${run._id}`);
+        console.log(`${chalk.bold('Status:')} ${run.status}`);
+        console.log(`${chalk.bold('Total Tests:')} ${run.results.total}`);
+        console.log(`${chalk.bold('Parallel:')} ${run.config.parallel}`);
+        console.log(`${chalk.bold('AI Optimization:')} ${run.config.aiOptimization ? 'Yes' : 'No'}`);
+        console.log('\nYou can monitor progress with:');
+        console.log(`  ${chalk.cyan(`labnex status --run-id ${run._id}`)}`);
+        console.log(`  ${chalk.cyan(`labnex ai analyze ${run._id} <failedTestId>`)} after it completes.`);
+    } catch (err: any) {
+        spinner.fail(chalk.red(`Error triggering cloud run: ${err.message}`));
+    }
 } 

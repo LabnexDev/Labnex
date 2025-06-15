@@ -338,17 +338,17 @@ export class LabnexApiClient {
     environment?: string;
     aiOptimization?: boolean;
   }): Promise<ApiResponse<TestRun>> {
-    const response = await this.api.post(`/projects/${projectId}/runs`, config);
+    const response = await this.api.post(`/projects/${projectId}/test-runs`, config);
     return response.data;
   }
 
   async getTestRun(runId: string): Promise<ApiResponse<TestRun>> {
-    const response = await this.api.get(`/runs/${runId}`);
+    const response = await this.api.get(`/test-runs/${runId}`);
     return response.data;
   }
 
   async getTestRunResults(runId: string): Promise<ApiResponse<{ total: number; passed: number; failed: number; duration: number; }>> {
-    const response = await this.api.get(`/runs/${runId}/results`);
+    const response = await this.api.get(`/test-runs/${runId}/results`);
     return response.data;
   }
 
@@ -367,8 +367,12 @@ export class LabnexApiClient {
           typeof c === 'string'
             ? await this.api.get(c)
             : await this.api.get(c.path, { params: c.params });
-        if (Array.isArray(res.data)) {
-          return { success: true, data: res.data };
+        const possibleArray = Array.isArray(res.data)
+          ? res.data
+          : (res.data && res.data.success && Array.isArray(res.data.data) ? res.data.data : null);
+
+        if (possibleArray !== null) {
+          return { success: true, data: possibleArray };
         }
       } catch (e: any) {
         if (e.response?.status !== 404) {

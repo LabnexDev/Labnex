@@ -190,7 +190,26 @@ async function checkSpecificTestRun(runId: string) {
       
       console.log(chalk.bold.cyan(`\nTest Run Details (ID: ${runId})`));
       console.log(chalk.gray('──────────────────────────────────'));
-      console.log(`${chalk.bold('Project ID:')} ${run.projectId}`);
+      let projDisplay: string;
+      if ((run as any).project?.projectCode) {
+        projDisplay = `${(run as any).project.projectCode} (${(run as any).project.name || 'Unnamed'})`;
+      } else if ((run as any).projectId) {
+        // Attempt to look up code/name
+        try {
+          const projRes = await apiClient.getProjects();
+          if (projRes.success) {
+            const found = projRes.data.find((p: any) => p._id === (run as any).projectId);
+            projDisplay = found ? `${found.projectCode} (${found.name})` : (run as any).projectId;
+          } else {
+            projDisplay = (run as any).projectId;
+          }
+        } catch {
+          projDisplay = (run as any).projectId;
+        }
+      } else {
+        projDisplay = 'N/A';
+      }
+      console.log(`${chalk.bold('Project:')} ${projDisplay}`);
       console.log(`${chalk.bold('Status:')} ${run.status}`);
       console.log(`${chalk.bold('Total Tests:')} ${run.results.total}`);
       console.log(`${chalk.bold('Passed:')} ${chalk.green(run.results.passed)}`);

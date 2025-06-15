@@ -489,3 +489,47 @@ export const listTestRuns = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+export const claimNextRun = async (req: Request, res: Response) => {
+  try {
+    const run = await TestRun.findOneAndUpdate(
+      { status: 'pending' },
+      { $set: { status: 'running', workerId: (req as any).runnerId || 'runner', startedAt: new Date() } },
+      { sort: { createdAt: 1 }, new: true }
+    ).lean();
+    res.json({ success: true, data: run });
+  } catch (error: any) {
+    console.error('Error claiming run:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const updateRunProgress = async (req: Request, res: Response) => {
+  try {
+    const runId = req.params.runId;
+    const { testResults } = req.body;
+    await TestRun.updateOne({ _id: runId }, { $set: { testResults } });
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('Error updating run progress:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const completeRun = async (req: Request, res: Response) => {
+  try {
+    const runId = req.params.runId;
+    const { results, status } = req.body;
+    await TestRun.updateOne({ _id: runId }, {
+      $set: {
+        status: status || 'completed',
+        results,
+        completedAt: new Date()
+      }
+    });
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('Error completing run:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
