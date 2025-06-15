@@ -7,10 +7,7 @@
     "strict": true,
     "esModuleInterop": true,
     "types": ["node"],
-    "baseUrl": "./",
-    "paths": {
-      "@labnex/executor": ["../executor/src"]
-    }
+    "baseUrl": "./"
   },
   "include": ["src"]
 } 

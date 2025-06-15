@@ -3,9 +3,9 @@ FROM mcr.microsoft.com/playwright:v1.41.0-jammy
 
 WORKDIR /app
 
-# Copy runner and executor packages for caching
+# Copy runner and CLI packages (executor no longer needed)
 COPY packages/runner ./packages/runner
-COPY packages/executor ./packages/executor
+COPY packages/cli ./packages/cli
 
 # Set working directory to runner package
 WORKDIR /app/packages/runner
