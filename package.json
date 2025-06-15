@@ -1,0 +1,10 @@
+{
+  "name": "labnex-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @labnex/executor && npm run build -w @labnex/cli && npm run build -w @labnex/cloud-runner"
+  }
+}

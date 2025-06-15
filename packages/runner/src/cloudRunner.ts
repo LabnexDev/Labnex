@@ -1,6 +1,5 @@
 import axios from 'axios';
 import chalk from 'chalk';
-import { LocalBrowserExecutor } from '@labnex/executor';
 
 interface TestRun {
   _id: string;
@@ -10,7 +9,8 @@ interface TestRun {
   results?: { total: number; passed: number; failed: number; pending: number; duration: number };
 }
 
-const API_URL = process.env.API_URL || 'http://localhost:4000/api';
+const DEFAULT_API_URL = 'https://labnex-backend.onrender.com/api';
+const API_URL = process.env.API_URL || DEFAULT_API_URL;
 const RUNNER_TOKEN = process.env.RUNNER_TOKEN;
 
 if (!RUNNER_TOKEN) {

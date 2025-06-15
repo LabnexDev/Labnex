@@ -14,7 +14,13 @@ export interface LabnexConfig {
 const CONFIG_DIR = join(homedir(), '.labnex');
 const CONFIG_FILE = join(CONFIG_DIR, 'config.json');
 
-const DEFAULT_CONFIG: LabnexConfig = {  apiUrl: process.env.LABNEX_API_URL || 'http://localhost:5000/api',  verbose: false};
+const DEFAULT_API_URL = 'https://labnex-backend.onrender.com/api';
+
+// Allow override via env if power-user sets LABNEX_API_URL
+const DEFAULT_CONFIG: LabnexConfig = {
+  apiUrl: process.env.LABNEX_API_URL || DEFAULT_API_URL,
+  verbose: false,
+};
 
 export async function initConfig(): Promise<void> {
   try {

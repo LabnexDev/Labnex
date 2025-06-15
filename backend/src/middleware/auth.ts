@@ -34,8 +34,9 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   if (!token) {
-    console.log('Auth middleware: No token provided in cookie or Authorization header');
-    return res.status(401).json({ message: 'No token, authorization denied' });
+    // No JWT – try API key authentication instead
+    const { apiKeyAuth } = await import('./apiKeyAuth');
+    return apiKeyAuth(req, res, next);
   }
 
   try {
@@ -56,7 +57,9 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     console.error('Auth middleware error:', error);
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: 'Token is not valid' });
+      // If JWT invalid, attempt API key auth before failing
+      const { apiKeyAuth } = await import('./apiKeyAuth');
+      return apiKeyAuth(req, res, next);
     }
     res.status(401).json({ message: 'Authentication failed' });
   }

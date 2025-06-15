@@ -121,4 +121,22 @@ export const authCommand = new Command('auth')
           console.error(chalk.red('Error:'), error.message);
         }
       })
+  )
+  .addCommand(
+    new Command('use-key')
+      .description('Save an API key issued from the Labnex dashboard (no email/password login required).')
+      .argument('<token>', 'API key that starts with lab_')
+      .action(async (token: string) => {
+        try {
+          if (!token || token.length < 10) {
+            console.error(chalk.red('Invalid token.'));
+            return;
+          }
+
+          await updateConfig({ token });
+          console.log(chalk.green('✓ API key saved. You can now run Labnex commands.'));
+        } catch (error: any) {
+          console.error(chalk.red('Failed to save key:'), error.message);
+        }
+      })
   ); 

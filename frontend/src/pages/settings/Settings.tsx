@@ -19,6 +19,7 @@ import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'; // Added LoadingSpinner import
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate for navigation
 import { CogIcon } from '@heroicons/react/24/outline'; // Example icon for integrations
+import { SettingsApiKeysPage } from './SettingsApiKeysPage'; // Import the new API Keys page component
 
 // Custom Toggle Switch Component
 interface ToggleSwitchProps {
@@ -419,8 +420,11 @@ const Settings: React.FC = () => {
             disabled={notificationPrefsMutation.isPending}
           />
         </div>
-        {/* Add more notification preferences here as needed */}
+        {/* Additional notification preferences can be added here in the future */}
       </section>
+
+      {/* API Keys Section */}
+      <SettingsApiKeysPage />
 
       {/* Delete Account Section */}
       <section className="card p-6 sm:p-8 border-red-500/50 dark:border-red-500/30">
