@@ -97,8 +97,9 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 
-// Routes
+// Routes (order matters: place testRunnerRoutes before generic project routes)
 app.use('/api/auth', authRoutes);
+app.use('/api', testRunnerRoutes); // includes /projects/:projectId/test-runs etc.
 app.use('/api/projects', projectRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -112,7 +113,6 @@ app.use('/api/tasks', myTaskRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api', testRunnerRoutes);
 app.use('/api/support', supportRoutes);
 
 // Health check endpoint
