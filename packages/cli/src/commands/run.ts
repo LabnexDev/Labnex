@@ -5,7 +5,7 @@ import inquirer from 'inquirer';
 import { apiClient } from '../api/client';
 // LocalBrowserExecutor will be imported lazily so the CLI can build without the executor package built yet.
 let LocalBrowserExecutor: any;
-import { TestCaseResult } from '../lib/testTypes';
+import { TestCaseResult } from '@labnex/executor';
 
 export const runCommand = new Command('run')
     .description('Execute tests for a specified project using local or cloud resources.')
@@ -218,7 +218,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
     console.log(chalk.gray(`Timeout per test: ${timeout}ms`));
 
     if (!LocalBrowserExecutor) {
-        const mod = await import('../localBrowserExecutor');
+        const mod = await import('@labnex/executor');
         LocalBrowserExecutor = mod.LocalBrowserExecutor;
     }
     const executor = new LocalBrowserExecutor({

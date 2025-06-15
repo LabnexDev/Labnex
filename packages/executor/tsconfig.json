@@ -12,7 +12,12 @@
     "strict": true,
     "esModuleInterop": true,
     "types": ["node"],
-    "composite": true
+    "composite": true,
+    "moduleResolution": "node"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }
