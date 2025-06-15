@@ -14,5 +14,9 @@
     "types": ["node"],
     "composite": true
   },
-  "include": ["src", "../cli/src/**/*"]
+  "include": ["src", "../cli/src/**/*"],
+  "exclude": [
+    "../cli/src/**/*.test.ts",
+    "../cli/src/**/*.spec.ts"
+  ]
 } 
