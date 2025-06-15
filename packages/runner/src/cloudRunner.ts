@@ -59,7 +59,7 @@ async function executeRun(run: TestRun) {
   try {
     // Lazy-load executor
     if (!LocalBrowserExecutor) {
-      const mod = await import('@labnex/cli/dist/localBrowserExecutor');
+      const mod = await import('@labnex/executor');
       LocalBrowserExecutor = mod.LocalBrowserExecutor || mod.default || mod;
     }
 
