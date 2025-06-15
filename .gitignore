@@ -45,4 +45,8 @@ coverage
 
 # System Files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Ignore compiled JS/TS declaration files generated in source folders
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts 

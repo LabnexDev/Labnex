@@ -6,5 +6,10 @@
   ],
   "scripts": {
     "build": "npm run build -w @labnex/executor && npm run build -w @labnex/cli && npm run build -w @labnex/cloud-runner"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.1"
   }
 }

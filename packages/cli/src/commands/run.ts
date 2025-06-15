@@ -3,7 +3,8 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { apiClient } from '../api/client';
-import { LocalBrowserExecutor } from '@labnex/executor';
+// LocalBrowserExecutor will be imported lazily so the CLI can build without the executor package built yet.
+let LocalBrowserExecutor: any;
 import { TestCaseResult } from '../lib/testTypes';
 
 export const runCommand = new Command('run')
@@ -216,6 +217,10 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
     console.log(chalk.gray(`Browser mode: ${headless ? 'Headless' : 'Headed'}`));
     console.log(chalk.gray(`Timeout per test: ${timeout}ms`));
 
+    if (!LocalBrowserExecutor) {
+        const mod = await import('@labnex/executor');
+        LocalBrowserExecutor = mod.LocalBrowserExecutor;
+    }
     const executor = new LocalBrowserExecutor({
         headless,
         aiOptimizationEnabled: optimizeAi
