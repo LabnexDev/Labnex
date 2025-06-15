@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import ApiKey from '../models/apiKey';
-import { IRequest } from '../middleware/auth'; // Assuming IRequest extends express.Request and has a user property
 
 const KEY_PREFIX = 'lab_rk_';
 const KEY_BYTE_LENGTH = 32;
@@ -19,7 +18,7 @@ const hashApiKey = (key: string) => {
  * Generate a new API key for the authenticated user.
  * The plaintext key is only returned once in this response.
  */
-export const createApiKey = async (req: IRequest, res: Response) => {
+export const createApiKey = async (req: Request & { user?: any }, res: Response) => {
   try {
     const { label } = req.body;
     const userId = req.user?._id;
@@ -64,7 +63,7 @@ export const createApiKey = async (req: IRequest, res: Response) => {
 /**
  * List all API keys for the authenticated user.
  */
-export const listApiKeys = async (req: IRequest, res: Response) => {
+export const listApiKeys = async (req: Request & { user?: any }, res: Response) => {
   try {
     const userId = req.user?._id;
     if (!userId) {
@@ -82,7 +81,7 @@ export const listApiKeys = async (req: IRequest, res: Response) => {
 /**
  * Revoke (delete) an API key by its ID.
  */
-export const revokeApiKey = async (req: IRequest, res: Response) => {
+export const revokeApiKey = async (req: Request & { user?: any }, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?._id;

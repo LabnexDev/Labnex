@@ -24,12 +24,12 @@ export const apiKeyAuth = async (req: Request, res: Response, next: NextFunction
     apiKeyDoc.lastUsedAt = new Date();
     apiKeyDoc.save().catch((e) => console.error('Failed to update lastUsedAt for API key', e));
 
-    // attach user info
+    const userAny = apiKeyDoc.user as any;
     (req as any).user = {
-      id: apiKeyDoc.user._id.toString(),
-      name: apiKeyDoc.user.name,
-      email: apiKeyDoc.user.email,
-      systemRole: apiKeyDoc.user.systemRole || null,
+      id: userAny._id.toString(),
+      name: userAny.name,
+      email: userAny.email,
+      systemRole: userAny.systemRole || null,
     };
     (req as any).apiKeyId = apiKeyDoc._id.toString();
 
