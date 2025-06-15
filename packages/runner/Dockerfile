@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Copy workspace packages
+COPY packages/executor ./packages/executor
 COPY packages/cli ./packages/cli
 COPY packages/runner ./packages/runner
 
