@@ -49,4 +49,6 @@ Thumbs.db
 
 # Ignore compiled JS/TS declaration files generated in source folders
 packages/*/src/**/*.js
-packages/*/src/**/*.d.ts 
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts.map 
