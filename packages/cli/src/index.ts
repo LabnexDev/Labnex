@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { program } from 'commander';
+import { program, Help } from 'commander';
 import chalk from 'chalk';
 import figlet from 'figlet';
 import { authCommand } from './commands/auth';
@@ -77,74 +77,90 @@ async function main() {
   program.addCommand(setupConfigCommands());
   program.addCommand(listCommand);
 
-  // Enhanced help
+  const defaultHelper = new Help();
+
   program.configureHelp({
     sortSubcommands: true,
     showGlobalOptions: true,
     helpWidth: 100,
-    subcommandTerm: (cmd) => cmd.name(),
-    optionTerm: (option) => {
-      return option.flags;
-    },
+
+    // Colorize the option/command terms
+    subcommandTerm: (cmd) => chalk.cyan(cmd.name()),
+    optionTerm: (option) => chalk.yellow(option.flags),
+
+    // Friendly description fallbacks
     subcommandDescription: (cmd) => {
-      const descriptions: { [key: string]: string } = {
-        'run': 'Execute tests for a project (local/cloud)',
-        'status': 'Monitor test execution status',
-        'list': 'List resources (projects, tests)',
-        'auth': 'Manage authentication and API token settings',
-        'projects': 'Manage projects (create, list, show details)',
-        'ai': 'Access AI-powered features (generate, optimize tests)',
-        'analyze': 'Analyze test results and identify failure reasons',
-        'config': 'Configure Labnex CLI settings (API URL, verbosity)'
+      const descriptions: Record<string, string> = {
+        run: 'Execute tests for a project (local/cloud)',
+        status: 'Monitor test execution status',
+        list: 'List resources (projects, tests)',
+        auth: 'Manage authentication and API token settings',
+        projects: 'Manage projects (create, list, show details)',
+        ai: 'Access AI-powered features (generate, optimize, analyze)',
+        analyze: 'Analyze test results and identify failure causes',
+        config: 'Configure Labnex CLI settings'
       };
       return descriptions[cmd.name()] || cmd.description();
     },
-    commandUsage: (cmd) => {
-      let usage = cmd.usage();
-      if (cmd.commands.length > 0) {
-        usage += ' [command]';
+
+    // Custom global formatter only for the root program
+    formatHelp: (cmd, helper) => {
+      if (cmd === program) {
+        const line = (title: string) => `${chalk.gray('─'.repeat(1))} ${chalk.bold(title)} ${chalk.gray('─'.repeat(60 - title.length))}`;
+
+        let out = '\n' + chalk.bold.cyan('Labnex CLI — AI-Powered Testing Automation Platform') + '\n';
+        out += chalk.gray('='.repeat(80)) + '\n\n';
+
+        // Usage
+        out += line('USAGE') + '\n  ' + chalk.cyan(helper.commandUsage(cmd)) + '\n\n';
+
+        // Commands grouped by category
+        out += line('COMMANDS') + '\n';
+        const commandCategories: Record<string, string[]> = {
+          'Test Execution': ['run', 'status'],
+          'Project Management': ['projects', 'list'],
+          Authentication: ['auth'],
+          'AI & Analysis': ['ai', 'analyze'],
+          Configuration: ['config']
+        };
+        for (const [category, names] of Object.entries(commandCategories)) {
+          out += `\n  ${chalk.bold.cyan(category)}`;
+          names.forEach((name) => {
+            const sub = cmd.commands.find((c: any) => c.name() === name);
+            if (sub) {
+              const desc = helper.subcommandDescription(sub);
+              out += `\n    ${chalk.cyan(name.padEnd(12))} ${desc}`;
+            }
+          });
+          out += '\n';
+        }
+
+        // Global options
+        out += line('GLOBAL OPTIONS') + '\n';
+        helper.visibleOptions(cmd).forEach((opt) => {
+          out += `  ${chalk.yellow(opt.flags.padEnd(25))} ${opt.description}\n`;
+        });
+
+        // Examples section (taken from previous help text)
+        out += '\n' + chalk.bold('EXAMPLES:') + '\n';
+        out += `  ${chalk.cyan('labnex run --project 6832ac498153de9c85b03727')}\n    Run all tests for a project locally\n\n`;
+        out += `  ${chalk.cyan('labnex run --project 6832ac498153de9c85b03727 --test-id 68362689160c68e7f548621d')}\n    Run a specific test case\n\n`;
+        out += `  ${chalk.cyan('labnex run --project MYAPP --mode cloud --parallel 8')}\n    Run tests in cloud with 8 parallel workers\n\n`;
+        out += `  ${chalk.cyan('labnex list projects')}\n    List all available projects\n\n`;
+        out += `  ${chalk.cyan('labnex list tests 6832ac498153de9c85b03727')}\n    List test cases for a specific project\n\n`;
+        out += `  ${chalk.cyan('labnex status')}\n    Check overall test execution status\n\n`;
+        out += `  ${chalk.cyan('labnex ai generate --description "Test login functionality"')}\n    Generate a test case using AI\n\n`;
+        out += `  ${chalk.cyan('labnex ai optimize --project LABX')}\n    Optimize test suite for a project\n\n`;
+        out += `  ${chalk.cyan('labnex analyze failure --run-id <run-id>')}\n    Analyze a test failure with AI\n`;
+
+        out += chalk.gray('='.repeat(80)) + '\n';
+        out += chalk.cyan('Documentation: ') + 'https://labnexdev.github.io/Labnex\n';
+        return out;
       }
-      return usage;
+      // Fallback to default helper for sub-command help
+      return defaultHelper.formatHelp(cmd, helper);
     }
   });
-
-  // Add examples to help
-  program.addHelpText('after', `
-${chalk.bold('Examples:')}
-  ${chalk.cyan('labnex run --project-id 6832ac498153de9c85b03727')}
-    Run all tests for a project locally
-
-  ${chalk.cyan('labnex run --project-id 6832ac498153de9c85b03727 --test-id 68362689160c68e7f548621d')}
-    Run a specific test case
-
-  ${chalk.cyan('labnex run --project-id 6832ac498153de9c85b03727 --mode cloud --parallel 8')}
-    Run tests in cloud with 8 parallel workers
-
-  ${chalk.cyan('labnex list projects')}
-    List all available projects
-
-  ${chalk.cyan('labnex list tests 6832ac498153de9c85b03727')}
-    List test cases for a specific project
-
-  ${chalk.cyan('labnex status')}
-    Check overall test execution status
-
-  ${chalk.cyan('labnex ai generate --description "Test login functionality"')}
-    Generate a test case using AI
-
-  ${chalk.cyan('labnex ai optimize --project LABX')}
-    Optimize test suite for a project
-
-  ${chalk.cyan('labnex analyze failure --run-id <run-id>')}
-    Analyze a test failure with AI
-
-${chalk.bold('Configuration:')}
-  Run ${chalk.cyan('labnex config set')} to configure API settings
-  Run ${chalk.cyan('labnex auth login')} to authenticate with Labnex
-
-${chalk.bold('Documentation:')}
-  Visit https://labnexdev.github.io/Labnex for detailed documentation
-`);
 
   // Parse command line arguments
   await program.parseAsync(process.argv);

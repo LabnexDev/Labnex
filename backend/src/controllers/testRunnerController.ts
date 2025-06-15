@@ -457,3 +457,30 @@ async function executeTestRun(runId: string) {
     }
   }
 }
+
+export const listTestRuns = async (req: AuthRequest, res: Response) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser?.id) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const projectId = req.params.projectId;
+
+    // Check access
+    const hasAccess = await checkProjectAccess(projectId, currentUser.id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this project' });
+    }
+
+    const runs = await TestRun.find({ project: projectId })
+      .sort({ createdAt: -1 })
+      .select('-testResults') // omit verbose step results for listing
+      .lean();
+
+    res.json({ success: true, data: runs });
+  } catch (error: any) {
+    console.error('Error listing test runs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};

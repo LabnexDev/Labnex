@@ -4,6 +4,7 @@ import {
   getTestRun,
   getTestRunResults,
   cancelTestRun,
+  listTestRuns,
 } from '../controllers/testRunnerController';
 import { auth } from '../middleware/auth';
 
@@ -14,6 +15,7 @@ const router = express.Router();
 
 // Test run routes - Apply auth middleware individually
 router.post('/projects/:projectId/test-runs', auth, createTestRun);
+router.get('/projects/:projectId/test-runs', auth, listTestRuns);
 router.get('/test-runs/:runId', auth, getTestRun);
 router.get('/test-runs/:runId/results', auth, getTestRunResults);
 router.post('/test-runs/:runId/cancel', auth, cancelTestRun);

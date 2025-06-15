@@ -352,6 +352,39 @@ export class LabnexApiClient {
     return response.data;
   }
 
+  // Test Runs list for a project
+  async getTestRuns(projectId: string): Promise<ApiResponse<TestRun[]>> {
+    const candidatePaths = [
+      `/projects/${projectId}/runs`,
+      `/projects/${projectId}/test-runs`, // alt pattern
+      { path: '/runs', params: { projectId } }, // query param style
+      { path: '/test-runs', params: { projectId } }
+    ];
+
+    for (const c of candidatePaths) {
+      try {
+        const res =
+          typeof c === 'string'
+            ? await this.api.get(c)
+            : await this.api.get(c.path, { params: c.params });
+        if (Array.isArray(res.data)) {
+          return { success: true, data: res.data };
+        }
+      } catch (e: any) {
+        if (e.response?.status !== 404) {
+          // Non-404 error, stop trying further
+          return {
+            success: false,
+            data: [],
+            error: e instanceof Error ? e.message : 'Unknown error'
+          };
+        }
+        // else continue to next pattern
+      }
+    }
+    return { success: false, data: [], error: 'Runs endpoint not found (tried multiple variants)' };
+  }
+
   // AI Features
   async generateTestCase(description: string): Promise<ApiResponse<{
     title: string;

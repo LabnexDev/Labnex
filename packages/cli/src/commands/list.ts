@@ -9,26 +9,43 @@ export const listCommand = new Command('list')
   .addCommand(
     new Command('projects')
       .description('List all available projects.')
-      .action(async () => {
+      .option('--format <format>', 'Output format (table, json)', 'table')
+      .action(async (options) => {
         try {
           const spinner = ora('Fetching projects...').start();
-          const response = await apiClient.getProjects();
 
+          const response = await apiClient.getProjects();
+          
           if (response.success) {
-            spinner.succeed('✅ Projects retrieved successfully!');
-            
-            console.log('\nAvailable Projects:\n');
-            response.data.forEach((project: any) => {
-              console.log(`  ${chalk.bold(project.name)} (Code: ${chalk.cyan(project.projectCode)}, ID: ${project._id})`);
-              if (project.description) {
-                console.log(`    ${chalk.gray(project.description)}`);
-              }
+            spinner.succeed(`Found ${response.data.length} projects`);
+
+            if (options.format === 'json') {
+              console.log(JSON.stringify(response.data, null, 2));
+              return;
+            }
+
+            // Table output
+            const table = new Table({
+              head: ['Project', 'Name', 'Tests', 'Status'],
+              colWidths: [12, 24, 12, 12]
             });
+
+            response.data.forEach((proj: any) => {
+              table.push([
+                proj.projectCode,
+                proj.name,
+                `${proj.testCaseCount} tests`,
+                proj.isActive ? chalk.green('✅ Active') : chalk.gray('Inactive')
+              ]);
+            });
+
+            console.log(table.toString());
+
           } else {
-            spinner.fail(chalk.red(`Failed to fetch projects: ${response.error}`));
+            spinner.fail(chalk.red('Failed to fetch projects'));
           }
         } catch (error: any) {
-          console.error(chalk.red(`Error: ${error.message}`));
+          console.error(chalk.red('Error:'), error.message);
         }
       })
   )
@@ -84,6 +101,66 @@ export const listCommand = new Command('list')
         } catch (error: any) {
           spinner.fail(chalk.red(`Error: ${error.message}`));
           console.error(chalk.red(`Error details: ${error.stack}`));
+        }
+      })
+  )
+  .addCommand(
+    new Command('runs')
+      .description('List test runs for a specific project.')
+      .argument('<projectCode>', 'The code of the project')
+      .option('--format <fmt>', 'table or json', 'table')
+      .action(async (projectCode, options) => {
+        const spinner = ora(`Fetching test runs for project ${chalk.cyan(projectCode)}...`).start();
+        try {
+          const projectsResponse = await apiClient.getProjects();
+          if (!projectsResponse.success) {
+            spinner.fail(chalk.red(`Failed to fetch projects: ${projectsResponse.error}`));
+            return;
+          }
+
+          const project = projectsResponse.data.find(p => p.projectCode === projectCode.toUpperCase());
+          if (!project) {
+            spinner.fail(chalk.red(`Project with code "${projectCode}" not found.`));
+            return;
+          }
+
+          const runsResponse = await apiClient.getTestRuns(project._id);
+          if (runsResponse.success) {
+            spinner.succeed(`✅ Found ${runsResponse.data.length} runs.`);
+
+            if (options.format === 'json') {
+              console.log(JSON.stringify(runsResponse.data, null, 2));
+              return;
+            }
+
+            if (runsResponse.data.length === 0) {
+              console.log(chalk.yellow('No runs found for this project.'));
+              return;
+            }
+
+            const table = new Table({
+              head: ['Run ID', 'Status', 'Tests', 'Passed', 'Failed', 'Duration', 'Started'],
+              colWidths: [26, 10, 8, 8, 8, 10, 22]
+            });
+
+            runsResponse.data.forEach((run: any) => {
+              table.push([
+                run._id,
+                run.status,
+                run.results?.total ?? '-',
+                run.results?.passed ?? '-',
+                run.results?.failed ?? '-',
+                ((run.results?.duration || 0) / 1000).toFixed(1) + 's',
+                new Date(run.createdAt).toLocaleString()
+              ]);
+            });
+
+            console.log(table.toString());
+          } else {
+            spinner.fail(chalk.red(`Failed to fetch test runs: ${runsResponse.error}`));
+          }
+        } catch (error: any) {
+          spinner.fail(chalk.red(`Error: ${error.message}`));
         }
       })
   ); 

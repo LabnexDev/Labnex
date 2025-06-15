@@ -8,19 +8,53 @@ import { TestCaseResult } from '../lib/testTypes';
 
 export const runCommand = new Command('run')
     .description('Execute tests for a specified project using local or cloud resources.')
-    .option('-p, --project-id <id>', 'Project ID to run tests for')
+    .option('-p, --project <codeOrId>', 'Project code or ID to run tests for')
+    .option('--project-id <id>', 'DEPRECATED: use --project instead')
     .option('-t, --test-id <id>', 'Run a specific test case by ID')
     .option('--test-ids <ids>', 'Comma-separated list of test case IDs to run')
     .option('-e, --environment <env>', 'Environment to run tests against', 'staging')
     .option('-m, --mode <mode>', 'Execution mode: local or cloud', 'local')
     .option('-b, --base-url <url>', 'Base URL of the application under test')
-    .option('--optimize-ai', 'Enable AI optimization for element finding')
+    .option('--optimize-ai', 'Enable AI optimization for element finding (deprecated – use --ai-optimize)')
+    .option('--ai-optimize', 'Enable AI optimization for element finding')
     .option('--parallel <number>', 'Number of parallel workers (cloud mode)', '4')
     .option('--headless', 'Run in headless mode (local mode)', false)
     .option('--timeout <ms>', 'Test timeout in milliseconds', '300000')
     .action(async (options) => {
         try {
-            let projectId = options.projectId;
+            let projectId: string | undefined;
+            let projectCode: string | undefined;
+
+            if (options.project) {
+                if (/^[a-f0-9]{24}$/i.test(options.project)) {
+                    projectId = options.project;
+                } else {
+                    projectCode = options.project.toUpperCase();
+                }
+            } else if (options.projectId) {
+                projectId = options.projectId;
+            }
+
+            // If we received a project *code*, look up its ID first.
+            if (!projectId && projectCode) {
+                const lookupSpinner = ora(`Resolving project code ${projectCode}...`).start();
+                try {
+                    const response = await apiClient.getProjects();
+                    if (response.success) {
+                        const match = response.data.find((p: any) => p.projectCode === projectCode);
+                        if (match) {
+                            projectId = match._id;
+                            lookupSpinner.succeed(chalk.green(`Project resolved: ${match.projectCode} (${match.name})`));
+                        } else {
+                            lookupSpinner.fail(chalk.red(`Project code not found: ${projectCode}`));
+                        }
+                    } else {
+                        lookupSpinner.fail(chalk.red(`Failed to fetch projects: ${response.error || 'unknown error'}`));
+                    }
+                } catch (err: any) {
+                    lookupSpinner.fail(chalk.red(`Error fetching projects: ${err.message}`));
+                }
+            }
 
             if (!projectId) {
                 const spinner = ora('Fetching your projects...').start();
@@ -82,10 +116,18 @@ export async function runTests(options: any) {
     const aiOptimize = options.optimizeAi;
     const verbose = process.env.LABNEX_VERBOSE === 'true';
 
-    console.log(chalk.cyan(`🚀 Initializing test run...`));
-    console.log(chalk.gray(`📝 Project ID: ${projectId}`));
-    console.log(chalk.gray(`💻 Execution Mode: ${mode === 'local' ? 'Local Machine' : 'Labnex Cloud'}`));
-    console.log(chalk.gray(`🌍 Environment: ${environment}`));
+    const pkg = require('../../package.json');
+    console.log(chalk.bold(`🚀 Labnex CLI v${pkg.version}`));
+    console.log(chalk.gray('─'.repeat(40)));
+    // Project info will be printed after fetching project details.
+    if (aiOptimize) {
+        console.log(chalk.cyan('✓ AI optimization enabled'));
+    }
+    console.log(chalk.cyan(`✓ Environment: ${environment}`));
+    if (options.parallel) {
+        console.log(chalk.cyan(`✓ Parallel execution: ${options.parallel} workers`));
+    }
+
     if (aiOptimize) {
         console.log(chalk.gray(`🤖 AI Optimization: enabled`));
     }
@@ -108,7 +150,8 @@ export async function runTests(options: any) {
                 if (verbose) {
                     console.log('[DEBUG] Found project:', JSON.stringify(project, null, 2));
                 }
-                projectsSpinner.succeed(chalk.green(`✅ Project found: ${project.name} (${project._id})`));
+                projectsSpinner.succeed(chalk.green(`✅ Project found: ${project.projectCode} (${project.name})`));
+                console.log(chalk.cyan(`✓ Project: ${project.projectCode} (${project.name})`));
             } else {
                 projectsSpinner.fail(chalk.red(`❌ Project not found: ${projectId}`));
                 return;
@@ -172,9 +215,27 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
         aiOptimizationEnabled: optimizeAi
     });
 
+    // --- AI Analysis banner (informational) ---
+    console.log(chalk.bold.cyan('\n🧠 AI Analysis:'));
+    console.log(`• ${chalk.yellow(testCases.length)} test cases found`);
+    if (optimizeAi) {
+        console.log('• Prioritizing critical path tests');
+    }
+    // rough estimate: 4s per test
+    const estSeconds = (testCases.length * 4).toFixed(0);
+    console.log(`• Estimated time: ${estSeconds} seconds`);
+
+    // helper for progress bar
+    const makeBar = (current: number, total: number, barWidth = 20) => {
+        const filled = Math.round((current / total) * barWidth);
+        return '█'.repeat(filled).padEnd(barWidth, '░');
+    };
+
     try {
         await executor.initialize();
         const results: TestCaseResult[] = [];
+        const total = testCases.length;
+        let index = 0;
         for (const testCase of testCases) {
             const result = await executor.executeTestCase(
                 testCase._id,
@@ -184,7 +245,15 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
                 testCase.title
             );
             results.push(result);
+
+            // progress line (overwrite)
+            index++;
+            const bar = makeBar(index, total);
+            const statusIcon = result.status === 'passed' ? chalk.green('✅') : chalk.red('❌');
+            const line = `${testCase.title.substring(0, 20)} ${bar} ${Math.round((index/total)*100)}% (${index}/${total}) ${statusIcon} ${(result.duration/1000).toFixed(1)}s`;
+            process.stdout.write(`\r${line}`);
         }
+        process.stdout.write('\n');
         await executor.cleanup();
 
         console.log(chalk.bold.cyan('\n┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓'));
@@ -207,6 +276,16 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
                 // console.log(chalk.red.dim(`  Screenshot: ${result.screenshot || 'Not available'}`));
             }
         });
+
+        // summary block
+        const passed = results.filter(r => r.status === 'passed').length;
+        const failed = results.length - passed;
+        const durationTotal = results.reduce((acc, r) => acc + (r.duration || 0), 0);
+        console.log(chalk.bold.cyan('\n📊 Results Summary:'));
+        console.log(`• Passed: ${passed}/${results.length} tests ${failed === 0 ? chalk.green('✅') : chalk.red('❌')}`);
+        console.log(`• Duration: ${(durationTotal / 1000).toFixed(1)} seconds`);
+        const successRate = ((passed / results.length) * 100).toFixed(0);
+        console.log(`• Success Rate: ${successRate}%`);
     } catch (error: any) {
         console.error(chalk.red('\n❌ An error occurred during local test execution:'), error.message);
         await executor.cleanup();

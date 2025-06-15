@@ -49,6 +49,7 @@
   "devDependencies": {
     "@types/figlet": "^1.5.8",
     "@types/inquirer": "^8.2.10",
+    "@types/jest": "^29.5.14",
     "@types/node": "^18.15.11",
     "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
