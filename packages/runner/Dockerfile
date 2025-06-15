@@ -8,7 +8,7 @@ COPY packages/runner ./packages/runner
 
 # Install dependencies for runner
 WORKDIR /app/packages/runner
-RUN npm install --omit=dev && npm run build
+RUN npm ci && npm run build && npm prune --omit=dev
 
 # Final command
 CMD ["node", "dist/cloudRunner.js"] 
