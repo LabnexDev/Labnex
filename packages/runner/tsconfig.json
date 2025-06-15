@@ -9,7 +9,7 @@
     "types": ["node"],
     "baseUrl": "./",
     "paths": {
-      "@labnex/executor": ["../../executor/src"]
+      "@labnex/executor": ["../executor/src"]
     }
   },
   "include": ["src"]
