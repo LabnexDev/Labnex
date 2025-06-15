@@ -2,12 +2,16 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2020",
-    "rootDir": "src",
     "outDir": "dist",
+    "baseUrl": "./",
+    "paths": {
+      "@labnex/cli/*": ["../cli/src/*"],
+      "../cli/src/*": ["../cli/src/*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "types": ["node"],
     "composite": true
   },
-  "include": ["src"]
+  "include": ["src", "../cli/src/**/*"]
 } 

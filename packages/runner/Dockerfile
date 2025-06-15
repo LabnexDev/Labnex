@@ -14,11 +14,11 @@ COPY packages/runner ./packages/runner
 # Install deps for all workspaces (prod-only)
 RUN npm install --workspaces --include-workspace-root
 
-# Build executor first so its dist output is available
-RUN npm run build -w @labnex/executor
-
-# Build CLI (uses executor dist)
+# Build CLI first
 RUN npm run build -w @labnex/cli
+
+# Build executor (re-exports compiled CLI types)
+RUN npm run build -w @labnex/executor
 
 # Build runner
 RUN npm run build -w @labnex/cloud-runner
