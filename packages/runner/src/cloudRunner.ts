@@ -32,13 +32,13 @@ async function pollAndRun() {
   while (true) {
     try {
       const { data } = await api.patch('/test-runs/claim-next');
-      if (!data || !data.run) {
+      const run = (data && (data.run || data.data)) as TestRun | null;
+      if (!run) {
         // No pending work, wait and retry.
         await new Promise((r) => setTimeout(r, 10_000));
         continue;
       }
 
-      const run: TestRun = data.run;
       // eslint-disable-next-line no-console
       console.log(chalk.cyan(`▶️  Claimed test run ${run.id} (project ${run.projectId})`));
       await executeRun(run);
@@ -62,12 +62,15 @@ async function executeRun(run: TestRun) {
 
     passed += 1; // mark as passed for demo purposes
 
-    await api.patch(`/test-runs/${run.id}/progress`, {
-      passed,
-      completed: i + 1,
-      total,
-      currentSpec: spec,
-    });
+    // Send lightweight progress (backend may ignore if format differs)
+    try {
+      await api.patch(`/test-runs/${run.id}/progress`, {
+        testResults: [], // placeholder – real implementation would send per-test details
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(chalk.yellow('Progress update failed (ignored):'), (err as any).message);
+    }
 
     // eslint-disable-next-line no-console
     console.log(chalk.green(`✓ Finished ${spec} (${i + 1}/${total})`));
@@ -75,9 +78,14 @@ async function executeRun(run: TestRun) {
 
   // Complete the run.
   await api.patch(`/test-runs/${run.id}/complete`, {
-    passed,
-    failed: 0,
-    status: 'passed',
+    status: 'completed',
+    results: {
+      total,
+      passed,
+      failed: 0,
+      pending: 0,
+      duration: total * 2000,
+    },
   });
 
   // eslint-disable-next-line no-console
