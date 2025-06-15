@@ -2,10 +2,11 @@ import axios from 'axios';
 import chalk from 'chalk';
 
 interface TestRun {
-  id: string;
-  projectId: string;
+  _id: string;
+  project: string; // project ID
   status: string;
-  specFiles: string[];
+  testCases: string[]; // array of test case IDs
+  results?: { total: number; passed: number; failed: number; pending: number; duration: number };
 }
 
 const API_URL = process.env.API_URL || 'http://localhost:4000/api';
@@ -40,7 +41,7 @@ async function pollAndRun() {
       }
 
       // eslint-disable-next-line no-console
-      console.log(chalk.cyan(`▶️  Claimed test run ${run.id} (project ${run.projectId})`));
+      console.log(chalk.cyan(`▶️  Claimed test run ${run._id} (project ${run.project})`));
       await executeRun(run);
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -51,12 +52,12 @@ async function pollAndRun() {
 }
 
 async function executeRun(run: TestRun) {
-  // Simulate running tests by iterating over spec files.
-  const total = run.specFiles.length;
+  // Simulate running tests by iterating over test cases.
+  const total = run.testCases.length;
   let passed = 0;
 
   for (let i = 0; i < total; i += 1) {
-    const spec = run.specFiles[i];
+    const tcId = run.testCases[i];
     // Pretend each test takes ~2s.
     await new Promise((r) => setTimeout(r, 2_000));
 
@@ -64,7 +65,7 @@ async function executeRun(run: TestRun) {
 
     // Send lightweight progress (backend may ignore if format differs)
     try {
-      await api.patch(`/test-runs/${run.id}/progress`, {
+      await api.patch(`/test-runs/${run._id}/progress`, {
         testResults: [], // placeholder – real implementation would send per-test details
       });
     } catch (err) {
@@ -73,11 +74,11 @@ async function executeRun(run: TestRun) {
     }
 
     // eslint-disable-next-line no-console
-    console.log(chalk.green(`✓ Finished ${spec} (${i + 1}/${total})`));
+    console.log(chalk.green(`✓ Finished ${tcId} (${i + 1}/${total})`));
   }
 
   // Complete the run.
-  await api.patch(`/test-runs/${run.id}/complete`, {
+  await api.patch(`/test-runs/${run._id}/complete`, {
     status: 'completed',
     results: {
       total,
@@ -89,7 +90,7 @@ async function executeRun(run: TestRun) {
   });
 
   // eslint-disable-next-line no-console
-  console.log(chalk.greenBright(`✅ Completed run ${run.id}`));
+  console.log(chalk.greenBright(`✅ Completed run ${run._id}`));
 }
 
 pollAndRun(); 
