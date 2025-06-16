@@ -20,6 +20,9 @@ const RUNNER_TOKEN = process.env.RUNNER_TOKEN;
 // preserves existing behaviour.
 const DEFAULT_BASE_URL = process.env.BASE_URL || process.env.DEFAULT_BASE_URL || '';
 
+// Flag to let executor know it should not prompt for interactive input
+process.env.RUNNER_NON_INTERACTIVE = '1';
+
 if (!RUNNER_TOKEN) {
   // eslint-disable-next-line no-console
   console.error(chalk.red('❌ RUNNER_TOKEN environment variable not set. Exiting.'));
@@ -79,7 +82,12 @@ async function executeRun(run: TestRun) {
     await executor.initialize();
 
     const results: any[] = [];
-    const runBaseUrl: string = (run as any).config?.baseUrl || DEFAULT_BASE_URL;
+    const cfg: any = (run as any).config || {};
+    const runBaseUrl: string = cfg.baseUrl || DEFAULT_BASE_URL;
+    if (cfg.credentials) {
+      if (cfg.credentials.username) process.env.PROMPT_VALID_USERNAME = cfg.credentials.username;
+      if (cfg.credentials.password) process.env.PROMPT_VALID_PASSWORD = cfg.credentials.password;
+    }
     for (const tc of casesToRun) {
       // eslint-disable-next-line no-console
       console.log(chalk.blue(`▶ Executing ${tc.title}`));

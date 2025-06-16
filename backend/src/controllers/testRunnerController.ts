@@ -24,7 +24,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
     }
 
     const projectId = req.params.projectId;
-    const { testCases, parallel = 4, environment = 'staging', aiOptimization = false, suite, timeout, baseUrl } = req.body;
+    const { testCases, parallel = 4, environment = 'staging', aiOptimization = false, suite, timeout, baseUrl, credentials } = req.body;
 
     // Check project access (following existing pattern from testCaseController)
     const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
@@ -74,6 +74,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
         baseUrl,
         suite,
         timeout: timeout || 300000,
+        credentials,
       },
       results: {
         total: testCasesToRun.length,
@@ -394,13 +395,12 @@ async function executeTestRun(runId: string) {
       );
       
       if (testResultIndex !== -1) {
-        testRun.testResults[testResultIndex].status = result.status;
-        testRun.testResults[testResultIndex].duration = duration;
-        testRun.testResults[testResultIndex].message = result.message;
-        testRun.testResults[testResultIndex].error = result.error;
-        testRun.testResults[testResultIndex].logs = result.logs || [];
-        testRun.testResults[testResultIndex].screenshot = result.screenshot;
-        testRun.testResults[testResultIndex].completedAt = new Date();
+        (testRun.testResults as any)[testResultIndex] = {
+          ...(testRun.testResults as any)[testResultIndex],
+          ...result,
+        };
+        (testRun.testResults as any)[testResultIndex].duration = duration;
+        (testRun.testResults as any)[testResultIndex].completedAt = new Date();
       }
 
       // Update counters
@@ -511,8 +511,52 @@ export const claimNextRun = async (req: Request, res: Response) => {
 export const updateRunProgress = async (req: Request, res: Response) => {
   try {
     const runId = req.params.runId;
-    const { testResults } = req.body;
-    await TestRun.updateOne({ _id: runId }, { $set: { testResults } });
+    const { testResults } = req.body as { testResults: any[] };
+
+    if (!Array.isArray(testResults) || testResults.length === 0) {
+      return res.status(400).json({ success: false, error: 'testResults array required' });
+    }
+
+    const run = await TestRun.findById(runId);
+    if (!run) {
+      return res.status(404).json({ success: false, error: 'Test run not found' });
+    }
+
+    // Merge incoming results into existing list
+    for (const incoming of testResults) {
+      const idx = run.testResults.findIndex((r: any) => r.testCaseId.toString() === incoming.testCaseId);
+      if (idx !== -1) {
+        (run.testResults as any)[idx] = {
+          ...(run.testResults as any)[idx],
+          ...incoming,
+        };
+      } else {
+        // new result (should not usually happen)
+        run.testResults.push(incoming);
+      }
+    }
+
+    // Recalculate aggregated counters
+    const passed = run.testResults.filter((r: any) => r.status === 'pass').length;
+    const failed = run.testResults.filter((r: any) => r.status === 'fail').length;
+    const pending = run.testResults.filter((r: any) => r.status === 'pending').length;
+    run.results = {
+      total: run.testResults.length,
+      passed,
+      failed,
+      pending,
+      duration: run.results.duration, // leave duration, calculated later
+    };
+
+    await run.save();
+
+    // Broadcast progress to WebSocket listeners
+    broadcastUpdate(runId, {
+      type: 'progress',
+      completed: passed + failed,
+      total: run.testResults.length,
+    });
+
     res.json({ success: true });
   } catch (error: any) {
     console.error('Error updating run progress:', error);

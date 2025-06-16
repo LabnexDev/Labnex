@@ -339,6 +339,7 @@ export class LabnexApiClient {
     aiOptimization?: boolean;
     baseUrl?: string;
     useCloudRunner?: boolean;
+    credentials?: { username?: string; password?: string };
   }): Promise<ApiResponse<TestRun>> {
     const response = await this.api.post(`/projects/${projectId}/test-runs`, config);
     return response.data;

@@ -22,34 +22,53 @@ export async function handleType(
 
   // Handle placeholder prompting
   if (finalText === '__PROMPT_VALID_USERNAME__') {
-    if (!placeholderCache.username) {
-      const answer = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'username',
-          message: 'Enter a valid username to use for this test run:',
-          validate: (val: string) => val.trim() ? true : 'Username cannot be empty',
-        },
-      ]);
-      placeholderCache.username = answer.username.trim();
+    // Cloud/CI environment flag – do not prompt
+    if (process.env.RUNNER_NON_INTERACTIVE === '1') {
+      const envUsername = process.env.PROMPT_VALID_USERNAME || process.env.DEFAULT_USERNAME;
+      if (!envUsername) {
+        throw new Error('Username placeholder encountered but no username provided in non-interactive mode. Set PROMPT_VALID_USERNAME env var.');
+      }
+      finalText = envUsername;
+      addLog(`[PlaceholderPrompt] Using default username in non-interactive mode: "${finalText}"`);
+    } else {
+      if (!placeholderCache.username) {
+        const answer = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'username',
+            message: 'Enter a valid username to use for this test run:',
+            validate: (val: string) => val.trim() ? true : 'Username cannot be empty',
+          },
+        ]);
+        placeholderCache.username = answer.username.trim();
+      }
+      finalText = placeholderCache.username as string;
+      addLog(`[PlaceholderPrompt] Filled username placeholder with user-provided value.`);
     }
-    finalText = placeholderCache.username as string;
-    addLog(`[PlaceholderPrompt] Filled username placeholder with user-provided value.`);
   } else if (finalText === '__PROMPT_VALID_PASSWORD__') {
-    if (!placeholderCache.password) {
-      const answer = await inquirer.prompt([
-        {
-          type: 'password',
-          name: 'password',
-          message: 'Enter a valid password to use for this test run:',
-          mask: '*',
-          validate: (val: string) => val.trim() ? true : 'Password cannot be empty',
-        },
-      ]);
-      placeholderCache.password = answer.password;
+    if (process.env.RUNNER_NON_INTERACTIVE === '1') {
+      const envPw = process.env.PROMPT_VALID_PASSWORD || process.env.DEFAULT_PASSWORD;
+      if (!envPw) {
+        throw new Error('Password placeholder encountered but no password provided in non-interactive mode. Set PROMPT_VALID_PASSWORD env var.');
+      }
+      finalText = envPw;
+      addLog(`[PlaceholderPrompt] Using default password in non-interactive mode.`);
+    } else {
+      if (!placeholderCache.password) {
+        const answer = await inquirer.prompt([
+          {
+            type: 'password',
+            name: 'password',
+            message: 'Enter a valid password to use for this test run:',
+            mask: '*',
+            validate: (val: string) => val.trim() ? true : 'Password cannot be empty',
+          },
+        ]);
+        placeholderCache.password = answer.password;
+      }
+      finalText = placeholderCache.password as string;
+      addLog(`[PlaceholderPrompt] Filled password placeholder with user-provided value.`);
     }
-    finalText = placeholderCache.password as string;
-    addLog(`[PlaceholderPrompt] Filled password placeholder with user-provided value.`);
   }
 
   addLog(`Attempting to type "${finalText}" into element identified by "${selector}"`);

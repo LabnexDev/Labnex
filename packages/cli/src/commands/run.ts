@@ -19,6 +19,8 @@ export const runCommand = new Command('run')
     .option('-b, --base-url <url>', 'Base URL of the application under test')
     .option('--optimize-ai', 'Enable AI optimization for element finding (deprecated – use --ai-optimize)')
     .option('--ai-optimize', 'Enable AI optimization for element finding')
+    .option('--username <username>', 'Username to use when tests contain login placeholders')
+    .option('--password <password>', 'Password to use when tests contain login placeholders')
     .option('--parallel <number>', 'Number of parallel workers (cloud mode)', '4')
     .option('--headless', 'Run in headless mode (local mode)', false)
     .option('--timeout <ms>', 'Test timeout in milliseconds', '300000')
@@ -306,7 +308,6 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
 async function runTestsInCloud(testCases: any[], project: any, options: any) {
     let baseUrlOption = options.baseUrl as string | undefined;
     if (!baseUrlOption) {
-        // Ask user once if not provided
         const answer = await inquirer.prompt([
             {
                 type: 'input',
@@ -319,6 +320,22 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
         baseUrlOption = answer.baseUrl;
     }
 
+    // Detect if any placeholder credentials present in steps
+    const needsUsername = testCases.some((tc: any)=> tc.steps.some((s: string)=> s.includes('__PROMPT_VALID_USERNAME__')));
+    const needsPassword = testCases.some((tc: any)=> tc.steps.some((s: string)=> s.includes('__PROMPT_VALID_PASSWORD__')));
+
+    let usernameOpt = options.username as string | undefined;
+    let passwordOpt = options.password as string | undefined;
+
+    if (needsUsername && !usernameOpt) {
+       const ans = await inquirer.prompt([{ type:'input', name:'username', message:'Enter username for login placeholders:' }]);
+       usernameOpt = ans.username;
+    }
+    if (needsPassword && !passwordOpt) {
+       const ans = await inquirer.prompt([{ type:'password', name:'password', message:'Enter password for login placeholders:', mask:'*' }]);
+       passwordOpt = ans.password;
+    }
+
     const spinner = ora('Creating cloud test run...').start();
     try {
         const response = await apiClient.createTestRun(project._id, {
@@ -327,7 +344,8 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
             environment: options.environment,
             aiOptimization: !!options.optimizeAi,
             baseUrl: baseUrlOption,
-            useCloudRunner: true
+            useCloudRunner: true,
+            credentials: { username: usernameOpt, password: passwordOpt }
         });
 
         if (!response.success) {

@@ -24,6 +24,10 @@ export interface ITestRun extends Document {
     baseUrl?: string;
     suite?: string;
     timeout?: number;
+    credentials?: {
+      username?: string;
+      password?: string;
+    };
   };
   results: {
     total: number;
@@ -130,6 +134,16 @@ const testRunSchema = new Schema<ITestRun>(
         default: 300000, // 5 minutes
         min: 30000, // 30 seconds
         max: 3600000, // 1 hour
+      },
+      credentials: {
+        username: {
+          type: String,
+          trim: true,
+        },
+        password: {
+          type: String,
+          trim: true,
+        },
       },
     },
     results: {
