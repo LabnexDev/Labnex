@@ -337,6 +337,7 @@ export class LabnexApiClient {
     parallel?: number;
     environment?: string;
     aiOptimization?: boolean;
+    baseUrl?: string;
     useCloudRunner?: boolean;
   }): Promise<ApiResponse<TestRun>> {
     const response = await this.api.post(`/projects/${projectId}/test-runs`, config);

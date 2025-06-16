@@ -39,6 +39,12 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     return apiKeyAuth(req, res, next);
   }
 
+  // If token does not appear to be a JWT (no two dots present) treat it as an API key immediately
+  if (!token.includes('.')) {
+    const { apiKeyAuth } = await import('./apiKeyAuth');
+    return apiKeyAuth(req, res, next);
+  }
+
   try {
     console.log('Auth middleware: Verifying token');
     const secret = process.env.JWT_SECRET;

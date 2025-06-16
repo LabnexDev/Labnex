@@ -7,11 +7,18 @@ interface TestRun {
   status: string;
   testCases: string[]; // array of test case IDs
   results?: { total: number; passed: number; failed: number; pending: number; duration: number };
+  config?: { baseUrl?: string };
 }
 
 const DEFAULT_API_URL = 'https://labnex-backend.onrender.com/api';
 const API_URL = process.env.API_URL || DEFAULT_API_URL;
 const RUNNER_TOKEN = process.env.RUNNER_TOKEN;
+
+// Allow overriding a default base URL via environment variable so that
+// the executor running in non-interactive mode never blocks waiting for
+// an inquirer prompt. If not set we fall back to an empty string which
+// preserves existing behaviour.
+const DEFAULT_BASE_URL = process.env.BASE_URL || process.env.DEFAULT_BASE_URL || '';
 
 if (!RUNNER_TOKEN) {
   // eslint-disable-next-line no-console
@@ -72,6 +79,7 @@ async function executeRun(run: TestRun) {
     await executor.initialize();
 
     const results: any[] = [];
+    const runBaseUrl: string = (run as any).config?.baseUrl || DEFAULT_BASE_URL;
     for (const tc of casesToRun) {
       // eslint-disable-next-line no-console
       console.log(chalk.blue(`▶ Executing ${tc.title}`));
@@ -79,7 +87,7 @@ async function executeRun(run: TestRun) {
         tc._id,
         tc.steps,
         tc.expectedResult,
-        tc.baseUrl || '',
+        tc.baseUrl || runBaseUrl,
         tc.title
       );
       results.push(result);

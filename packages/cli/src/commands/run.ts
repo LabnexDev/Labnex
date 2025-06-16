@@ -304,6 +304,21 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
 }
 
 async function runTestsInCloud(testCases: any[], project: any, options: any) {
+    let baseUrlOption = options.baseUrl as string | undefined;
+    if (!baseUrlOption) {
+        // Ask user once if not provided
+        const answer = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'baseUrl',
+                message: 'Base URL of the application under test (e.g., https://example.com):',
+                validate: (input: string) => /^https?:\/\//i.test(input) || 'Please enter a valid http(s) URL',
+                when: () => options.mode === 'cloud'
+            }
+        ]);
+        baseUrlOption = answer.baseUrl;
+    }
+
     const spinner = ora('Creating cloud test run...').start();
     try {
         const response = await apiClient.createTestRun(project._id, {
@@ -311,6 +326,7 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
             parallel: parseInt(options.parallel, 10) || 2,
             environment: options.environment,
             aiOptimization: !!options.optimizeAi,
+            baseUrl: baseUrlOption,
             useCloudRunner: true
         });
 

@@ -24,7 +24,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
     }
 
     const projectId = req.params.projectId;
-    const { testCases, parallel = 4, environment = 'staging', aiOptimization = false, suite, timeout } = req.body;
+    const { testCases, parallel = 4, environment = 'staging', aiOptimization = false, suite, timeout, baseUrl } = req.body;
 
     // Check project access (following existing pattern from testCaseController)
     const projectForOwnerCheck = await Project.findOne({ _id: projectId, owner: currentUser.id });
@@ -71,6 +71,7 @@ export const createTestRun = async (req: AuthRequest, res: Response) => {
         parallel: Math.min(Math.max(parallel, 1), 20), // Clamp between 1-20
         environment,
         aiOptimization,
+        baseUrl,
         suite,
         timeout: timeout || 300000,
       },

@@ -21,6 +21,7 @@ export interface ITestRun extends Document {
     parallel: number;
     environment: string;
     aiOptimization: boolean;
+    baseUrl?: string;
     suite?: string;
     timeout?: number;
   };
@@ -115,6 +116,10 @@ const testRunSchema = new Schema<ITestRun>(
       aiOptimization: {
         type: Boolean,
         default: false,
+      },
+      baseUrl: {
+        type: String,
+        trim: true,
       },
       suite: {
         type: String,
