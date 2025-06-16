@@ -105,6 +105,8 @@ export const runCommand = new Command('run')
             if (options.testIds) {
                 runOptions.testIds = options.testIds.split(',');
             }
+            // Normalize AI optimize flag across both variants
+            runOptions.optimizeAi = options.optimizeAi || options.aiOptimize;
             
             await runTests(runOptions);
 
@@ -124,7 +126,7 @@ export async function runTests(options: any) {
     const testIds = options.testIds;
     const environment = options.environment;
     const mode = options.mode;
-    const aiOptimize = options.optimizeAi;
+    const aiOptimize = options.optimizeAi || options.aiOptimize;
     const verbose = process.env.LABNEX_VERBOSE === 'true';
 
     const pkg = require('../../package.json');
@@ -225,7 +227,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
         const mod = await import('@labnex/executor');
         LocalBrowserExecutor = mod.LocalBrowserExecutor;
     }
-    const executor = new LocalBrowserExecutor({
+    let executor = new LocalBrowserExecutor({
         headless,
         aiOptimizationEnabled: optimizeAi
     });
@@ -247,7 +249,20 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
     };
 
     try {
-        await executor.initialize();
+        try {
+            await executor.initialize();
+        } catch (initErr) {
+            if (!headless) {
+                console.log(chalk.yellow('\n⚠️  Headed Chrome could not start – retrying in headless mode.'));
+                executor.cleanup && await executor.cleanup();
+                const HeadlessExecutorMod = await import('@labnex/executor');
+                LocalBrowserExecutor = HeadlessExecutorMod.LocalBrowserExecutor;
+                executor = new LocalBrowserExecutor({ headless: true, aiOptimizationEnabled: optimizeAi });
+                await executor.initialize();
+            } else {
+                throw initErr;
+            }
+        }
         const results: TestCaseResult[] = [];
         const total = testCases.length;
         let index = 0;
