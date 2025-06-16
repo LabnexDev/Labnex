@@ -909,9 +909,21 @@ export class LocalBrowserExecutor {
           );
           break;
 
-        case 'wait':
-          await actionHandlers.handleWait(this.page, this.currentFrame as any, this.addLog as any);
+        case 'wait': {
+          let waitArg: string | number | undefined;
+          if (parsedStep.target) {
+            waitArg = parsedStep.target as string;
+          } else if (typeof parsedStep.timeout === 'number') {
+            waitArg = parsedStep.timeout;
+          }
+          await actionHandlers.handleWait(
+            this.currentFrame || this.page,
+            this.addLog,
+            waitArg,
+            typeof parsedStep.timeout === 'number' ? parsedStep.timeout : 10000
+          );
           break;
+        }
 
         case 'assert':
           if (!this.page) {

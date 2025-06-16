@@ -138,7 +138,15 @@ export async function handleClick(
         addLog('[Post-Cart] Waiting for checkout button to appear...');
         await page.waitForSelector('#checkout, [data-test="checkout" i], button[id*="checkout" i]', {timeout: 10000});
         addLog('[Post-Cart] Checkout button detected.');
-      } catch {}
+      } catch {
+        try {
+          if (page.url().includes('/inventory')) {
+            const cartUrl = page.url().replace('/inventory.html', '/cart.html');
+            addLog(`[Post-Cart] Checkout not found. Manually navigating to ${cartUrl}`);
+            await page.goto(cartUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+          }
+        } catch {}
+      }
     }
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);

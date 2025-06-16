@@ -21,17 +21,18 @@ const str = (maybe: string | undefined): string => maybe ?? '';
 export class TestStepParser {
   
   private static _tryParseWaitAction(normalizedStep: string, originalStep: string): ParsedTestStep | null {
-    const waitPatternSimple = /^(?:wait|pause)(?:\s+for)?\s+(\d+)\s*(seconds?|s)?/i;
-    const waitMatchSimple = normalizedStep.match(waitPatternSimple);
-    addLog(`[WaitCheck] Input: "${normalizedStep}", Match: ${JSON.stringify(waitMatchSimple)}`);
+    const timePattern = /^(?:wait|pause)(?:\s+for)?\s+(\d+)\s*(milliseconds?|ms|seconds?|s)?/i;
+    const timeMatch = normalizedStep.match(timePattern);
 
-    if (waitMatchSimple && waitMatchSimple[1]) {
-      const timeoutValue = parseInt(waitMatchSimple[1], 10);
-      const unit = waitMatchSimple[2]?.toLowerCase();
+    const selectorPattern = /^(?:wait|pause)\s+for\s+(.+)/i;
+    const selectorMatch = normalizedStep.match(selectorPattern);
+
+    if (timeMatch && timeMatch[1]) {
+      const timeoutValue = parseInt(timeMatch[1], 10);
+      const unit = timeMatch[2]?.toLowerCase();
       let timeoutMs = timeoutValue;
 
       if (unit === 's' || unit === 'seconds' || !unit) {
-        // Default to seconds if no unit or "s"/"seconds"
         timeoutMs = timeoutValue * 1000;
       }
 
@@ -43,7 +44,17 @@ export class TestStepParser {
       };
     }
 
-    addLog(`[WaitBlockSkipped] Condition (waitMatchSimple && waitMatchSimple[1]) was false.`);
+    if (selectorMatch && selectorMatch[1]) {
+      const selectorText = selectorMatch[1].trim();
+      addLog(`[WaitSelector] Parsed selector wait for: ${selectorText}`);
+      return {
+        action: 'wait',
+        target: selectorText,
+        originalStep: originalStep
+      };
+    }
+
+    addLog(`[WaitBlockSkipped] No wait pattern matched.`);
     return null;
   }
 
