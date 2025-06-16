@@ -66,7 +66,7 @@ export async function findElementWithFallbacks(
   // ---------------------------
   // Smart-wait pre-pass (up to 3 s) to catch elements that appear after
   // initial hydration. We consider the first few fallback strategies.
-  const earlyWaitStrategies = generateFallbackStrategies(primarySelector).slice(0, 5);
+  const earlyWaitStrategies = generateFallbackStrategies(primarySelector).slice(0, 15);
   for (const strat of earlyWaitStrategies) {
     try {
       const el = await waitForElement(currentFrame, strat.selector, 3000, strat.method);
@@ -537,17 +537,23 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
   const lowerSel = cleanSelector.toLowerCase();
 
   if (/(^|[^a-z])(user(name)?)([^a-z]|$)/i.test(lowerSel)) {
-    strategies.push({ type: 'email-id', selector: '#email', method: 'css' as const });
-    strategies.push({ type: 'email-name', selector: '[name*="email" i]', method: 'css' as const });
-    strategies.push({ type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const });
-    strategies.push({ type: 'email-input', selector: 'input[type="email"]', method: 'css' as const });
+    const syns = [
+      { type: 'email-id', selector: '#email', method: 'css' as const },
+      { type: 'email-name', selector: '[name*="email" i]', method: 'css' as const },
+      { type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const },
+      { type: 'email-input', selector: 'input[type="email"]', method: 'css' as const },
+    ];
+    strategies.unshift(...syns.reverse());
   }
 
   if (/(^|[^a-z])email([^a-z]|$)/i.test(lowerSel)) {
-    strategies.push({ type: 'username-id', selector: '#username', method: 'css' as const });
-    strategies.push({ type: 'user-id', selector: '#user', method: 'css' as const });
-    strategies.push({ type: 'user-name', selector: '[name*="user" i]', method: 'css' as const });
-    strategies.push({ type: 'user-placeholder', selector: '[placeholder*="user" i]', method: 'css' as const });
+    const syns = [
+      { type: 'username-id', selector: '#username', method: 'css' as const },
+      { type: 'user-id', selector: '#user', method: 'css' as const },
+      { type: 'user-name', selector: '[name*="user" i]', method: 'css' as const },
+      { type: 'user-placeholder', selector: '[placeholder*="user" i]', method: 'css' as const },
+    ];
+    strategies.unshift(...syns.reverse());
   }
   
   return strategies;
