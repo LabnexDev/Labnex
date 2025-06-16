@@ -63,7 +63,25 @@ export async function findElementWithFallbacks(
     disableAI = true;
   }
 
-  // Try immediate element finding first (no waiting)
+  // ---------------------------
+  // Smart-wait pre-pass (up to 3 s) to catch elements that appear after
+  // initial hydration. We consider the first few fallback strategies.
+  const earlyWaitStrategies = generateFallbackStrategies(primarySelector).slice(0, 5);
+  for (const strat of earlyWaitStrategies) {
+    try {
+      const el = await waitForElement(currentFrame, strat.selector, 3000, strat.method);
+      if (el) {
+        const visible = await verifyElementVisibility(el);
+        if (visible) {
+          addLog(`[SmartWait] Found element via early wait (${strat.type})`);
+          return el;
+        }
+        await el.dispose();
+      }
+    } catch {}
+  }
+
+  // Try exact selector first without waiting
   let element = await tryFindElementImmediate(currentFrame, primarySelector, selectorType, addLog, index);
   if (element) {
     addLog(`[findElementWithFallbacks] ✓ Found element immediately`);

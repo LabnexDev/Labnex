@@ -57,7 +57,28 @@ export async function findElementWithFallbacks(
   // Minimal cleanup - don't be too aggressive
   primarySelector = primarySelector.trim();
   
-  // Try immediate element finding first (no waiting)
+  // ---------------------------
+  // Smart-wait pre-pass:
+  // Wait up to 3 s for any early fallback selector to appear. This helps with
+  // React/Vue hydration where the DOM node is injected shortly after load.
+  // We only attempt this once, and only for the first few (more specific)
+  // strategies to avoid a long upfront delay.
+  const earlyWaitStrategies = generateFallbackStrategies(primarySelector).slice(0, 5);
+  for (const strat of earlyWaitStrategies) {
+    try {
+      const el = await waitForElement(currentFrame, strat.selector, 3000, strat.method);
+      if (el) {
+        const visible = await verifyElementVisibility(el);
+        if (visible) {
+          addLog(`[SmartWait] Found element via early wait (${strat.type})`);
+          return el;
+        }
+        await el.dispose();
+      }
+    } catch {}
+  }
+
+  // Try exact selector first without waiting
   let element = await tryFindElementImmediate(currentFrame, primarySelector, selectorType, addLog, index);
   if (element) {
     addLog(`[findElementWithFallbacks] ✓ Found element immediately`);
