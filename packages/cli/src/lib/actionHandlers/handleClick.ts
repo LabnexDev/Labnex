@@ -126,8 +126,12 @@ export async function handleClick(
   addLog('Scrolling element into view before clicking.');
   await elementToClick.evaluate(el => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   try {
-    await elementToClick.click();
-    addLog('Click successful.');
+    const navigationPromise = page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }).catch(() => null);
+    const [ ] = await Promise.all([
+      navigationPromise,
+      elementToClick.click()
+    ]);
+    addLog('Click successful (navigation awaited if triggered).');
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);
     if (isW3SchoolsModalButton) {

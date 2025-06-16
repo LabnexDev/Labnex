@@ -50,7 +50,14 @@ export async function handleNavigate(
   }
 
   try {
-    await page.goto(url, navigationOptions);
+    const response = await page.goto(url, navigationOptions);
+    if (response && response.status() === 404 && /\/login\/[^\/]+$/i.test(url)) {
+      const correctedUrl = url.replace(/\/login\/[^\/]+$/i, '/login');
+      if (correctedUrl !== url) {
+        addLog(`[AutoRedirect] Original URL returned 404. Retrying with ${correctedUrl}`);
+        await page.goto(correctedUrl, navigationOptions);
+      }
+    }
     addLog(`Navigation to ${url} complete (${navigationOptions.waitUntil} event fired).`);
 
     // Post-navigation check for tryit.asp pages to ensure page is responsive
