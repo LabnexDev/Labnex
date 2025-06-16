@@ -3,9 +3,10 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { apiClient } from '../api/client';
+import { loadProjectConfig, saveProjectConfig } from '../utils/projectConfig';
+import { TestCaseResult } from '@labnex/executor';
 // LocalBrowserExecutor will be imported lazily so the CLI can build without the executor package built yet.
 let LocalBrowserExecutor: any;
-import { TestCaseResult } from '@labnex/executor';
 
 export const runCommand = new Command('run')
     .description('Execute tests for a specified project using local or cloud resources.')
@@ -24,6 +25,7 @@ export const runCommand = new Command('run')
     .option('--parallel <number>', 'Number of parallel workers (cloud mode)', '4')
     .option('--headless', 'Run in headless mode (local mode)', false)
     .option('--timeout <ms>', 'Test timeout in milliseconds', '300000')
+    .option('--watch', 'Stream live updates until run completes')
     .action(async (options) => {
         try {
             let projectId: string | undefined;
@@ -307,6 +309,15 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
 
 async function runTestsInCloud(testCases: any[], project: any, options: any) {
     let baseUrlOption = options.baseUrl as string | undefined;
+
+    // Attempt to read from project config if not provided
+    if (!baseUrlOption) {
+        const projCfg = loadProjectConfig();
+        if (projCfg?.baseUrl) {
+            baseUrlOption = projCfg.baseUrl;
+        }
+    }
+
     if (!baseUrlOption) {
         const answer = await inquirer.prompt([
             {
@@ -318,6 +329,13 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
             }
         ]);
         baseUrlOption = answer.baseUrl;
+
+        // Offer to remember
+        const { remember } = await inquirer.prompt([{ type: 'confirm', name: 'remember', message: 'Save this base URL to labnex.config.json?', default: true }]);
+        if (remember) {
+            saveProjectConfig({ baseUrl: baseUrlOption as string });
+            console.log(chalk.green('Base URL saved to labnex.config.json'));
+        }
     }
 
     // Detect if any placeholder credentials present in steps
@@ -327,11 +345,13 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
     let usernameOpt = options.username as string | undefined;
     let passwordOpt = options.password as string | undefined;
 
-    if (needsUsername && !usernameOpt) {
+    const interactive = process.env.RUNNER_NON_INTERACTIVE !== 'true' && process.stdout.isTTY;
+
+    if (interactive && needsUsername && !usernameOpt) {
        const ans = await inquirer.prompt([{ type:'input', name:'username', message:'Enter username for login placeholders:' }]);
        usernameOpt = ans.username;
     }
-    if (needsPassword && !passwordOpt) {
+    if (interactive && needsPassword && !passwordOpt) {
        const ans = await inquirer.prompt([{ type:'password', name:'password', message:'Enter password for login placeholders:', mask:'*' }]);
        passwordOpt = ans.password;
     }
@@ -366,7 +386,38 @@ async function runTestsInCloud(testCases: any[], project: any, options: any) {
         console.log('\nYou can monitor progress with:');
         console.log(`  ${chalk.cyan(`labnex status --run-id ${run._id}`)}`);
         console.log(`  ${chalk.cyan(`labnex ai analyze ${run._id} <failedTestId>`)} after it completes.`);
+
+        if (options.watch) {
+            await streamRunProgress(run._id);
+        }
     } catch (err: any) {
         spinner.fail(chalk.red(`Error triggering cloud run: ${err.message}`));
     }
-} 
+}
+
+async function streamRunProgress(runId: string) {
+    const bar = (current: number, total: number, width = 20) => {
+        const filled = Math.round((current/total)*width);
+        return '█'.repeat(filled).padEnd(width, '░');
+    };
+
+    console.log(chalk.cyan('\n👀 Watching run progress (press Ctrl+C to exit)'));
+    let completed = false;
+    while (!completed) {
+        try {
+            const res = await apiClient.getTestRun(runId);
+            if (res.success) {
+                const { passed, failed, total } = res.data.results;
+                const done = passed + failed;
+                const statusLine = `${bar(done,total)} ${done}/${total} | ${chalk.green(`${passed}✓`)} ${failed>0 ? chalk.red(`${failed}✗`) : ''}`;
+                process.stdout.write(`\r${statusLine}`);
+
+                if (res.data.status === 'COMPLETED' || res.data.status === 'FAILED') {
+                    completed = true;
+                    process.stdout.write('\n');
+                }
+            }
+        } catch {}
+        await new Promise(r => setTimeout(r, 3000));
+    }
+}

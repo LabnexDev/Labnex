@@ -19,5 +19,6 @@ router.use(auth);
 router.put('/:testCaseId', updateTestCase);
 router.patch('/:testCaseId/status', updateTestCaseStatus);
 router.delete('/:testCaseId', deleteTestCase);
+router.get('/:testCaseId', getTestCase);
 
 export default router; 

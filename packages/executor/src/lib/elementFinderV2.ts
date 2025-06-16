@@ -57,6 +57,12 @@ export async function findElementWithFallbacks(
   // Minimal cleanup - don't be too aggressive
   primarySelector = primarySelector.trim();
   
+  // Force disable AI in non-interactive environments (e.g., cloud runner)
+  let disableAI = disableFallbacks;
+  if (process.env.RUNNER_NON_INTERACTIVE === '1') {
+    disableAI = true;
+  }
+
   // Try immediate element finding first (no waiting)
   let element = await tryFindElementImmediate(currentFrame, primarySelector, selectorType, addLog, index);
   if (element) {
@@ -65,7 +71,7 @@ export async function findElementWithFallbacks(
   }
 
   // Temporarily disable AI assistance to bypass backend 500 error
-  if (!disableFallbacks && retryApiCallFn && apiClient) {
+  if (!disableAI && retryApiCallFn && apiClient) {
     addLog('[findElementWithFallbacks] Element not found immediately. Requesting AI assistance...');
     
     try {
@@ -133,7 +139,7 @@ export async function findElementWithFallbacks(
   }
 
   // Finally, try fallback strategies with short waits
-  if (!disableFallbacks) {
+  if (!disableAI) {
     const fallbackStrategies = generateFallbackStrategies(primarySelector);
     
     for (const strategy of fallbackStrategies) {

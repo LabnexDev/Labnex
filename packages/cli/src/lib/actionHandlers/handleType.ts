@@ -21,8 +21,10 @@ export async function handleType(
   let finalText: string = textToType;
 
   // Handle placeholder prompting
+  const interactive = process.env.RUNNER_NON_INTERACTIVE !== 'true' && process.stdout.isTTY;
+
   if (finalText === '__PROMPT_VALID_USERNAME__') {
-    if (!placeholderCache.username) {
+    if (!placeholderCache.username && interactive) {
       const answer = await inquirer.prompt([
         {
           type: 'input',
@@ -33,10 +35,13 @@ export async function handleType(
       ]);
       placeholderCache.username = answer.username.trim();
     }
+    if (!placeholderCache.username) {
+      throw new Error('Username placeholder encountered but not provided and prompts are disabled.');
+    }
     finalText = placeholderCache.username as string;
     addLog(`[PlaceholderPrompt] Filled username placeholder with user-provided value.`);
   } else if (finalText === '__PROMPT_VALID_PASSWORD__') {
-    if (!placeholderCache.password) {
+    if (!placeholderCache.password && interactive) {
       const answer = await inquirer.prompt([
         {
           type: 'password',
@@ -47,6 +52,9 @@ export async function handleType(
         },
       ]);
       placeholderCache.password = answer.password;
+    }
+    if (!placeholderCache.password) {
+      throw new Error('Password placeholder encountered but not provided and prompts are disabled.');
     }
     finalText = placeholderCache.password as string;
     addLog(`[PlaceholderPrompt] Filled password placeholder with user-provided value.`);

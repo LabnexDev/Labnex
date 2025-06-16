@@ -9,14 +9,32 @@ import { aiCommand } from './commands/ai';
 import { analyzeCommand } from './commands/analyze';
 import { setupConfigCommands } from './commands/config';
 import { listCommand } from './commands/list';
+import { completionCommand } from './commands/completion';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import { runCommand } from './commands/run';
+import { existsSync } from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
+import { runWelcomeWizard } from './welcomeWizard';
 
 async function main() {
-  // Initialize configuration
+  // First run detection & configuration init
+  const configPath = join(homedir(), '.labnex', 'config.json');
+  const firstRun = !existsSync(configPath);
+
+  if (firstRun) {
+    try {
+      await runWelcomeWizard();
+    } catch (err: any) {
+      console.error('Wizard failed:', err.message);
+      process.exit(1);
+    }
+  }
+
+  // Ensure config exists afterwards
   await initConfig();
 
   // Display banner
@@ -75,6 +93,7 @@ async function main() {
   program.addCommand(analyzeCommand);
   program.addCommand(setupConfigCommands());
   program.addCommand(listCommand);
+  program.addCommand(completionCommand(program));
 
   const defaultHelper = new Help();
 

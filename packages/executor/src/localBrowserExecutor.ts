@@ -904,6 +904,7 @@ export class LocalBrowserExecutor {
             parsedStep.target || '',
             parsedStep.value || '',
             parsedStep.originalStep || '',
+            disableFallbacks,
             this.retryApiCall.bind(this)
           );
           break;

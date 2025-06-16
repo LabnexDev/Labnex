@@ -11,6 +11,7 @@ export async function handleType(
   selector: string | undefined,
   textToType: string | undefined,
   originalStep: string,
+  disableFallbacks = false,
   retryApiCallFn?: RetryApiCallFunction
 ): Promise<void> {
   if (!page) throw new Error('Page not available for type');
@@ -72,7 +73,7 @@ export async function handleType(
   }
 
   addLog(`Attempting to type "${finalText}" into element identified by "${selector}"`);
-  const elementToTypeIn = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, false, retryApiCallFn);
+  const elementToTypeIn = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, originalStep, disableFallbacks, retryApiCallFn);
   if (!elementToTypeIn) {
     throw new Error('Element not found');
   }

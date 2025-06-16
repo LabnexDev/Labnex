@@ -105,6 +105,13 @@ export class LabnexApiClient {
         return response;
       },
       (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          const isAiEndpoint = error.config?.url?.includes('/ai') || error.config?.url?.includes('/openai') || error.config?.url?.includes('/ai-');
+          if (isAiEndpoint) {
+            console.error(chalk.red('AI optimization failed — check your API key or permissions.'));
+            return Promise.reject(error);
+          }
+        }
         if (error.response?.status === 401) {
           console.error(chalk.red('Authentication failed. Please run: labnex auth login'));
           process.exit(1);

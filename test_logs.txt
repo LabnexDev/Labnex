@@ -1378,3 +1378,1761 @@
 [2025-06-15 09:11:32] Test case 684b0329afe9ee3c8e55dee0 finished. Status: passed, Duration: 69185ms
 [2025-06-15 09:11:32] Cleaning up browser...
 [2025-06-15 09:11:34] Browser closed successfully.
+[2025-06-16 16:03:58] AI Optimization Enabled: false
+[2025-06-16 16:03:58] Initializing browser...
+[2025-06-16 16:03:58] Error initializing browser: {"message":"Could not find Chrome (ver. 137.0.7151.70). This can occur if either\n 1. you did not pe...
+[2025-06-16 16:03:58] Cleaning up browser...
+[2025-06-16 16:03:58] Browser was not initialized or already closed. No cleanup needed.
+[2025-06-16 16:08:07] AI Optimization Enabled: false
+[2025-06-16 16:08:07] Initializing browser...
+[2025-06-16 16:08:12] Browser initialized successfully.
+[2025-06-16 16:08:12] Starting test case: 684e58842b15879e3c8c51ec
+[2025-06-16 16:08:12] [AI] Resetting context for new test case 684e58842b15879e3c8c51ec.
+[2025-06-16 16:08:12] Step 1: Launch the web browser and navigate to Labnex.dev...
+[2025-06-16 16:08:13] [AI] Parsing/Interpreting original step 1: "Launch the web browser and navigate to Labnex.dev..."
+[2025-06-16 16:08:13] [Base URL Prompt] Asking user for base URL because it is not set.
+[2025-06-16 16:09:27] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login"
+[2025-06-16 16:09:27] [Action] navigate: https://labnex.dev/login...
+[2025-06-16 16:09:27] Dispatching action: navigate, Target: https://labnex.dev/login, Value: N/A
+[2025-06-16 16:09:27] Navigating to https://labnex.dev/login
+[2025-06-16 16:09:29] Navigation to https://labnex.dev/login complete (domcontentloaded event fired).
+[2025-06-16 16:09:29] Navigation to https://labnex.dev/login complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:09:41] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:09:41] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:09:43] [Action] navigate successful.
+[2025-06-16 16:09:43] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:09:43] Step 2: Click on the 'Login' button to reach the login pag...
+[2025-06-16 16:09:43] [AI] Parsing/Interpreting original step 2: "Click on the 'Login' button to reach the login page..."
+[2025-06-16 16:09:43] [Step] Executing (Attempt 0): click on "Login"
+[2025-06-16 16:09:43] [Action] click: Login...
+[2025-06-16 16:09:43] Dispatching action: click, Target: Login, Value: N/A
+[2025-06-16 16:09:43] [Action] click: Login...
+[2025-06-16 16:09:43] Attempting to click on element identified by: "Login" at index: 0
+[2025-06-16 16:09:43] [handleClick Verbose] Original Selector: "Login"
+[2025-06-16 16:09:43] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:09:43] [handleClick Verbose] Core Selector Value for Check: "Login"
+[2025-06-16 16:09:43] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:09:43] [handleClick Verbose] Page URL: https://www.labnex.dev/login
+[2025-06-16 16:09:43] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:09:43] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:09:43] [findElementWithFallbacks] Looking for: "Login" (Login) at index: 0
+[2025-06-16 16:09:43] [tryFindElementImmediate] Using CSS method for: "Login"
+[2025-06-16 16:09:43] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:09:43] [findElementWithFallbacks] Trying id: "#Login"
+[2025-06-16 16:09:45] [findElementWithFallbacks] Trying class: ".Login"
+[2025-06-16 16:09:47] [findElementWithFallbacks] Trying name: "[name="Login"]"
+[2025-06-16 16:09:49] [findElementWithFallbacks] Trying data-testid: "[data-testid="Login"]"
+[2025-06-16 16:09:51] [findElementWithFallbacks] Trying aria-label: "[aria-label="Login"]"
+[2025-06-16 16:09:53] [findElementWithFallbacks] Trying id-contains: "[id*="Login" i]"
+[2025-06-16 16:09:56] [findElementWithFallbacks] Trying class-contains: "[class*="Login" i]"
+[2025-06-16 16:09:58] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Login" i]"
+[2025-06-16 16:10:01] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="Login"]"
+[2025-06-16 16:10:06] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:10:06] [DynamicScan] Performing broad scan for login/sign-in elements.
+[2025-06-16 16:10:06] [DynamicScan] ✓ Found element via dynamic scan fallback.
+[2025-06-16 16:10:06] Scrolling element into view before clicking.
+[2025-06-16 16:10:06] Click successful.
+[2025-06-16 16:10:06] [Action] click successful.
+[2025-06-16 16:10:06] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:10:06] Step 3: Enter a valid username into the username field...
+[2025-06-16 16:10:06] [AI] Parsing/Interpreting original step 3: "Enter a valid username into the username field..."
+[2025-06-16 16:10:06] [Step] Executing (Attempt 0): type on "input[id*="user" i], input[name*="user" i], input[" with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:10:06] [Action] type: input[id*="user" i], input[nam...
+[2025-06-16 16:10:06] Dispatching action: type, Target: input[id*="user" i], input[name*="user" i], input[, Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:10:06] [Type Action Debug] Selector being passed to handleType: input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:10:06] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=__PROMPT_VALID_USERNAME__, OriginalStep=Enter a valid username into the username field
+[2025-06-16 16:10:24] [PlaceholderPrompt] Filled username placeholder with user-provided value.
+[2025-06-16 16:10:24] Attempting to type "test@test.com" into element identified by "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:10:24] [findElementWithFallbacks] Looking for: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:10:24] [tryFindElementImmediate] Using CSS method for: "input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:10:24] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:10:24] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:10:24] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:10:24] [Action] Error in type: Element not found...
+[2025-06-16 16:10:24] [Action] type failed: Element not found...
+[2025-06-16 16:10:24] [Failure Type] Element not found.
+[2025-06-16 16:10:24] [Step] Result for "type" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:10:24] Step 3 failed: Element not found...
+[2025-06-16 16:10:24] Test case 684e58842b15879e3c8c51ec finished. Status: failed, Duration: 131403ms
+[2025-06-16 16:10:24] Starting test case: 684e413d2b15879e3c8c5112
+[2025-06-16 16:10:24] [AI] Resetting context for new test case 684e413d2b15879e3c8c5112.
+[2025-06-16 16:10:24] Step 1: Navigate to the login page via src/components/Logi...
+[2025-06-16 16:10:24] [AI] Parsing/Interpreting original step 1: "Navigate to the login page via src/components/Login.tsx..."
+[2025-06-16 16:10:24] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login"
+[2025-06-16 16:10:24] [Action] navigate: https://labnex.dev/login...
+[2025-06-16 16:10:24] Dispatching action: navigate, Target: https://labnex.dev/login, Value: N/A
+[2025-06-16 16:10:24] Navigating to https://labnex.dev/login
+[2025-06-16 16:10:25] Navigation to https://labnex.dev/login complete (domcontentloaded event fired).
+[2025-06-16 16:10:25] Navigation to https://labnex.dev/login complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:10:37] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:10:37] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:10:38] [Action] navigate successful.
+[2025-06-16 16:10:38] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:10:38] Step 2: Enter an invalid email address, such as 'test@inva...
+[2025-06-16 16:10:38] [AI] Parsing/Interpreting original step 2: "Enter an invalid email address, such as 'test@invalid'..."
+[2025-06-16 16:10:38] [Step] Executing (Attempt 0): type on "input[type="email"], #email, input[name="email"], " with value "test@invalid"
+[2025-06-16 16:10:38] [Action] type: input[type="email"], #email, i...
+[2025-06-16 16:10:38] Dispatching action: type, Target: input[type="email"], #email, input[name="email"], , Value: test@invalid
+[2025-06-16 16:10:38] [Type Action Debug] Selector being passed to handleType: input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:10:38] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=test@invalid, OriginalStep=Enter an invalid email address, such as 'test@invalid'
+[2025-06-16 16:10:38] Attempting to type "test@invalid" into element identified by "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:10:38] [findElementWithFallbacks] Looking for: "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:10:38] [tryFindElementImmediate] Using CSS method for: "input[type=\"email\"], #email, input[name=\"email\"], input[placeholder*=\"email\" i], input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:10:39] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:10:39] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:10:39] Cleared field before typing.
+[2025-06-16 16:10:39] Successfully typed "test@invalid" into element "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:10:39] [Action] type successful.
+[2025-06-16 16:10:39] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:10:39] Step 3: Enter an incorrect password, such as '123456'...
+[2025-06-16 16:10:39] [AI] Parsing/Interpreting original step 3: "Enter an incorrect password, such as '123456'..."
+[2025-06-16 16:10:39] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "123456"
+[2025-06-16 16:10:39] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:10:39] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: 123456
+[2025-06-16 16:10:39] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:10:39] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=123456, OriginalStep=Enter an incorrect password, such as '123456'
+[2025-06-16 16:10:39] Attempting to type "123456" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:10:39] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:10:39] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:10:39] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:10:39] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:10:39] Cleared field before typing.
+[2025-06-16 16:10:40] Successfully typed "123456" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:10:40] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:10:40] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:10:40] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:10:40] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:11:05] [AutoSubmit] Clicked potential submit button: button[type="submit"]
+[2025-06-16 16:11:05] [Action] type successful.
+[2025-06-16 16:11:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:11:05] Step 4: Click the login button...
+[2025-06-16 16:11:05] [AI] Parsing/Interpreting original step 4: "Click the login button..."
+[2025-06-16 16:11:05] [Step] Executing (Attempt 0): click on "login"
+[2025-06-16 16:11:05] [Action] click: login...
+[2025-06-16 16:11:05] Dispatching action: click, Target: login, Value: N/A
+[2025-06-16 16:11:05] [Action] click: login...
+[2025-06-16 16:11:05] Attempting to click on element identified by: "login" at index: 0
+[2025-06-16 16:11:05] [handleClick Verbose] Original Selector: "login"
+[2025-06-16 16:11:05] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:11:05] [handleClick Verbose] Core Selector Value for Check: "login"
+[2025-06-16 16:11:05] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:11:05] [handleClick Verbose] Page URL: https://www.labnex.dev/login
+[2025-06-16 16:11:05] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:11:05] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:11:05] [findElementWithFallbacks] Looking for: "login" (login) at index: 0
+[2025-06-16 16:11:05] [tryFindElementImmediate] Using CSS method for: "login"
+[2025-06-16 16:11:05] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:11:05] [findElementWithFallbacks] Trying id: "#login"
+[2025-06-16 16:11:07] [findElementWithFallbacks] Trying class: ".login"
+[2025-06-16 16:11:09] [findElementWithFallbacks] Trying name: "[name="login"]"
+[2025-06-16 16:11:11] [findElementWithFallbacks] Trying data-testid: "[data-testid="login"]"
+[2025-06-16 16:11:13] [findElementWithFallbacks] Trying aria-label: "[aria-label="login"]"
+[2025-06-16 16:11:16] [findElementWithFallbacks] Trying id-contains: "[id*="login" i]"
+[2025-06-16 16:11:18] [findElementWithFallbacks] Trying class-contains: "[class*="login" i]"
+[2025-06-16 16:11:20] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="login" i]"
+[2025-06-16 16:11:22] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="login"]"
+[2025-06-16 16:11:27] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:11:27] [DynamicScan] Performing broad scan for login/sign-in elements.
+[2025-06-16 16:11:27] [DynamicScan] ✓ Found element via dynamic scan fallback.
+[2025-06-16 16:11:27] Scrolling element into view before clicking.
+[2025-06-16 16:11:27] Click successful.
+[2025-06-16 16:11:27] [Action] click successful.
+[2025-06-16 16:11:27] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:11:27] Test case 684e413d2b15879e3c8c5112 finished. Status: passed, Duration: 63227ms
+[2025-06-16 16:11:27] Starting test case: 684e38f02b15879e3c8c50db
+[2025-06-16 16:11:27] [AI] Resetting context for new test case 684e38f02b15879e3c8c50db.
+[2025-06-16 16:11:27] Step 1: Navigate to the application's login page from a we...
+[2025-06-16 16:11:27] [AI] Parsing/Interpreting original step 1: "Navigate to the application's login page from a web browser..."
+[2025-06-16 16:11:27] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login/the"
+[2025-06-16 16:11:27] [Action] navigate: https://labnex.dev/login/the...
+[2025-06-16 16:11:27] Dispatching action: navigate, Target: https://labnex.dev/login/the, Value: N/A
+[2025-06-16 16:11:27] Navigating to https://labnex.dev/login/the
+[2025-06-16 16:11:28] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired).
+[2025-06-16 16:11:28] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:11:40] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:11:40] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:11:41] [Action] navigate successful.
+[2025-06-16 16:11:41] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:11:41] Step 2: Locate the email input field and enter a valid reg...
+[2025-06-16 16:11:41] [AI] Parsing/Interpreting original step 2: "Locate the email input field and enter a valid registered email addres..."
+[2025-06-16 16:11:41] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-06-16 16:11:41] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-06-16 16:11:41] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-06-16 16:11:41] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]...
+[2025-06-16 16:11:41] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" at index: 0
+[2025-06-16 16:11:41] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:11:42] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:11:42] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:11:42] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:11:42] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:11:42] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:11:42] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:11:42] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]) at index: 0
+[2025-06-16 16:11:42] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:11:42] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:11:42] [tryFindElementImmediate] XPath query found 0 elements
+[2025-06-16 16:11:42] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:11:44] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]")]"
+[2025-06-16 16:11:49] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:11:49] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:11:49] [Action] Error in click: Element not found...
+[2025-06-16 16:11:49] [Action] click failed: Element not found...
+[2025-06-16 16:11:49] [Failure Type] Element not found.
+[2025-06-16 16:11:49] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:11:49] Step 2 failed: Element not found...
+[2025-06-16 16:11:49] Test case 684e38f02b15879e3c8c50db finished. Status: failed, Duration: 21998ms
+[2025-06-16 16:11:49] Starting test case: 684b0329afe9ee3c8e55dee0
+[2025-06-16 16:11:49] [AI] Resetting context for new test case 684b0329afe9ee3c8e55dee0.
+[2025-06-16 16:11:49] Step 1: Navigate to https://www.saucedemo.com/...
+[2025-06-16 16:11:49] [AI] Parsing/Interpreting original step 1: "Navigate to https://www.saucedemo.com/..."
+[2025-06-16 16:11:49] [Step] Executing (Attempt 0): navigate on "https://www.saucedemo.com/"
+[2025-06-16 16:11:49] [Action] navigate: https://www.saucedemo.com/...
+[2025-06-16 16:11:49] Dispatching action: navigate, Target: https://www.saucedemo.com/, Value: N/A
+[2025-06-16 16:11:49] Navigating to https://www.saucedemo.com/
+[2025-06-16 16:11:50] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired).
+[2025-06-16 16:11:50] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:12:02] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:12:02] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:12:04] [Action] navigate successful.
+[2025-06-16 16:12:04] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:04] Step 2: Enter username standard_user...
+[2025-06-16 16:12:04] [AI] Parsing/Interpreting original step 2: "Enter username standard_user..."
+[2025-06-16 16:12:04] [Step] Executing (Attempt 0): type on "input[id*="user" i], input[name*="user" i], input[" with value "standard_user"
+[2025-06-16 16:12:04] [Action] type: input[id*="user" i], input[nam...
+[2025-06-16 16:12:04] Dispatching action: type, Target: input[id*="user" i], input[name*="user" i], input[, Value: standard_user
+[2025-06-16 16:12:04] [Type Action Debug] Selector being passed to handleType: input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:12:04] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=standard_user, OriginalStep=Enter username standard_user
+[2025-06-16 16:12:04] Attempting to type "standard_user" into element identified by "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:12:04] [findElementWithFallbacks] Looking for: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:12:04] [tryFindElementImmediate] Using CSS method for: "input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:12:04] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:12:04] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:12:04] Cleared field before typing.
+[2025-06-16 16:12:05] Successfully typed "standard_user" into element "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:12:05] [Action] type successful.
+[2025-06-16 16:12:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:05] Step 3: Enter password secret_sauce...
+[2025-06-16 16:12:05] [AI] Parsing/Interpreting original step 3: "Enter password secret_sauce..."
+[2025-06-16 16:12:05] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "secret_sauce"
+[2025-06-16 16:12:05] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:12:05] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: secret_sauce
+[2025-06-16 16:12:05] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:12:05] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=secret_sauce, OriginalStep=Enter password secret_sauce
+[2025-06-16 16:12:05] Attempting to type "secret_sauce" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:12:05] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:12:05] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:12:05] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:12:05] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:12:05] Cleared field before typing.
+[2025-06-16 16:12:05] Successfully typed "secret_sauce" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:12:05] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:12:05] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:12:06] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:12:06] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:12:06] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:12:06] [findElementWithFallbacks] Looking for: "input[type="submit"]" (input[type="submit"]) at index: 0
+[2025-06-16 16:12:06] [tryFindElementImmediate] Using CSS method for: "input[type=\"submit\"]"
+[2025-06-16 16:12:06] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:12:06] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:12:06] [AutoSubmit] Clicked potential submit button: input[type="submit"]
+[2025-06-16 16:12:06] [Action] type successful.
+[2025-06-16 16:12:06] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:06] Step 4: Click  Sauce Labs Backpack...
+[2025-06-16 16:12:06] [AI] Parsing/Interpreting original step 4: "Click  Sauce Labs Backpack..."
+[2025-06-16 16:12:06] [Step] Executing (Attempt 0): click on "Sauce Labs Backpack"
+[2025-06-16 16:12:06] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:12:06] Dispatching action: click, Target: Sauce Labs Backpack, Value: N/A
+[2025-06-16 16:12:06] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:12:06] Attempting to click on element identified by: "Sauce Labs Backpack" at index: 0
+[2025-06-16 16:12:06] [handleClick Verbose] Original Selector: "Sauce Labs Backpack"
+[2025-06-16 16:12:06] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:12:06] [handleClick Verbose] Core Selector Value for Check: "Sauce Labs Backpack"
+[2025-06-16 16:12:06] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:12:06] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:12:06] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:06] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:06] [findElementWithFallbacks] Looking for: "Sauce Labs Backpack" (Sauce Labs Backpack) at index: 0
+[2025-06-16 16:12:06] [tryFindElementImmediate] Using CSS method for: "Sauce Labs Backpack"
+[2025-06-16 16:12:06] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:12:06] [findElementWithFallbacks] Trying id: "#Sauce Labs Backpack"
+[2025-06-16 16:12:08] [findElementWithFallbacks] Trying class: ".Sauce Labs Backpack"
+[2025-06-16 16:12:10] [findElementWithFallbacks] Trying name: "[name="Sauce Labs Backpack"]"
+[2025-06-16 16:12:12] [findElementWithFallbacks] Trying data-testid: "[data-testid="Sauce Labs Backpack"]"
+[2025-06-16 16:12:14] [findElementWithFallbacks] Trying aria-label: "[aria-label="Sauce Labs Backpack"]"
+[2025-06-16 16:12:16] [findElementWithFallbacks] Trying id-contains: "[id*="Sauce Labs Backpack" i]"
+[2025-06-16 16:12:19] [findElementWithFallbacks] Trying class-contains: "[class*="Sauce Labs Backpack" i]"
+[2025-06-16 16:12:21] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Sauce Labs Backpack" i]"
+[2025-06-16 16:12:23] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="sauce-labs-backpack" i]"
+[2025-06-16 16:12:23] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:12:23] Scrolling element into view before clicking.
+[2025-06-16 16:12:23] Click successful.
+[2025-06-16 16:12:23] [Action] click successful.
+[2025-06-16 16:12:23] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:23] Step 5: Click Add To Cart...
+[2025-06-16 16:12:23] [AI] Parsing/Interpreting original step 5: "Click Add To Cart..."
+[2025-06-16 16:12:23] [Step] Executing (Attempt 0): click on "Add To Cart"
+[2025-06-16 16:12:23] [Action] click: Add To Cart...
+[2025-06-16 16:12:23] Dispatching action: click, Target: Add To Cart, Value: N/A
+[2025-06-16 16:12:23] [Action] click: Add To Cart...
+[2025-06-16 16:12:23] Attempting to click on element identified by: "Add To Cart" at index: 0
+[2025-06-16 16:12:23] [handleClick Verbose] Original Selector: "Add To Cart"
+[2025-06-16 16:12:23] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:12:23] [handleClick Verbose] Core Selector Value for Check: "Add To Cart"
+[2025-06-16 16:12:23] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:12:23] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:12:23] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:23] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:23] [findElementWithFallbacks] Looking for: "Add To Cart" (Add To Cart) at index: 0
+[2025-06-16 16:12:23] [tryFindElementImmediate] Using CSS method for: "Add To Cart"
+[2025-06-16 16:12:23] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:12:23] [findElementWithFallbacks] Trying id: "#Add To Cart"
+[2025-06-16 16:12:25] [findElementWithFallbacks] Trying class: ".Add To Cart"
+[2025-06-16 16:12:27] [findElementWithFallbacks] Trying name: "[name="Add To Cart"]"
+[2025-06-16 16:12:29] [findElementWithFallbacks] Trying data-testid: "[data-testid="Add To Cart"]"
+[2025-06-16 16:12:32] [findElementWithFallbacks] Trying aria-label: "[aria-label="Add To Cart"]"
+[2025-06-16 16:12:34] [findElementWithFallbacks] Trying id-contains: "[id*="Add To Cart" i]"
+[2025-06-16 16:12:36] [findElementWithFallbacks] Trying class-contains: "[class*="Add To Cart" i]"
+[2025-06-16 16:12:38] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Add To Cart" i]"
+[2025-06-16 16:12:40] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="add-to-cart" i]"
+[2025-06-16 16:12:40] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:12:40] Scrolling element into view before clicking.
+[2025-06-16 16:12:40] Click successful.
+[2025-06-16 16:12:40] [Action] click successful.
+[2025-06-16 16:12:40] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:40] Step 6: Click the shopping cart...
+[2025-06-16 16:12:40] [AI] Parsing/Interpreting original step 6: "Click the shopping cart..."
+[2025-06-16 16:12:40] [Step] Executing (Attempt 0): click on "shopping cart"
+[2025-06-16 16:12:40] [Action] click: shopping cart...
+[2025-06-16 16:12:40] Dispatching action: click, Target: shopping cart, Value: N/A
+[2025-06-16 16:12:40] [Action] click: shopping cart...
+[2025-06-16 16:12:40] Attempting to click on element identified by: "shopping cart" at index: 0
+[2025-06-16 16:12:40] [handleClick Verbose] Original Selector: "shopping cart"
+[2025-06-16 16:12:40] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:12:40] [handleClick Verbose] Core Selector Value for Check: "shopping cart"
+[2025-06-16 16:12:40] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:12:40] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:12:40] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:40] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:40] [findElementWithFallbacks] Looking for: "shopping cart" (shopping cart) at index: 0
+[2025-06-16 16:12:40] [tryFindElementImmediate] Using CSS method for: "shopping cart"
+[2025-06-16 16:12:40] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:12:40] [findElementWithFallbacks] Trying id: "#shopping cart"
+[2025-06-16 16:12:42] [findElementWithFallbacks] Trying class: ".shopping cart"
+[2025-06-16 16:12:44] [findElementWithFallbacks] Trying name: "[name="shopping cart"]"
+[2025-06-16 16:12:46] [findElementWithFallbacks] Trying data-testid: "[data-testid="shopping cart"]"
+[2025-06-16 16:12:49] [findElementWithFallbacks] Trying aria-label: "[aria-label="shopping cart"]"
+[2025-06-16 16:12:51] [findElementWithFallbacks] Trying id-contains: "[id*="shopping cart" i]"
+[2025-06-16 16:12:53] [findElementWithFallbacks] Trying class-contains: "[class*="shopping cart" i]"
+[2025-06-16 16:12:55] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="shopping cart" i]"
+[2025-06-16 16:12:57] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="shopping-cart" i]"
+[2025-06-16 16:12:57] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:12:57] Scrolling element into view before clicking.
+[2025-06-16 16:12:57] Click successful.
+[2025-06-16 16:12:57] [Action] click successful.
+[2025-06-16 16:12:57] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:12:57] Step 7: Click the checkout button...
+[2025-06-16 16:12:57] [AI] Parsing/Interpreting original step 7: "Click the checkout button..."
+[2025-06-16 16:12:57] [Step] Executing (Attempt 0): click on "checkout"
+[2025-06-16 16:12:57] [Action] click: checkout...
+[2025-06-16 16:12:57] Dispatching action: click, Target: checkout, Value: N/A
+[2025-06-16 16:12:57] [Action] click: checkout...
+[2025-06-16 16:12:57] Attempting to click on element identified by: "checkout" at index: 0
+[2025-06-16 16:12:57] [handleClick Verbose] Original Selector: "checkout"
+[2025-06-16 16:12:57] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:12:57] [handleClick Verbose] Core Selector Value for Check: "checkout"
+[2025-06-16 16:12:57] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:12:57] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:12:57] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:57] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:12:57] [findElementWithFallbacks] Looking for: "checkout" (checkout) at index: 0
+[2025-06-16 16:12:57] [tryFindElementImmediate] Using CSS method for: "checkout"
+[2025-06-16 16:12:57] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:12:57] [findElementWithFallbacks] Trying id: "#checkout"
+[2025-06-16 16:12:59] [findElementWithFallbacks] Trying class: ".checkout"
+[2025-06-16 16:13:01] [findElementWithFallbacks] Trying name: "[name="checkout"]"
+[2025-06-16 16:13:03] [findElementWithFallbacks] Trying data-testid: "[data-testid="checkout"]"
+[2025-06-16 16:13:05] [findElementWithFallbacks] Trying aria-label: "[aria-label="checkout"]"
+[2025-06-16 16:13:08] [findElementWithFallbacks] Trying id-contains: "[id*="checkout" i]"
+[2025-06-16 16:13:10] [findElementWithFallbacks] Trying class-contains: "[class*="checkout" i]"
+[2025-06-16 16:13:12] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="checkout" i]"
+[2025-06-16 16:13:14] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="checkout"]"
+[2025-06-16 16:13:19] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:13:19] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:13:19] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:13:19] [Action] Error in click: Element not found...
+[2025-06-16 16:13:19] [Action] click failed: Element not found...
+[2025-06-16 16:13:19] [Warning] The target 'checkout' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:13:19] [Failure Type] Element not found.
+[2025-06-16 16:13:19] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:13:19] Step 7 failed: Element not found...
+[2025-06-16 16:13:19] Test case 684b0329afe9ee3c8e55dee0 finished. Status: failed, Duration: 89897ms
+[2025-06-16 16:13:19] Cleaning up browser...
+[2025-06-16 16:13:20] Browser closed successfully.
+[2025-06-16 16:15:26] AI Optimization Enabled: false
+[2025-06-16 16:15:26] Initializing browser...
+[2025-06-16 16:15:28] Browser initialized successfully.
+[2025-06-16 16:15:28] Starting test case: 684e58842b15879e3c8c51ec
+[2025-06-16 16:15:28] [AI] Resetting context for new test case 684e58842b15879e3c8c51ec.
+[2025-06-16 16:15:28] Step 1: Launch the web browser and navigate to Labnex.dev...
+[2025-06-16 16:15:28] [AI] Parsing/Interpreting original step 1: "Launch the web browser and navigate to Labnex.dev..."
+[2025-06-16 16:15:29] [Base URL Prompt] Asking user for base URL because it is not set.
+[2025-06-16 16:15:49] [Step] Executing (Attempt 0): navigate on "https://labnex/dev/login"
+[2025-06-16 16:15:49] [Action] navigate: https://labnex/dev/login...
+[2025-06-16 16:15:49] Dispatching action: navigate, Target: https://labnex/dev/login, Value: N/A
+[2025-06-16 16:15:49] Navigating to https://labnex/dev/login
+[2025-06-16 16:15:51] [Navigation Request Failed] URL: https://labnex/dev/login, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-06-16 16:15:51] Error during page.goto or post-navigation checks: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login
+[2025-06-16 16:15:51] [Action] Error in navigate: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:51] [Action] navigate failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:51] [Failure Type] Other error during action execution.
+[2025-06-16 16:15:51] [Action] Failed to take screenshot. {"message":"Protocol error (Page.captureScreenshot): Not attached to an active page"}...
+[2025-06-16 16:15:51] [Step] Result for "navigate" (Attempt 0): failed, Message: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login
+[2025-06-16 16:15:51] Step 1 failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login...
+[2025-06-16 16:15:51] Test case 684e58842b15879e3c8c51ec finished. Status: failed, Duration: 23259ms
+[2025-06-16 16:15:51] Starting test case: 684e413d2b15879e3c8c5112
+[2025-06-16 16:15:51] [AI] Resetting context for new test case 684e413d2b15879e3c8c5112.
+[2025-06-16 16:15:51] Step 1: Navigate to the login page via src/components/Logi...
+[2025-06-16 16:15:51] [AI] Parsing/Interpreting original step 1: "Navigate to the login page via src/components/Login.tsx..."
+[2025-06-16 16:15:51] [Step] Executing (Attempt 0): navigate on "https://labnex/dev/login"
+[2025-06-16 16:15:51] [Action] navigate: https://labnex/dev/login...
+[2025-06-16 16:15:51] Dispatching action: navigate, Target: https://labnex/dev/login, Value: N/A
+[2025-06-16 16:15:51] Navigating to https://labnex/dev/login
+[2025-06-16 16:15:54] [Navigation Request Failed] URL: https://labnex/dev/login, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-06-16 16:15:54] Error during page.goto or post-navigation checks: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login
+[2025-06-16 16:15:54] [Action] Error in navigate: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:54] [Action] navigate failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:54] [Failure Type] Other error during action execution.
+[2025-06-16 16:15:54] [Step] Result for "navigate" (Attempt 0): failed, Message: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login
+[2025-06-16 16:15:54] Step 1 failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login...
+[2025-06-16 16:15:54] Test case 684e413d2b15879e3c8c5112 finished. Status: failed, Duration: 2718ms
+[2025-06-16 16:15:54] Starting test case: 684e38f02b15879e3c8c50db
+[2025-06-16 16:15:54] [AI] Resetting context for new test case 684e38f02b15879e3c8c50db.
+[2025-06-16 16:15:54] Step 1: Navigate to the application's login page from a we...
+[2025-06-16 16:15:54] [AI] Parsing/Interpreting original step 1: "Navigate to the application's login page from a web browser..."
+[2025-06-16 16:15:54] [Step] Executing (Attempt 0): navigate on "https://labnex/dev/login/the"
+[2025-06-16 16:15:54] [Action] navigate: https://labnex/dev/login/the...
+[2025-06-16 16:15:54] Dispatching action: navigate, Target: https://labnex/dev/login/the, Value: N/A
+[2025-06-16 16:15:54] Navigating to https://labnex/dev/login/the
+[2025-06-16 16:15:56] [Navigation Request Failed] URL: https://labnex/dev/login/the, Error: net::ERR_NAME_NOT_RESOLVED
+[2025-06-16 16:15:56] Error during page.goto or post-navigation checks: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login/the
+[2025-06-16 16:15:56] [Action] Error in navigate: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:56] [Action] navigate failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/l...
+[2025-06-16 16:15:56] [Failure Type] Other error during action execution.
+[2025-06-16 16:15:57] [Step] Result for "navigate" (Attempt 0): failed, Message: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login/the
+[2025-06-16 16:15:57] Step 1 failed: net::ERR_NAME_NOT_RESOLVED at https://labnex/dev/login/the...
+[2025-06-16 16:15:57] Test case 684e38f02b15879e3c8c50db finished. Status: failed, Duration: 2770ms
+[2025-06-16 16:15:57] Starting test case: 684b0329afe9ee3c8e55dee0
+[2025-06-16 16:15:57] [AI] Resetting context for new test case 684b0329afe9ee3c8e55dee0.
+[2025-06-16 16:15:57] Step 1: Navigate to https://www.saucedemo.com/...
+[2025-06-16 16:15:57] [AI] Parsing/Interpreting original step 1: "Navigate to https://www.saucedemo.com/..."
+[2025-06-16 16:15:57] [Step] Executing (Attempt 0): navigate on "https://www.saucedemo.com/"
+[2025-06-16 16:15:57] [Action] navigate: https://www.saucedemo.com/...
+[2025-06-16 16:15:57] Dispatching action: navigate, Target: https://www.saucedemo.com/, Value: N/A
+[2025-06-16 16:15:57] Navigating to https://www.saucedemo.com/
+[2025-06-16 16:15:58] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired).
+[2025-06-16 16:15:58] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:16:10] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:16:10] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:16:11] [Action] navigate successful.
+[2025-06-16 16:16:11] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:16:11] Step 2: Enter username standard_user...
+[2025-06-16 16:16:11] [AI] Parsing/Interpreting original step 2: "Enter username standard_user..."
+[2025-06-16 16:16:11] [Step] Executing (Attempt 0): type on "input[id*="user" i], input[name*="user" i], input[" with value "standard_user"
+[2025-06-16 16:16:11] [Action] type: input[id*="user" i], input[nam...
+[2025-06-16 16:16:11] Dispatching action: type, Target: input[id*="user" i], input[name*="user" i], input[, Value: standard_user
+[2025-06-16 16:16:11] [Type Action Debug] Selector being passed to handleType: input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:16:11] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=standard_user, OriginalStep=Enter username standard_user
+[2025-06-16 16:16:11] Attempting to type "standard_user" into element identified by "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:16:11] [findElementWithFallbacks] Looking for: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:16:11] [tryFindElementImmediate] Using CSS method for: "input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:16:11] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:16:11] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:16:11] Cleared field before typing.
+[2025-06-16 16:16:12] Successfully typed "standard_user" into element "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:16:12] [Action] type successful.
+[2025-06-16 16:16:12] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:16:12] Step 3: Enter password secret_sauce...
+[2025-06-16 16:16:12] [AI] Parsing/Interpreting original step 3: "Enter password secret_sauce..."
+[2025-06-16 16:16:12] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "secret_sauce"
+[2025-06-16 16:16:12] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:16:12] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: secret_sauce
+[2025-06-16 16:16:12] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:16:12] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=secret_sauce, OriginalStep=Enter password secret_sauce
+[2025-06-16 16:16:12] Attempting to type "secret_sauce" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:16:12] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:16:12] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:16:12] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:16:12] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:16:12] Cleared field before typing.
+[2025-06-16 16:16:13] Successfully typed "secret_sauce" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:16:13] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:16:13] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:16:13] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:16:13] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:16:13] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:16:13] [findElementWithFallbacks] Looking for: "input[type="submit"]" (input[type="submit"]) at index: 0
+[2025-06-16 16:16:13] [tryFindElementImmediate] Using CSS method for: "input[type=\"submit\"]"
+[2025-06-16 16:16:13] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:16:13] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:16:13] [AutoSubmit] Clicked potential submit button: input[type="submit"]
+[2025-06-16 16:16:13] [Action] type successful.
+[2025-06-16 16:16:13] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:16:13] Step 4: Click  Sauce Labs Backpack...
+[2025-06-16 16:16:13] [AI] Parsing/Interpreting original step 4: "Click  Sauce Labs Backpack..."
+[2025-06-16 16:16:13] [Step] Executing (Attempt 0): click on "Sauce Labs Backpack"
+[2025-06-16 16:16:13] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:16:13] Dispatching action: click, Target: Sauce Labs Backpack, Value: N/A
+[2025-06-16 16:16:13] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:16:13] Attempting to click on element identified by: "Sauce Labs Backpack" at index: 0
+[2025-06-16 16:16:13] [handleClick Verbose] Original Selector: "Sauce Labs Backpack"
+[2025-06-16 16:16:13] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:16:13] [handleClick Verbose] Core Selector Value for Check: "Sauce Labs Backpack"
+[2025-06-16 16:16:13] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:16:13] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:16:13] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:13] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:13] [findElementWithFallbacks] Looking for: "Sauce Labs Backpack" (Sauce Labs Backpack) at index: 0
+[2025-06-16 16:16:13] [tryFindElementImmediate] Using CSS method for: "Sauce Labs Backpack"
+[2025-06-16 16:16:13] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:16:13] [findElementWithFallbacks] Trying id: "#Sauce Labs Backpack"
+[2025-06-16 16:16:15] [findElementWithFallbacks] Trying class: ".Sauce Labs Backpack"
+[2025-06-16 16:16:17] [findElementWithFallbacks] Trying name: "[name="Sauce Labs Backpack"]"
+[2025-06-16 16:16:20] [findElementWithFallbacks] Trying data-testid: "[data-testid="Sauce Labs Backpack"]"
+[2025-06-16 16:16:22] [findElementWithFallbacks] Trying aria-label: "[aria-label="Sauce Labs Backpack"]"
+[2025-06-16 16:16:24] [findElementWithFallbacks] Trying id-contains: "[id*="Sauce Labs Backpack" i]"
+[2025-06-16 16:16:26] [findElementWithFallbacks] Trying class-contains: "[class*="Sauce Labs Backpack" i]"
+[2025-06-16 16:16:28] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Sauce Labs Backpack" i]"
+[2025-06-16 16:16:30] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="sauce-labs-backpack" i]"
+[2025-06-16 16:16:30] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:16:30] Scrolling element into view before clicking.
+[2025-06-16 16:16:30] Click successful.
+[2025-06-16 16:16:30] [Action] click successful.
+[2025-06-16 16:16:30] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:16:30] Step 5: Click Add To Cart...
+[2025-06-16 16:16:30] [AI] Parsing/Interpreting original step 5: "Click Add To Cart..."
+[2025-06-16 16:16:30] [Step] Executing (Attempt 0): click on "Add To Cart"
+[2025-06-16 16:16:30] [Action] click: Add To Cart...
+[2025-06-16 16:16:30] Dispatching action: click, Target: Add To Cart, Value: N/A
+[2025-06-16 16:16:30] [Action] click: Add To Cart...
+[2025-06-16 16:16:30] Attempting to click on element identified by: "Add To Cart" at index: 0
+[2025-06-16 16:16:30] [handleClick Verbose] Original Selector: "Add To Cart"
+[2025-06-16 16:16:30] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:16:30] [handleClick Verbose] Core Selector Value for Check: "Add To Cart"
+[2025-06-16 16:16:30] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:16:30] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:16:30] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:30] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:30] [findElementWithFallbacks] Looking for: "Add To Cart" (Add To Cart) at index: 0
+[2025-06-16 16:16:30] [tryFindElementImmediate] Using CSS method for: "Add To Cart"
+[2025-06-16 16:16:30] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:16:30] [findElementWithFallbacks] Trying id: "#Add To Cart"
+[2025-06-16 16:16:33] [findElementWithFallbacks] Trying class: ".Add To Cart"
+[2025-06-16 16:16:35] [findElementWithFallbacks] Trying name: "[name="Add To Cart"]"
+[2025-06-16 16:16:37] [findElementWithFallbacks] Trying data-testid: "[data-testid="Add To Cart"]"
+[2025-06-16 16:16:39] [findElementWithFallbacks] Trying aria-label: "[aria-label="Add To Cart"]"
+[2025-06-16 16:16:41] [findElementWithFallbacks] Trying id-contains: "[id*="Add To Cart" i]"
+[2025-06-16 16:16:43] [findElementWithFallbacks] Trying class-contains: "[class*="Add To Cart" i]"
+[2025-06-16 16:16:45] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Add To Cart" i]"
+[2025-06-16 16:16:47] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="add-to-cart" i]"
+[2025-06-16 16:16:47] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:16:47] Scrolling element into view before clicking.
+[2025-06-16 16:16:47] Click successful.
+[2025-06-16 16:16:47] [Action] click successful.
+[2025-06-16 16:16:47] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:16:47] Step 6: Click the shopping cart...
+[2025-06-16 16:16:47] [AI] Parsing/Interpreting original step 6: "Click the shopping cart..."
+[2025-06-16 16:16:47] [Step] Executing (Attempt 0): click on "shopping cart"
+[2025-06-16 16:16:47] [Action] click: shopping cart...
+[2025-06-16 16:16:47] Dispatching action: click, Target: shopping cart, Value: N/A
+[2025-06-16 16:16:47] [Action] click: shopping cart...
+[2025-06-16 16:16:47] Attempting to click on element identified by: "shopping cart" at index: 0
+[2025-06-16 16:16:47] [handleClick Verbose] Original Selector: "shopping cart"
+[2025-06-16 16:16:47] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:16:47] [handleClick Verbose] Core Selector Value for Check: "shopping cart"
+[2025-06-16 16:16:47] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:16:47] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:16:47] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:47] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:16:47] [findElementWithFallbacks] Looking for: "shopping cart" (shopping cart) at index: 0
+[2025-06-16 16:16:47] [tryFindElementImmediate] Using CSS method for: "shopping cart"
+[2025-06-16 16:16:47] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:16:47] [findElementWithFallbacks] Trying id: "#shopping cart"
+[2025-06-16 16:16:50] [findElementWithFallbacks] Trying class: ".shopping cart"
+[2025-06-16 16:16:52] [findElementWithFallbacks] Trying name: "[name="shopping cart"]"
+[2025-06-16 16:16:54] [findElementWithFallbacks] Trying data-testid: "[data-testid="shopping cart"]"
+[2025-06-16 16:16:56] [findElementWithFallbacks] Trying aria-label: "[aria-label="shopping cart"]"
+[2025-06-16 16:16:58] [findElementWithFallbacks] Trying id-contains: "[id*="shopping cart" i]"
+[2025-06-16 16:17:00] [findElementWithFallbacks] Trying class-contains: "[class*="shopping cart" i]"
+[2025-06-16 16:17:02] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="shopping cart" i]"
+[2025-06-16 16:17:04] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="shopping-cart" i]"
+[2025-06-16 16:17:04] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:17:04] Scrolling element into view before clicking.
+[2025-06-16 16:17:04] Click successful.
+[2025-06-16 16:17:04] [Action] click successful.
+[2025-06-16 16:17:04] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:04] Step 7: Click the checkout button...
+[2025-06-16 16:17:04] [AI] Parsing/Interpreting original step 7: "Click the checkout button..."
+[2025-06-16 16:17:04] [Step] Executing (Attempt 0): click on "checkout"
+[2025-06-16 16:17:04] [Action] click: checkout...
+[2025-06-16 16:17:04] Dispatching action: click, Target: checkout, Value: N/A
+[2025-06-16 16:17:04] [Action] click: checkout...
+[2025-06-16 16:17:04] Attempting to click on element identified by: "checkout" at index: 0
+[2025-06-16 16:17:04] [handleClick Verbose] Original Selector: "checkout"
+[2025-06-16 16:17:04] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:17:04] [handleClick Verbose] Core Selector Value for Check: "checkout"
+[2025-06-16 16:17:04] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:17:04] [handleClick Verbose] Page URL: https://www.saucedemo.com/cart.html
+[2025-06-16 16:17:04] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/cart.html)
+[2025-06-16 16:17:04] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/cart.html)
+[2025-06-16 16:17:04] [findElementWithFallbacks] Looking for: "checkout" (checkout) at index: 0
+[2025-06-16 16:17:04] [tryFindElementImmediate] Using CSS method for: "checkout"
+[2025-06-16 16:17:04] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:17:04] [findElementWithFallbacks] Trying id: "#checkout"
+[2025-06-16 16:17:05] [findElementWithFallbacks] ✓ Found element using id strategy
+[2025-06-16 16:17:05] Scrolling element into view before clicking.
+[2025-06-16 16:17:05] Click successful.
+[2025-06-16 16:17:05] [Action] click successful.
+[2025-06-16 16:17:05] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:05] Step 8: enter first name Test...
+[2025-06-16 16:17:05] [AI] Parsing/Interpreting original step 8: "enter first name Test..."
+[2025-06-16 16:17:05] [Step] Executing (Attempt 0): type on "input[id*="first" i], input[name*="first" i], inpu" with value "Test"
+[2025-06-16 16:17:05] [Action] type: input[id*="first" i], input[na...
+[2025-06-16 16:17:05] Dispatching action: type, Target: input[id*="first" i], input[name*="first" i], inpu, Value: Test
+[2025-06-16 16:17:05] [Type Action Debug] Selector being passed to handleType: input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]
+[2025-06-16 16:17:05] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="first" i], input[name*="first" i], input[placeholder*="first" i], Value=Test, OriginalStep=enter first name Test
+[2025-06-16 16:17:05] Attempting to type "Test" into element identified by "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]"
+[2025-06-16 16:17:05] [findElementWithFallbacks] Looking for: "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]" (input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]) at index: 0
+[2025-06-16 16:17:05] [tryFindElementImmediate] Using CSS method for: "input[id*=\"first\" i], input[name*=\"first\" i], input[placeholder*=\"first\" i]"
+[2025-06-16 16:17:05] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:17:05] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:17:05] Cleared field before typing.
+[2025-06-16 16:17:05] Successfully typed "Test" into element "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]"
+[2025-06-16 16:17:05] [Action] type successful.
+[2025-06-16 16:17:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:05] Step 9: enter last name Test...
+[2025-06-16 16:17:05] [AI] Parsing/Interpreting original step 9: "enter last name Test..."
+[2025-06-16 16:17:05] [Step] Executing (Attempt 0): type on "input[id*="last" i], input[name*="last" i], input[" with value "Test"
+[2025-06-16 16:17:05] [Action] type: input[id*="last" i], input[nam...
+[2025-06-16 16:17:05] Dispatching action: type, Target: input[id*="last" i], input[name*="last" i], input[, Value: Test
+[2025-06-16 16:17:05] [Type Action Debug] Selector being passed to handleType: input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]
+[2025-06-16 16:17:05] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="last" i], input[name*="last" i], input[placeholder*="last" i], Value=Test, OriginalStep=enter last name Test
+[2025-06-16 16:17:05] Attempting to type "Test" into element identified by "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]"
+[2025-06-16 16:17:05] [findElementWithFallbacks] Looking for: "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]" (input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]) at index: 0
+[2025-06-16 16:17:05] [tryFindElementImmediate] Using CSS method for: "input[id*=\"last\" i], input[name*=\"last\" i], input[placeholder*=\"last\" i]"
+[2025-06-16 16:17:05] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:17:05] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:17:05] Cleared field before typing.
+[2025-06-16 16:17:05] Successfully typed "Test" into element "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]"
+[2025-06-16 16:17:05] [Action] type successful.
+[2025-06-16 16:17:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:05] Step 10: enter zip 1234...
+[2025-06-16 16:17:05] [AI] Parsing/Interpreting original step 10: "enter zip 1234..."
+[2025-06-16 16:17:05] [Step] Executing (Attempt 0): type on "input[id*="zip" i], input[name*="zip" i], input[pl" with value "12340"
+[2025-06-16 16:17:05] [Action] type: input[id*="zip" i], input[name...
+[2025-06-16 16:17:05] Dispatching action: type, Target: input[id*="zip" i], input[name*="zip" i], input[pl, Value: 12340
+[2025-06-16 16:17:05] [Type Action Debug] Selector being passed to handleType: input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]
+[2025-06-16 16:17:05] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i], Value=12340, OriginalStep=enter zip 1234
+[2025-06-16 16:17:05] Attempting to type "12340" into element identified by "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]"
+[2025-06-16 16:17:05] [findElementWithFallbacks] Looking for: "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]" (input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]) at index: 0
+[2025-06-16 16:17:05] [tryFindElementImmediate] Using CSS method for: "input[id*=\"zip\" i], input[name*=\"zip\" i], input[placeholder*=\"zip\" i]"
+[2025-06-16 16:17:05] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:17:05] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:17:05] Cleared field before typing.
+[2025-06-16 16:17:06] Successfully typed "12340" into element "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]"
+[2025-06-16 16:17:06] [Action] type successful.
+[2025-06-16 16:17:06] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:06] Step 11: click continue button...
+[2025-06-16 16:17:06] [AI] Parsing/Interpreting original step 11: "click continue button..."
+[2025-06-16 16:17:06] [Step] Executing (Attempt 0): click on "continue"
+[2025-06-16 16:17:06] [Action] click: continue...
+[2025-06-16 16:17:06] Dispatching action: click, Target: continue, Value: N/A
+[2025-06-16 16:17:06] [Action] click: continue...
+[2025-06-16 16:17:06] Attempting to click on element identified by: "continue" at index: 0
+[2025-06-16 16:17:06] [handleClick Verbose] Original Selector: "continue"
+[2025-06-16 16:17:06] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:17:06] [handleClick Verbose] Core Selector Value for Check: "continue"
+[2025-06-16 16:17:06] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:17:06] [handleClick Verbose] Page URL: https://www.saucedemo.com/checkout-step-one.html
+[2025-06-16 16:17:06] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/checkout-step-one.html)
+[2025-06-16 16:17:06] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/checkout-step-one.html)
+[2025-06-16 16:17:06] [findElementWithFallbacks] Looking for: "continue" (continue) at index: 0
+[2025-06-16 16:17:06] [tryFindElementImmediate] Using CSS method for: "continue"
+[2025-06-16 16:17:06] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:17:06] [findElementWithFallbacks] Trying id: "#continue"
+[2025-06-16 16:17:06] [findElementWithFallbacks] ✓ Found element using id strategy
+[2025-06-16 16:17:06] Scrolling element into view before clicking.
+[2025-06-16 16:17:06] Click successful.
+[2025-06-16 16:17:06] [Action] click successful.
+[2025-06-16 16:17:06] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:06] Step 12: click finish button...
+[2025-06-16 16:17:06] [AI] Parsing/Interpreting original step 12: "click finish button..."
+[2025-06-16 16:17:06] [Step] Executing (Attempt 0): click on "finish"
+[2025-06-16 16:17:06] [Action] click: finish...
+[2025-06-16 16:17:06] Dispatching action: click, Target: finish, Value: N/A
+[2025-06-16 16:17:06] [Action] click: finish...
+[2025-06-16 16:17:06] Attempting to click on element identified by: "finish" at index: 0
+[2025-06-16 16:17:06] [handleClick Verbose] Original Selector: "finish"
+[2025-06-16 16:17:06] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:17:06] [handleClick Verbose] Core Selector Value for Check: "finish"
+[2025-06-16 16:17:06] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:17:06] [handleClick Verbose] Page URL: https://www.saucedemo.com/checkout-step-two.html
+[2025-06-16 16:17:06] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/checkout-step-two.html)
+[2025-06-16 16:17:06] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/checkout-step-two.html)
+[2025-06-16 16:17:06] [findElementWithFallbacks] Looking for: "finish" (finish) at index: 0
+[2025-06-16 16:17:06] [tryFindElementImmediate] Using CSS method for: "finish"
+[2025-06-16 16:17:06] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:17:06] [findElementWithFallbacks] Trying id: "#finish"
+[2025-06-16 16:17:06] [findElementWithFallbacks] ✓ Found element using id strategy
+[2025-06-16 16:17:06] Scrolling element into view before clicking.
+[2025-06-16 16:17:06] Click successful.
+[2025-06-16 16:17:06] [Action] click successful.
+[2025-06-16 16:17:06] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:17:06] Test case 684b0329afe9ee3c8e55dee0 finished. Status: passed, Duration: 69293ms
+[2025-06-16 16:17:06] Cleaning up browser...
+[2025-06-16 16:17:09] Browser closed successfully.
+[2025-06-16 16:19:48] AI Optimization Enabled: true
+[2025-06-16 16:19:48] Initializing browser...
+[2025-06-16 16:19:50] Browser initialized successfully.
+[2025-06-16 16:19:50] Starting test case: 684e58842b15879e3c8c51ec
+[2025-06-16 16:19:50] [AI] Resetting context for new test case 684e58842b15879e3c8c51ec.
+[2025-06-16 16:19:50] Step 1: Launch the web browser and navigate to Labnex.dev...
+[2025-06-16 16:19:50] [AI] Parsing/Interpreting original step 1: "Launch the web browser and navigate to Labnex.dev..."
+[2025-06-16 16:19:51] [Base URL Prompt] Asking user for base URL because it is not set.
+[2025-06-16 16:20:14] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login"
+[2025-06-16 16:20:14] [Action] navigate: https://labnex.dev/login...
+[2025-06-16 16:20:14] Dispatching action: navigate, Target: https://labnex.dev/login, Value: N/A
+[2025-06-16 16:20:14] Navigating to https://labnex.dev/login
+[2025-06-16 16:20:15] Navigation to https://labnex.dev/login complete (domcontentloaded event fired).
+[2025-06-16 16:20:15] Navigation to https://labnex.dev/login complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:20:27] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:20:27] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:20:29] [Action] navigate successful.
+[2025-06-16 16:20:29] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:20:29] Step 2: Click on the 'Login' button to reach the login pag...
+[2025-06-16 16:20:29] [AI] Parsing/Interpreting original step 2: "Click on the 'Login' button to reach the login page..."
+[2025-06-16 16:20:29] [Step] Executing (Attempt 0): click on "Login"
+[2025-06-16 16:20:29] [Action] click: Login...
+[2025-06-16 16:20:29] Dispatching action: click, Target: Login, Value: N/A
+[2025-06-16 16:20:29] [Action] click: Login...
+[2025-06-16 16:20:29] Attempting to click on element identified by: "Login" at index: 0
+[2025-06-16 16:20:29] [handleClick Verbose] Original Selector: "Login"
+[2025-06-16 16:20:29] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:20:29] [handleClick Verbose] Core Selector Value for Check: "Login"
+[2025-06-16 16:20:29] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:20:29] [handleClick Verbose] Page URL: https://www.labnex.dev/login
+[2025-06-16 16:20:29] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:20:29] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:20:29] [findElementWithFallbacks] Looking for: "Login" (Login) at index: 0
+[2025-06-16 16:20:29] [tryFindElementImmediate] Using CSS method for: "Login"
+[2025-06-16 16:20:29] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:20:29] [findElementWithFallbacks] Trying id: "#Login"
+[2025-06-16 16:20:31] [findElementWithFallbacks] Trying class: ".Login"
+[2025-06-16 16:20:33] [findElementWithFallbacks] Trying name: "[name="Login"]"
+[2025-06-16 16:20:35] [findElementWithFallbacks] Trying data-testid: "[data-testid="Login"]"
+[2025-06-16 16:20:37] [findElementWithFallbacks] Trying aria-label: "[aria-label="Login"]"
+[2025-06-16 16:20:39] [findElementWithFallbacks] Trying id-contains: "[id*="Login" i]"
+[2025-06-16 16:20:42] [findElementWithFallbacks] Trying class-contains: "[class*="Login" i]"
+[2025-06-16 16:20:44] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Login" i]"
+[2025-06-16 16:20:46] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="Login"]"
+[2025-06-16 16:20:51] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:20:51] [DynamicScan] Performing broad scan for login/sign-in elements.
+[2025-06-16 16:20:51] [DynamicScan] ✓ Found element via dynamic scan fallback.
+[2025-06-16 16:20:51] Scrolling element into view before clicking.
+[2025-06-16 16:20:51] Click successful.
+[2025-06-16 16:20:51] [Action] click successful.
+[2025-06-16 16:20:51] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:20:51] Step 3: Enter a valid username into the username field...
+[2025-06-16 16:20:51] [AI] Parsing/Interpreting original step 3: "Enter a valid username into the username field..."
+[2025-06-16 16:20:51] [Step] Executing (Attempt 0): type on "input[id*="user" i], input[name*="user" i], input[" with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:20:51] [Action] type: input[id*="user" i], input[nam...
+[2025-06-16 16:20:51] Dispatching action: type, Target: input[id*="user" i], input[name*="user" i], input[, Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:20:51] [Type Action Debug] Selector being passed to handleType: input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:20:51] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=__PROMPT_VALID_USERNAME__, OriginalStep=Enter a valid username into the username field
+[2025-06-16 16:21:00] [PlaceholderPrompt] Filled username placeholder with user-provided value.
+[2025-06-16 16:21:00] Attempting to type "test@test.com" into element identified by "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:21:00] [findElementWithFallbacks] Looking for: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:21:00] [tryFindElementImmediate] Using CSS method for: "input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:21:00] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:21:00] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:21:00] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:21:00] [Action] Error in type: Element not found...
+[2025-06-16 16:21:00] [Action] type failed: Element not found...
+[2025-06-16 16:21:00] [Failure Type] Element not found.
+[2025-06-16 16:21:00] [Step] Result for "type" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:21:00] [AI] Step 3 failed (Action: "type", Target: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:21:00] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:21:00] [AI] Captured DOM context (length: 1627). Preview: <body><div id="root"><div class="min-h-screen flex flex-col ..."><div class="max-w-md w-full space-y...
+[2025-06-16 16:21:00] [AI] Requesting selector suggestion for target: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]", descriptive: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" "
+[2025-06-16 16:21:06] [AI] Received selector suggestion: "input[id='email']" (Strategy: css, Confidence: 1, Reasoning: The username field is typically where the user enters their email address. In the provided DOM snippet, there is an input field with id 'email', which is likely the username field. This selector is specific and uses an ID, which is a reliable attribute for selection.)
+[2025-06-16 16:21:06] [AI] Attempt 1: Retrying with AI suggested step: "type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"..."
+[2025-06-16 16:21:06] [AI] Attempt 1: Retrying with AI suggested step: "type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"..."
+[2025-06-16 16:21:06] [AI Retry Parse Result] Action: type, Target: css: input[id='email'], Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:21:06] [Step] Executing (Attempt 1): type on "css: input[id='email']" with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:21:06] [Action] type: css: input[id='email']...
+[2025-06-16 16:21:06] Dispatching action: type, Target: css: input[id='email'], Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:21:06] [Type Action Debug] Selector being passed to handleType: css: input[id='email']
+[2025-06-16 16:21:06] [Type Action Debug] Full parsedStep object: Action=type, Target=css: input[id='email'], Value=__PROMPT_VALID_USERNAME__, OriginalStep=type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:21:06] [PlaceholderPrompt] Filled username placeholder with user-provided value.
+[2025-06-16 16:21:06] Attempting to type "test@test.com" into element identified by "css: input[id='email']"
+[2025-06-16 16:21:06] [findElementWithFallbacks] Looking for: "css: input[id='email']" (css: input[id='email']) at index: 0
+[2025-06-16 16:21:06] [tryFindElementImmediate] Using CSS method for: "css: input[id='email']"
+[2025-06-16 16:21:06] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: input[id='email']' is not a valid selector.
+[2025-06-16 16:21:06] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:21:06] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:21:06] [Action] Error in type: Element not found...
+[2025-06-16 16:21:06] [Action] type failed: Element not found...
+[2025-06-16 16:21:06] [Failure Type] Element not found.
+[2025-06-16 16:21:06] [Step] Result for "type" (Attempt 1): failed, Message: Element not found
+[2025-06-16 16:21:06] [AI] Step 3 failed (Action: "type", Target: "css: input[id='email']"). Attempting AI suggestion (2/2).
+[2025-06-16 16:21:06] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:21:06] [AI] Captured DOM context (length: 1627). Preview: <body><div id="root"><div class="min-h-screen flex flex-col ..."><div class="max-w-md w-full space-y...
+[2025-06-16 16:21:06] [AI] Requesting selector suggestion for target: "css: input[id='email']", descriptive: "css: input[id='email']"
+[2025-06-16 16:21:10] [AI] Received selector suggestion: "input[id='email']" (Strategy: css, Confidence: 1, Reasoning: The selector directly targets the input element with the id 'email', which is unique on the page. It is the most direct and reliable way to select this element.)
+[2025-06-16 16:21:10] [AI] Attempt 2: Retrying with AI suggested step: "type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"..."
+[2025-06-16 16:21:10] [AI] Attempt 2: Retrying with AI suggested step: "type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"..."
+[2025-06-16 16:21:10] [AI Retry Parse Result] Action: type, Target: css: input[id='email'], Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:21:10] [Step] Executing (Attempt 2): type on "css: input[id='email']" with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:21:10] [Action] type: css: input[id='email']...
+[2025-06-16 16:21:10] Dispatching action: type, Target: css: input[id='email'], Value: __PROMPT_VALID_USERNAME__
+[2025-06-16 16:21:10] [Type Action Debug] Selector being passed to handleType: css: input[id='email']
+[2025-06-16 16:21:10] [Type Action Debug] Full parsedStep object: Action=type, Target=css: input[id='email'], Value=__PROMPT_VALID_USERNAME__, OriginalStep=type (css: input[id='email']) with value "__PROMPT_VALID_USERNAME__"
+[2025-06-16 16:21:10] [PlaceholderPrompt] Filled username placeholder with user-provided value.
+[2025-06-16 16:21:10] Attempting to type "test@test.com" into element identified by "css: input[id='email']"
+[2025-06-16 16:21:10] [findElementWithFallbacks] Looking for: "css: input[id='email']" (css: input[id='email']) at index: 0
+[2025-06-16 16:21:10] [tryFindElementImmediate] Using CSS method for: "css: input[id='email']"
+[2025-06-16 16:21:11] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: input[id='email']' is not a valid selector.
+[2025-06-16 16:21:11] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-06-16 16:21:11] [DOM Capture] Captured 1230 characters of DOM context
+[2025-06-16 16:21:11] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"css: input[id='email']\",\n  \"descriptiveTerm\": \"css: input[id='email...
+[2025-06-16 16:21:18] [AI] Suggested: input[name='email'] (css, confidence: 1)
+[2025-06-16 16:21:18] [AI] Reasoning: The original selector failed, so we are using another unique attribute of the input field. The 'name' attribute is often unique and stable, making it a good choice for a selector.
+[2025-06-16 16:21:18] [AI] ✓ Successfully found element using AI suggestion
+[2025-06-16 16:21:18] Cleared field before typing.
+[2025-06-16 16:21:19] Successfully typed "test@test.com" into element "css: input[id='email']"
+[2025-06-16 16:21:19] [Action] type successful.
+[2025-06-16 16:21:19] [Step] Result for "type" (Attempt 2): passed, Message: undefined
+[2025-06-16 16:21:19] Step 4: Enter a correct password into the password field...
+[2025-06-16 16:21:19] [AI] Parsing/Interpreting original step 4: "Enter a correct password into the password field..."
+[2025-06-16 16:21:19] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "__PROMPT_VALID_PASSWORD__"
+[2025-06-16 16:21:19] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:21:19] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: __PROMPT_VALID_PASSWORD__
+[2025-06-16 16:21:19] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:21:19] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=__PROMPT_VALID_PASSWORD__, OriginalStep=Enter a correct password into the password field
+[2025-06-16 16:21:36] [PlaceholderPrompt] Filled password placeholder with user-provided value.
+[2025-06-16 16:21:36] Attempting to type "Test1234!" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:21:36] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:21:36] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:21:36] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:21:36] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:21:36] Cleared field before typing.
+[2025-06-16 16:21:36] Successfully typed "Test1234!" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:21:37] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:21:37] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:21:37] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:21:37] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:21:48] [AutoSubmit] Clicked potential submit button: button[type="submit"]
+[2025-06-16 16:21:48] [Action] type successful.
+[2025-06-16 16:21:48] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:21:48] Step 5: Click the 'Submit' button...
+[2025-06-16 16:21:48] [AI] Parsing/Interpreting original step 5: "Click the 'Submit' button..."
+[2025-06-16 16:21:48] [Step] Executing (Attempt 0): click on "Submit"
+[2025-06-16 16:21:48] [Action] click: Submit...
+[2025-06-16 16:21:48] Dispatching action: click, Target: Submit, Value: N/A
+[2025-06-16 16:21:48] [Action] click: Submit...
+[2025-06-16 16:21:48] Attempting to click on element identified by: "Submit" at index: 0
+[2025-06-16 16:21:48] [handleClick Verbose] Original Selector: "Submit"
+[2025-06-16 16:21:48] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:21:48] [handleClick Verbose] Core Selector Value for Check: "Submit"
+[2025-06-16 16:21:48] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:21:48] [handleClick Verbose] Page URL: https://www.labnex.dev/dashboard
+[2025-06-16 16:21:48] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/dashboard)
+[2025-06-16 16:21:48] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/dashboard)
+[2025-06-16 16:21:48] [findElementWithFallbacks] Looking for: "Submit" (Submit) at index: 0
+[2025-06-16 16:21:48] [tryFindElementImmediate] Using CSS method for: "Submit"
+[2025-06-16 16:21:48] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:21:48] [findElementWithFallbacks] Trying id: "#Submit"
+[2025-06-16 16:21:50] [findElementWithFallbacks] Trying class: ".Submit"
+[2025-06-16 16:21:52] [findElementWithFallbacks] Trying name: "[name="Submit"]"
+[2025-06-16 16:21:55] [findElementWithFallbacks] Trying data-testid: "[data-testid="Submit"]"
+[2025-06-16 16:21:57] [findElementWithFallbacks] Trying aria-label: "[aria-label="Submit"]"
+[2025-06-16 16:21:59] [findElementWithFallbacks] Trying id-contains: "[id*="Submit" i]"
+[2025-06-16 16:22:01] [findElementWithFallbacks] Trying class-contains: "[class*="Submit" i]"
+[2025-06-16 16:22:03] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Submit" i]"
+[2025-06-16 16:22:05] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="Submit"]"
+[2025-06-16 16:22:10] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:22:10] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:22:10] [SubmitSkip] Form submission already detected, skipping missing submit element.
+[2025-06-16 16:22:10] Scrolling element into view before clicking.
+[2025-06-16 16:22:10] Click successful.
+[2025-06-16 16:22:10] [Action] click successful.
+[2025-06-16 16:22:10] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:22:10] Test case 684e58842b15879e3c8c51ec finished. Status: passed, Duration: 140005ms
+[2025-06-16 16:22:10] Starting test case: 684e413d2b15879e3c8c5112
+[2025-06-16 16:22:10] [AI] Resetting context for new test case 684e413d2b15879e3c8c5112.
+[2025-06-16 16:22:10] Step 1: Navigate to the login page via src/components/Logi...
+[2025-06-16 16:22:10] [AI] Parsing/Interpreting original step 1: "Navigate to the login page via src/components/Login.tsx..."
+[2025-06-16 16:22:10] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login"
+[2025-06-16 16:22:10] [Action] navigate: https://labnex.dev/login...
+[2025-06-16 16:22:10] Dispatching action: navigate, Target: https://labnex.dev/login, Value: N/A
+[2025-06-16 16:22:10] Navigating to https://labnex.dev/login
+[2025-06-16 16:22:11] Navigation to https://labnex.dev/login complete (domcontentloaded event fired).
+[2025-06-16 16:22:11] Navigation to https://labnex.dev/login complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:22:23] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:22:23] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:22:24] [Action] navigate successful.
+[2025-06-16 16:22:24] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:22:24] Step 2: Enter an invalid email address, such as 'test@inva...
+[2025-06-16 16:22:24] [AI] Parsing/Interpreting original step 2: "Enter an invalid email address, such as 'test@invalid'..."
+[2025-06-16 16:22:24] [Step] Executing (Attempt 0): type on "input[type="email"], #email, input[name="email"], " with value "test@invalid"
+[2025-06-16 16:22:24] [Action] type: input[type="email"], #email, i...
+[2025-06-16 16:22:24] Dispatching action: type, Target: input[type="email"], #email, input[name="email"], , Value: test@invalid
+[2025-06-16 16:22:24] [Type Action Debug] Selector being passed to handleType: input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:22:24] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=test@invalid, OriginalStep=Enter an invalid email address, such as 'test@invalid'
+[2025-06-16 16:22:25] Attempting to type "test@invalid" into element identified by "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:22:25] [findElementWithFallbacks] Looking for: "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:22:25] [tryFindElementImmediate] Using CSS method for: "input[type=\"email\"], #email, input[name=\"email\"], input[placeholder*=\"email\" i], input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:22:25] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:22:25] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:22:25] Cleared field before typing.
+[2025-06-16 16:22:25] Successfully typed "test@invalid" into element "input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:22:25] [Action] type successful.
+[2025-06-16 16:22:25] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:22:25] Step 3: Enter an incorrect password, such as '123456'...
+[2025-06-16 16:22:25] [AI] Parsing/Interpreting original step 3: "Enter an incorrect password, such as '123456'..."
+[2025-06-16 16:22:25] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "123456"
+[2025-06-16 16:22:25] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:22:25] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: 123456
+[2025-06-16 16:22:25] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:22:25] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=123456, OriginalStep=Enter an incorrect password, such as '123456'
+[2025-06-16 16:22:25] Attempting to type "123456" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:22:25] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:22:25] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:22:25] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:22:25] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:22:25] Cleared field before typing.
+[2025-06-16 16:22:26] Successfully typed "123456" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:22:26] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:22:26] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:22:26] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:22:26] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:22:51] [AutoSubmit] Clicked potential submit button: button[type="submit"]
+[2025-06-16 16:22:51] [Action] type successful.
+[2025-06-16 16:22:51] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:22:51] Step 4: Click the login button...
+[2025-06-16 16:22:51] [AI] Parsing/Interpreting original step 4: "Click the login button..."
+[2025-06-16 16:22:51] [Step] Executing (Attempt 0): click on "login"
+[2025-06-16 16:22:51] [Action] click: login...
+[2025-06-16 16:22:51] Dispatching action: click, Target: login, Value: N/A
+[2025-06-16 16:22:51] [Action] click: login...
+[2025-06-16 16:22:51] Attempting to click on element identified by: "login" at index: 0
+[2025-06-16 16:22:51] [handleClick Verbose] Original Selector: "login"
+[2025-06-16 16:22:51] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:22:51] [handleClick Verbose] Core Selector Value for Check: "login"
+[2025-06-16 16:22:51] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:22:51] [handleClick Verbose] Page URL: https://www.labnex.dev/login
+[2025-06-16 16:22:51] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:22:51] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login)
+[2025-06-16 16:22:51] [findElementWithFallbacks] Looking for: "login" (login) at index: 0
+[2025-06-16 16:22:51] [tryFindElementImmediate] Using CSS method for: "login"
+[2025-06-16 16:22:51] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:22:51] [findElementWithFallbacks] Trying id: "#login"
+[2025-06-16 16:22:53] [findElementWithFallbacks] Trying class: ".login"
+[2025-06-16 16:22:55] [findElementWithFallbacks] Trying name: "[name="login"]"
+[2025-06-16 16:22:57] [findElementWithFallbacks] Trying data-testid: "[data-testid="login"]"
+[2025-06-16 16:22:59] [findElementWithFallbacks] Trying aria-label: "[aria-label="login"]"
+[2025-06-16 16:23:02] [findElementWithFallbacks] Trying id-contains: "[id*="login" i]"
+[2025-06-16 16:23:04] [findElementWithFallbacks] Trying class-contains: "[class*="login" i]"
+[2025-06-16 16:23:06] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="login" i]"
+[2025-06-16 16:23:08] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="login"]"
+[2025-06-16 16:23:13] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:23:13] [DynamicScan] Performing broad scan for login/sign-in elements.
+[2025-06-16 16:23:13] [DynamicScan] ✓ Found element via dynamic scan fallback.
+[2025-06-16 16:23:13] Scrolling element into view before clicking.
+[2025-06-16 16:23:13] Click successful.
+[2025-06-16 16:23:13] [Action] click successful.
+[2025-06-16 16:23:13] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:23:13] Test case 684e413d2b15879e3c8c5112 finished. Status: passed, Duration: 63269ms
+[2025-06-16 16:23:13] Starting test case: 684e38f02b15879e3c8c50db
+[2025-06-16 16:23:13] [AI] Resetting context for new test case 684e38f02b15879e3c8c50db.
+[2025-06-16 16:23:13] Step 1: Navigate to the application's login page from a we...
+[2025-06-16 16:23:13] [AI] Parsing/Interpreting original step 1: "Navigate to the application's login page from a web browser..."
+[2025-06-16 16:23:13] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login/the"
+[2025-06-16 16:23:13] [Action] navigate: https://labnex.dev/login/the...
+[2025-06-16 16:23:13] Dispatching action: navigate, Target: https://labnex.dev/login/the, Value: N/A
+[2025-06-16 16:23:13] Navigating to https://labnex.dev/login/the
+[2025-06-16 16:23:14] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired).
+[2025-06-16 16:23:15] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:23:27] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:23:27] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:23:29] [Action] navigate successful.
+[2025-06-16 16:23:29] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:23:29] Step 2: Locate the email input field and enter a valid reg...
+[2025-06-16 16:23:29] [AI] Parsing/Interpreting original step 2: "Locate the email input field and enter a valid registered email addres..."
+[2025-06-16 16:23:29] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-06-16 16:23:29] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-06-16 16:23:29] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-06-16 16:23:29] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]...
+[2025-06-16 16:23:29] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" at index: 0
+[2025-06-16 16:23:29] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:23:29] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:23:29] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:23:29] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:23:29] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:23:29] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:29] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:29] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]) at index: 0
+[2025-06-16 16:23:29] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:23:29] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:23:29] [tryFindElementImmediate] XPath query found 0 elements
+[2025-06-16 16:23:29] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:23:31] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]")]"
+[2025-06-16 16:23:36] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:23:36] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:23:36] [Action] Error in click: Element not found...
+[2025-06-16 16:23:36] [Action] click failed: Element not found...
+[2025-06-16 16:23:36] [Failure Type] Element not found.
+[2025-06-16 16:23:36] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:23:36] [AI] Step 2 failed (Action: "click", Target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:23:36] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:23:36] [AI] Captured DOM context (length: 346). Preview: <body><div id="root"><div id="_rht_toaster"></div></div><script>(function(){function c(){var b=a.con...
+[2025-06-16 16:23:36] [AI] Requesting selector suggestion for target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]", descriptive: "xpath:(//*[self::a or self::button or self::input[@type='button'] or s"
+[2025-06-16 16:23:42] [AI] Received selector suggestion: "body" (Strategy: css, Confidence: 0.1, Reasoning: The provided DOM snippet does not contain an email input field. The suggested selector is the 'body' element as it is the only visible element in the provided DOM snippet. More information or a more complete DOM snippet would be needed to provide a more accurate selector.)
+[2025-06-16 16:23:42] [AI] Attempt 1: Retrying with AI suggested step: "click (css: body)..."
+[2025-06-16 16:23:42] [AI] Attempt 1: Retrying with AI suggested step: "click (css: body)..."
+[2025-06-16 16:23:42] [AI Retry Parse Result] Action: click, Target: body, Value: N/A
+[2025-06-16 16:23:42] [Step] Executing (Attempt 1): click on "body"
+[2025-06-16 16:23:42] [Action] click: body...
+[2025-06-16 16:23:42] Dispatching action: click, Target: body, Value: N/A
+[2025-06-16 16:23:42] [Action] click: body...
+[2025-06-16 16:23:42] Attempting to click on element identified by: "body" at index: 0
+[2025-06-16 16:23:42] [handleClick Verbose] Original Selector: "body"
+[2025-06-16 16:23:42] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:23:42] [handleClick Verbose] Core Selector Value for Check: "body"
+[2025-06-16 16:23:42] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:23:42] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:23:42] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:42] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:42] [findElementWithFallbacks] Looking for: "body" (body) at index: 0
+[2025-06-16 16:23:42] [tryFindElementImmediate] Using CSS method for: "body"
+[2025-06-16 16:23:42] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:23:42] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:23:42] Scrolling element into view before clicking.
+[2025-06-16 16:23:42] Standard click failed for selector "body": Node is either not clickable or not an Element
+[2025-06-16 16:23:42] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:23:42] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:23:42] [Warning] The target 'body' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:23:42] [Failure Type] Other error during action execution.
+[2025-06-16 16:23:42] [Step] Result for "click" (Attempt 1): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:23:42] [AI] Step 2 failed (Action: "click", Target: "body"). Attempting AI suggestion (2/2).
+[2025-06-16 16:23:42] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:23:42] [AI] Captured DOM context (length: 346). Preview: <body><div id="root"><div id="_rht_toaster"></div></div><script>(function(){function c(){var b=a.con...
+[2025-06-16 16:23:42] [AI] Requesting selector suggestion for target: "body", descriptive: "body"
+[2025-06-16 16:23:48] [AI] Received selector suggestion: "body" (Strategy: css, Confidence: 1, Reasoning: The 'body' tag is a unique element on the page. The previous selector failed, but it's unclear why as 'body' should be a valid selector. It's possible the page wasn't fully loaded when the selector was used.)
+[2025-06-16 16:23:48] [AI] Attempt 2: Retrying with AI suggested step: "click (css: body)..."
+[2025-06-16 16:23:48] [AI] Attempt 2: Retrying with AI suggested step: "click (css: body)..."
+[2025-06-16 16:23:48] [AI Retry Parse Result] Action: click, Target: body, Value: N/A
+[2025-06-16 16:23:48] [Step] Executing (Attempt 2): click on "body"
+[2025-06-16 16:23:48] [Action] click: body...
+[2025-06-16 16:23:48] Dispatching action: click, Target: body, Value: N/A
+[2025-06-16 16:23:48] [Action] click: body...
+[2025-06-16 16:23:48] Attempting to click on element identified by: "body" at index: 0
+[2025-06-16 16:23:48] [handleClick Verbose] Original Selector: "body"
+[2025-06-16 16:23:48] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:23:48] [handleClick Verbose] Core Selector Value for Check: "body"
+[2025-06-16 16:23:48] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:23:48] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:23:48] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:48] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:23:48] [findElementWithFallbacks] Looking for: "body" (body) at index: 0
+[2025-06-16 16:23:48] [tryFindElementImmediate] Using CSS method for: "body"
+[2025-06-16 16:23:48] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:23:48] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:23:48] Scrolling element into view before clicking.
+[2025-06-16 16:23:48] Standard click failed for selector "body": Node is either not clickable or not an Element
+[2025-06-16 16:23:48] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:23:48] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:23:48] [Warning] The target 'body' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:23:48] [Failure Type] Other error during action execution.
+[2025-06-16 16:23:48] [Step] Result for "click" (Attempt 2): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:23:48] Step 2 failed: Node is either not clickable or not an Element...
+[2025-06-16 16:23:48] Test case 684e38f02b15879e3c8c50db finished. Status: failed, Duration: 34899ms
+[2025-06-16 16:23:48] Starting test case: 684b0329afe9ee3c8e55dee0
+[2025-06-16 16:23:48] [AI] Resetting context for new test case 684b0329afe9ee3c8e55dee0.
+[2025-06-16 16:23:48] Step 1: Navigate to https://www.saucedemo.com/...
+[2025-06-16 16:23:48] [AI] Parsing/Interpreting original step 1: "Navigate to https://www.saucedemo.com/..."
+[2025-06-16 16:23:48] [Step] Executing (Attempt 0): navigate on "https://www.saucedemo.com/"
+[2025-06-16 16:23:48] [Action] navigate: https://www.saucedemo.com/...
+[2025-06-16 16:23:48] Dispatching action: navigate, Target: https://www.saucedemo.com/, Value: N/A
+[2025-06-16 16:23:48] Navigating to https://www.saucedemo.com/
+[2025-06-16 16:23:49] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired).
+[2025-06-16 16:23:49] Navigation to https://www.saucedemo.com/ complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:24:01] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:24:01] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:24:03] [Action] navigate successful.
+[2025-06-16 16:24:03] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:03] Step 2: Enter username standard_user...
+[2025-06-16 16:24:03] [AI] Parsing/Interpreting original step 2: "Enter username standard_user..."
+[2025-06-16 16:24:03] [Step] Executing (Attempt 0): type on "input[id*="user" i], input[name*="user" i], input[" with value "standard_user"
+[2025-06-16 16:24:03] [Action] type: input[id*="user" i], input[nam...
+[2025-06-16 16:24:03] Dispatching action: type, Target: input[id*="user" i], input[name*="user" i], input[, Value: standard_user
+[2025-06-16 16:24:03] [Type Action Debug] Selector being passed to handleType: input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]
+[2025-06-16 16:24:03] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="user" i], input[name*="user" i], input[placeholder*="user" i], Value=standard_user, OriginalStep=Enter username standard_user
+[2025-06-16 16:24:03] Attempting to type "standard_user" into element identified by "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:24:03] [findElementWithFallbacks] Looking for: "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]" (input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]) at index: 0
+[2025-06-16 16:24:03] [tryFindElementImmediate] Using CSS method for: "input[id*=\"user\" i], input[name*=\"user\" i], input[placeholder*=\"user\" i]"
+[2025-06-16 16:24:03] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:24:03] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:24:03] Cleared field before typing.
+[2025-06-16 16:24:03] Successfully typed "standard_user" into element "input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]"
+[2025-06-16 16:24:03] [Action] type successful.
+[2025-06-16 16:24:03] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:03] Step 3: Enter password secret_sauce...
+[2025-06-16 16:24:03] [AI] Parsing/Interpreting original step 3: "Enter password secret_sauce..."
+[2025-06-16 16:24:03] [Step] Executing (Attempt 0): type on "input[type="password"], #password, input[name="pas" with value "secret_sauce"
+[2025-06-16 16:24:03] [Action] type: input[type="password"], #passw...
+[2025-06-16 16:24:03] Dispatching action: type, Target: input[type="password"], #password, input[name="pas, Value: secret_sauce
+[2025-06-16 16:24:03] [Type Action Debug] Selector being passed to handleType: input[type="password"], #password, input[name="password"], input[placeholder*="password" i]
+[2025-06-16 16:24:03] [Type Action Debug] Full parsedStep object: Action=type, Target=input[type="password"], #password, input[name="password"], input[placeholder*="password" i], Value=secret_sauce, OriginalStep=Enter password secret_sauce
+[2025-06-16 16:24:03] Attempting to type "secret_sauce" into element identified by "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:24:03] [findElementWithFallbacks] Looking for: "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]" (input[type="password"], #password, input[name="password"], input[placeholder*="password" i]) at index: 0
+[2025-06-16 16:24:03] [tryFindElementImmediate] Using CSS method for: "input[type=\"password\"], #password, input[name=\"password\"], input[placeholder*=\"password\" i]"
+[2025-06-16 16:24:04] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:24:04] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:24:04] Cleared field before typing.
+[2025-06-16 16:24:04] Successfully typed "secret_sauce" into element "input[type="password"], #password, input[name="password"], input[placeholder*="password" i]"
+[2025-06-16 16:24:04] [findElementWithFallbacks] Looking for: "button[type="submit"]" (button[type="submit"]) at index: 0
+[2025-06-16 16:24:04] [tryFindElementImmediate] Using CSS method for: "button[type=\"submit\"]"
+[2025-06-16 16:24:04] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:24:04] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:24:04] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:24:04] [findElementWithFallbacks] Looking for: "input[type="submit"]" (input[type="submit"]) at index: 0
+[2025-06-16 16:24:04] [tryFindElementImmediate] Using CSS method for: "input[type=\"submit\"]"
+[2025-06-16 16:24:04] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:24:04] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:24:05] [AutoSubmit] Clicked potential submit button: input[type="submit"]
+[2025-06-16 16:24:05] [Action] type successful.
+[2025-06-16 16:24:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:05] Step 4: Click  Sauce Labs Backpack...
+[2025-06-16 16:24:05] [AI] Parsing/Interpreting original step 4: "Click  Sauce Labs Backpack..."
+[2025-06-16 16:24:05] [Step] Executing (Attempt 0): click on "Sauce Labs Backpack"
+[2025-06-16 16:24:05] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:24:05] Dispatching action: click, Target: Sauce Labs Backpack, Value: N/A
+[2025-06-16 16:24:05] [Action] click: Sauce Labs Backpack...
+[2025-06-16 16:24:05] Attempting to click on element identified by: "Sauce Labs Backpack" at index: 0
+[2025-06-16 16:24:05] [handleClick Verbose] Original Selector: "Sauce Labs Backpack"
+[2025-06-16 16:24:05] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:24:05] [handleClick Verbose] Core Selector Value for Check: "Sauce Labs Backpack"
+[2025-06-16 16:24:05] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:24:05] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:24:05] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:05] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:05] [findElementWithFallbacks] Looking for: "Sauce Labs Backpack" (Sauce Labs Backpack) at index: 0
+[2025-06-16 16:24:05] [tryFindElementImmediate] Using CSS method for: "Sauce Labs Backpack"
+[2025-06-16 16:24:05] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:24:05] [findElementWithFallbacks] Trying id: "#Sauce Labs Backpack"
+[2025-06-16 16:24:07] [findElementWithFallbacks] Trying class: ".Sauce Labs Backpack"
+[2025-06-16 16:24:09] [findElementWithFallbacks] Trying name: "[name="Sauce Labs Backpack"]"
+[2025-06-16 16:24:11] [findElementWithFallbacks] Trying data-testid: "[data-testid="Sauce Labs Backpack"]"
+[2025-06-16 16:24:13] [findElementWithFallbacks] Trying aria-label: "[aria-label="Sauce Labs Backpack"]"
+[2025-06-16 16:24:15] [findElementWithFallbacks] Trying id-contains: "[id*="Sauce Labs Backpack" i]"
+[2025-06-16 16:24:17] [findElementWithFallbacks] Trying class-contains: "[class*="Sauce Labs Backpack" i]"
+[2025-06-16 16:24:19] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Sauce Labs Backpack" i]"
+[2025-06-16 16:24:21] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="sauce-labs-backpack" i]"
+[2025-06-16 16:24:21] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:24:21] Scrolling element into view before clicking.
+[2025-06-16 16:24:21] Click successful.
+[2025-06-16 16:24:21] [Action] click successful.
+[2025-06-16 16:24:21] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:22] Step 5: Click Add To Cart...
+[2025-06-16 16:24:22] [AI] Parsing/Interpreting original step 5: "Click Add To Cart..."
+[2025-06-16 16:24:22] [Step] Executing (Attempt 0): click on "Add To Cart"
+[2025-06-16 16:24:22] [Action] click: Add To Cart...
+[2025-06-16 16:24:22] Dispatching action: click, Target: Add To Cart, Value: N/A
+[2025-06-16 16:24:22] [Action] click: Add To Cart...
+[2025-06-16 16:24:22] Attempting to click on element identified by: "Add To Cart" at index: 0
+[2025-06-16 16:24:22] [handleClick Verbose] Original Selector: "Add To Cart"
+[2025-06-16 16:24:22] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:24:22] [handleClick Verbose] Core Selector Value for Check: "Add To Cart"
+[2025-06-16 16:24:22] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:24:22] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:24:22] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:22] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:22] [findElementWithFallbacks] Looking for: "Add To Cart" (Add To Cart) at index: 0
+[2025-06-16 16:24:22] [tryFindElementImmediate] Using CSS method for: "Add To Cart"
+[2025-06-16 16:24:22] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:24:22] [findElementWithFallbacks] Trying id: "#Add To Cart"
+[2025-06-16 16:24:24] [findElementWithFallbacks] Trying class: ".Add To Cart"
+[2025-06-16 16:24:26] [findElementWithFallbacks] Trying name: "[name="Add To Cart"]"
+[2025-06-16 16:24:28] [findElementWithFallbacks] Trying data-testid: "[data-testid="Add To Cart"]"
+[2025-06-16 16:24:30] [findElementWithFallbacks] Trying aria-label: "[aria-label="Add To Cart"]"
+[2025-06-16 16:24:32] [findElementWithFallbacks] Trying id-contains: "[id*="Add To Cart" i]"
+[2025-06-16 16:24:34] [findElementWithFallbacks] Trying class-contains: "[class*="Add To Cart" i]"
+[2025-06-16 16:24:36] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="Add To Cart" i]"
+[2025-06-16 16:24:39] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="add-to-cart" i]"
+[2025-06-16 16:24:39] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:24:39] Scrolling element into view before clicking.
+[2025-06-16 16:24:39] Click successful.
+[2025-06-16 16:24:39] [Action] click successful.
+[2025-06-16 16:24:39] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:39] Step 6: Click the shopping cart...
+[2025-06-16 16:24:39] [AI] Parsing/Interpreting original step 6: "Click the shopping cart..."
+[2025-06-16 16:24:39] [Step] Executing (Attempt 0): click on "shopping cart"
+[2025-06-16 16:24:39] [Action] click: shopping cart...
+[2025-06-16 16:24:39] Dispatching action: click, Target: shopping cart, Value: N/A
+[2025-06-16 16:24:39] [Action] click: shopping cart...
+[2025-06-16 16:24:39] Attempting to click on element identified by: "shopping cart" at index: 0
+[2025-06-16 16:24:39] [handleClick Verbose] Original Selector: "shopping cart"
+[2025-06-16 16:24:39] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:24:39] [handleClick Verbose] Core Selector Value for Check: "shopping cart"
+[2025-06-16 16:24:39] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:24:39] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:24:39] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:39] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:39] [findElementWithFallbacks] Looking for: "shopping cart" (shopping cart) at index: 0
+[2025-06-16 16:24:39] [tryFindElementImmediate] Using CSS method for: "shopping cart"
+[2025-06-16 16:24:39] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:24:39] [findElementWithFallbacks] Trying id: "#shopping cart"
+[2025-06-16 16:24:41] [findElementWithFallbacks] Trying class: ".shopping cart"
+[2025-06-16 16:24:43] [findElementWithFallbacks] Trying name: "[name="shopping cart"]"
+[2025-06-16 16:24:45] [findElementWithFallbacks] Trying data-testid: "[data-testid="shopping cart"]"
+[2025-06-16 16:24:47] [findElementWithFallbacks] Trying aria-label: "[aria-label="shopping cart"]"
+[2025-06-16 16:24:49] [findElementWithFallbacks] Trying id-contains: "[id*="shopping cart" i]"
+[2025-06-16 16:24:52] [findElementWithFallbacks] Trying class-contains: "[class*="shopping cart" i]"
+[2025-06-16 16:24:54] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="shopping cart" i]"
+[2025-06-16 16:24:56] [findElementWithFallbacks] Trying data-testid-kebab: "[data-test*="shopping-cart" i]"
+[2025-06-16 16:24:56] [findElementWithFallbacks] ✓ Found element using data-testid-kebab strategy
+[2025-06-16 16:24:56] Scrolling element into view before clicking.
+[2025-06-16 16:24:56] Click successful.
+[2025-06-16 16:24:56] [Action] click successful.
+[2025-06-16 16:24:56] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:24:56] Step 7: Click the checkout button...
+[2025-06-16 16:24:56] [AI] Parsing/Interpreting original step 7: "Click the checkout button..."
+[2025-06-16 16:24:56] [Step] Executing (Attempt 0): click on "checkout"
+[2025-06-16 16:24:56] [Action] click: checkout...
+[2025-06-16 16:24:56] Dispatching action: click, Target: checkout, Value: N/A
+[2025-06-16 16:24:56] [Action] click: checkout...
+[2025-06-16 16:24:56] Attempting to click on element identified by: "checkout" at index: 0
+[2025-06-16 16:24:56] [handleClick Verbose] Original Selector: "checkout"
+[2025-06-16 16:24:56] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:24:56] [handleClick Verbose] Core Selector Value for Check: "checkout"
+[2025-06-16 16:24:56] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:24:56] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:24:56] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:56] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:24:56] [findElementWithFallbacks] Looking for: "checkout" (checkout) at index: 0
+[2025-06-16 16:24:56] [tryFindElementImmediate] Using CSS method for: "checkout"
+[2025-06-16 16:24:56] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:24:56] [findElementWithFallbacks] Trying id: "#checkout"
+[2025-06-16 16:24:58] [findElementWithFallbacks] Trying class: ".checkout"
+[2025-06-16 16:25:00] [findElementWithFallbacks] Trying name: "[name="checkout"]"
+[2025-06-16 16:25:02] [findElementWithFallbacks] Trying data-testid: "[data-testid="checkout"]"
+[2025-06-16 16:25:05] [findElementWithFallbacks] Trying aria-label: "[aria-label="checkout"]"
+[2025-06-16 16:25:07] [findElementWithFallbacks] Trying id-contains: "[id*="checkout" i]"
+[2025-06-16 16:25:09] [findElementWithFallbacks] Trying class-contains: "[class*="checkout" i]"
+[2025-06-16 16:25:11] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="checkout" i]"
+[2025-06-16 16:25:13] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="checkout"]"
+[2025-06-16 16:25:18] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:25:18] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:18] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:18] [Action] Error in click: Element not found...
+[2025-06-16 16:25:18] [Action] click failed: Element not found...
+[2025-06-16 16:25:18] [Warning] The target 'checkout' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:25:18] [Failure Type] Element not found.
+[2025-06-16 16:25:18] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:25:18] [AI] Step 7 failed (Action: "click", Target: "checkout"). Attempting AI suggestion (1/2).
+[2025-06-16 16:25:18] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:18] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:18] [AI] Requesting selector suggestion for target: "checkout", descriptive: "checkout"
+[2025-06-16 16:25:24] [AI] Received selector suggestion: "#shopping_cart_container" (Strategy: css, Confidence: 0.6, Reasoning: Based on the provided DOM snippet, there is no direct 'checkout' button or element. However, the 'shopping_cart_container' could potentially lead to a checkout process. This is a best guess based on the available information.)
+[2025-06-16 16:25:24] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #shopping_cart_container)..."
+[2025-06-16 16:25:24] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #shopping_cart_container)..."
+[2025-06-16 16:25:24] [AI Retry Parse Result] Action: click, Target: #shopping_cart_container, Value: N/A
+[2025-06-16 16:25:24] [Step] Executing (Attempt 1): click on "#shopping_cart_container"
+[2025-06-16 16:25:24] [Action] click: #shopping_cart_container...
+[2025-06-16 16:25:24] Dispatching action: click, Target: #shopping_cart_container, Value: N/A
+[2025-06-16 16:25:24] [Action] click: #shopping_cart_container...
+[2025-06-16 16:25:24] Attempting to click on element identified by: "#shopping_cart_container" at index: 0
+[2025-06-16 16:25:24] [handleClick Verbose] Original Selector: "#shopping_cart_container"
+[2025-06-16 16:25:24] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:25:24] [handleClick Verbose] Core Selector Value for Check: "#shopping_cart_container"
+[2025-06-16 16:25:24] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:25:24] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:25:24] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:25:24] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:25:24] [findElementWithFallbacks] Looking for: "#shopping_cart_container" (#shopping_cart_container) at index: 0
+[2025-06-16 16:25:24] [tryFindElementImmediate] Using CSS method for: "#shopping_cart_container"
+[2025-06-16 16:25:24] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:25:24] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:25:24] Scrolling element into view before clicking.
+[2025-06-16 16:25:24] Click successful.
+[2025-06-16 16:25:24] [Action] click successful.
+[2025-06-16 16:25:24] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-06-16 16:25:24] Step 8: enter first name Test...
+[2025-06-16 16:25:24] [AI] Parsing/Interpreting original step 8: "enter first name Test..."
+[2025-06-16 16:25:24] [Step] Executing (Attempt 0): type on "input[id*="first" i], input[name*="first" i], inpu" with value "Test"
+[2025-06-16 16:25:24] [Action] type: input[id*="first" i], input[na...
+[2025-06-16 16:25:24] Dispatching action: type, Target: input[id*="first" i], input[name*="first" i], inpu, Value: Test
+[2025-06-16 16:25:24] [Type Action Debug] Selector being passed to handleType: input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]
+[2025-06-16 16:25:24] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="first" i], input[name*="first" i], input[placeholder*="first" i], Value=Test, OriginalStep=enter first name Test
+[2025-06-16 16:25:24] Attempting to type "Test" into element identified by "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]"
+[2025-06-16 16:25:24] [findElementWithFallbacks] Looking for: "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]" (input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]) at index: 0
+[2025-06-16 16:25:24] [tryFindElementImmediate] Using CSS method for: "input[id*=\"first\" i], input[name*=\"first\" i], input[placeholder*=\"first\" i]"
+[2025-06-16 16:25:24] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:25:24] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:24] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:24] [Action] Error in type: Element not found...
+[2025-06-16 16:25:24] [Action] type failed: Element not found...
+[2025-06-16 16:25:24] [Failure Type] Element not found.
+[2025-06-16 16:25:24] [Step] Result for "type" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:25:24] [AI] Step 8 failed (Action: "type", Target: "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:25:24] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:24] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:24] [AI] Requesting selector suggestion for target: "input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]", descriptive: "input[id*="first" i], input[name*="first" i], input[placeholder*="firs"
+[2025-06-16 16:25:29] [AI] Received selector suggestion: "#react-burger-menu-btn" (Strategy: css, Confidence: 0.1, Reasoning: The provided DOM snippet does not contain an input element with id, name, or placeholder containing 'first'. The suggested selector is a best guess based on the available elements in the DOM snippet.)
+[2025-06-16 16:25:29] [AI] Attempt 1: Retrying with AI suggested step: "type (css: #react-burger-menu-btn) with value "Test"..."
+[2025-06-16 16:25:29] [AI] Attempt 1: Retrying with AI suggested step: "type (css: #react-burger-menu-btn) with value "Test"..."
+[2025-06-16 16:25:29] [AI Retry Parse Result] Action: type, Target: css: #react-burger-menu-btn, Value: Test
+[2025-06-16 16:25:29] [Step] Executing (Attempt 1): type on "css: #react-burger-menu-btn" with value "Test"
+[2025-06-16 16:25:29] [Action] type: css: #react-burger-menu-btn...
+[2025-06-16 16:25:29] Dispatching action: type, Target: css: #react-burger-menu-btn, Value: Test
+[2025-06-16 16:25:29] [Type Action Debug] Selector being passed to handleType: css: #react-burger-menu-btn
+[2025-06-16 16:25:29] [Type Action Debug] Full parsedStep object: Action=type, Target=css: #react-burger-menu-btn, Value=Test, OriginalStep=type (css: #react-burger-menu-btn) with value "Test"
+[2025-06-16 16:25:29] Attempting to type "Test" into element identified by "css: #react-burger-menu-btn"
+[2025-06-16 16:25:29] [findElementWithFallbacks] Looking for: "css: #react-burger-menu-btn" (css: #react-burger-menu-btn) at index: 0
+[2025-06-16 16:25:29] [tryFindElementImmediate] Using CSS method for: "css: #react-burger-menu-btn"
+[2025-06-16 16:25:29] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: #react-burger-menu-btn' is not a valid selector.
+[2025-06-16 16:25:29] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:29] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:29] [Action] Error in type: Element not found...
+[2025-06-16 16:25:29] [Action] type failed: Element not found...
+[2025-06-16 16:25:29] [Failure Type] Element not found.
+[2025-06-16 16:25:29] [Step] Result for "type" (Attempt 1): failed, Message: Element not found
+[2025-06-16 16:25:29] [AI] Step 8 failed (Action: "type", Target: "css: #react-burger-menu-btn"). Attempting AI suggestion (2/2).
+[2025-06-16 16:25:29] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:29] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:29] [AI] Requesting selector suggestion for target: "css: #react-burger-menu-btn", descriptive: "css: #react-burger-menu-btn"
+[2025-06-16 16:25:34] [AI] Received selector suggestion: "#react-burger-menu-btn" (Strategy: css, Confidence: 1, Reasoning: The selector is an ID which is unique on the page. The element with this ID is present in the provided DOM snippet.)
+[2025-06-16 16:25:34] [AI] Attempt 2: Retrying with AI suggested step: "type (css: #react-burger-menu-btn) with value "Test"..."
+[2025-06-16 16:25:34] [AI] Attempt 2: Retrying with AI suggested step: "type (css: #react-burger-menu-btn) with value "Test"..."
+[2025-06-16 16:25:34] [AI Retry Parse Result] Action: type, Target: css: #react-burger-menu-btn, Value: Test
+[2025-06-16 16:25:34] [Step] Executing (Attempt 2): type on "css: #react-burger-menu-btn" with value "Test"
+[2025-06-16 16:25:34] [Action] type: css: #react-burger-menu-btn...
+[2025-06-16 16:25:34] Dispatching action: type, Target: css: #react-burger-menu-btn, Value: Test
+[2025-06-16 16:25:34] [Type Action Debug] Selector being passed to handleType: css: #react-burger-menu-btn
+[2025-06-16 16:25:34] [Type Action Debug] Full parsedStep object: Action=type, Target=css: #react-burger-menu-btn, Value=Test, OriginalStep=type (css: #react-burger-menu-btn) with value "Test"
+[2025-06-16 16:25:34] Attempting to type "Test" into element identified by "css: #react-burger-menu-btn"
+[2025-06-16 16:25:34] [findElementWithFallbacks] Looking for: "css: #react-burger-menu-btn" (css: #react-burger-menu-btn) at index: 0
+[2025-06-16 16:25:34] [tryFindElementImmediate] Using CSS method for: "css: #react-burger-menu-btn"
+[2025-06-16 16:25:34] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: #react-burger-menu-btn' is not a valid selector.
+[2025-06-16 16:25:34] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-06-16 16:25:34] [DOM Capture] Captured 2464 characters of DOM context
+[2025-06-16 16:25:34] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"css: #react-burger-menu-btn\",\n  \"descriptiveTerm\": \"css: #react-bur...
+[2025-06-16 16:25:39] [AI] Suggested: #react-burger-menu-btn (css, confidence: 1)
+[2025-06-16 16:25:39] [AI] Reasoning: The ID selector is unique and directly targets the intended element. It is the most robust and efficient way to select this element.
+[2025-06-16 16:25:39] [AI] ✓ Successfully found element using AI suggestion
+[2025-06-16 16:25:39] Skipped clearing field due to mismatch or password input.
+[2025-06-16 16:25:39] Successfully typed "Test" into element "css: #react-burger-menu-btn"
+[2025-06-16 16:25:39] [Action] type successful.
+[2025-06-16 16:25:39] [Step] Result for "type" (Attempt 2): passed, Message: undefined
+[2025-06-16 16:25:39] Step 9: enter last name Test...
+[2025-06-16 16:25:39] [AI] Parsing/Interpreting original step 9: "enter last name Test..."
+[2025-06-16 16:25:39] [Step] Executing (Attempt 0): type on "input[id*="last" i], input[name*="last" i], input[" with value "Test"
+[2025-06-16 16:25:39] [Action] type: input[id*="last" i], input[nam...
+[2025-06-16 16:25:39] Dispatching action: type, Target: input[id*="last" i], input[name*="last" i], input[, Value: Test
+[2025-06-16 16:25:39] [Type Action Debug] Selector being passed to handleType: input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]
+[2025-06-16 16:25:39] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="last" i], input[name*="last" i], input[placeholder*="last" i], Value=Test, OriginalStep=enter last name Test
+[2025-06-16 16:25:39] Attempting to type "Test" into element identified by "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]"
+[2025-06-16 16:25:39] [findElementWithFallbacks] Looking for: "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]" (input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]) at index: 0
+[2025-06-16 16:25:39] [tryFindElementImmediate] Using CSS method for: "input[id*=\"last\" i], input[name*=\"last\" i], input[placeholder*=\"last\" i]"
+[2025-06-16 16:25:39] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:25:39] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:39] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:39] [Action] Error in type: Element not found...
+[2025-06-16 16:25:39] [Action] type failed: Element not found...
+[2025-06-16 16:25:39] [Failure Type] Element not found.
+[2025-06-16 16:25:40] [Step] Result for "type" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:25:40] [AI] Step 9 failed (Action: "type", Target: "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:25:40] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:40] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:40] [AI] Requesting selector suggestion for target: "input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]", descriptive: "input[id*="last" i], input[name*="last" i], input[placeholder*="last" "
+[2025-06-16 16:25:46] [AI] Received selector suggestion: "body" (Strategy: css, Confidence: 0.1, Reasoning: The provided DOM snippet does not contain any input elements with id, name or placeholder attributes containing 'last'. The suggested selector is 'body' as it is the root element of the provided DOM snippet.)
+[2025-06-16 16:25:46] [AI] Attempt 1: Retrying with AI suggested step: "type (css: body) with value "Test"..."
+[2025-06-16 16:25:46] [AI] Attempt 1: Retrying with AI suggested step: "type (css: body) with value "Test"..."
+[2025-06-16 16:25:46] [AI Retry Parse Result] Action: type, Target: css: body, Value: Test
+[2025-06-16 16:25:46] [Step] Executing (Attempt 1): type on "css: body" with value "Test"
+[2025-06-16 16:25:46] [Action] type: css: body...
+[2025-06-16 16:25:46] Dispatching action: type, Target: css: body, Value: Test
+[2025-06-16 16:25:46] [Type Action Debug] Selector being passed to handleType: css: body
+[2025-06-16 16:25:46] [Type Action Debug] Full parsedStep object: Action=type, Target=css: body, Value=Test, OriginalStep=type (css: body) with value "Test"
+[2025-06-16 16:25:46] Attempting to type "Test" into element identified by "css: body"
+[2025-06-16 16:25:46] [findElementWithFallbacks] Looking for: "css: body" (css: body) at index: 0
+[2025-06-16 16:25:46] [tryFindElementImmediate] Using CSS method for: "css: body"
+[2025-06-16 16:25:46] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: body' is not a valid selector.
+[2025-06-16 16:25:46] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:46] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:46] [Action] Error in type: Element not found...
+[2025-06-16 16:25:46] [Action] type failed: Element not found...
+[2025-06-16 16:25:46] [Failure Type] Element not found.
+[2025-06-16 16:25:46] [Step] Result for "type" (Attempt 1): failed, Message: Element not found
+[2025-06-16 16:25:46] [AI] Step 9 failed (Action: "type", Target: "css: body"). Attempting AI suggestion (2/2).
+[2025-06-16 16:25:46] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:46] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:46] [AI] Requesting selector suggestion for target: "css: body", descriptive: "css: body"
+[2025-06-16 16:25:52] [AI] Received selector suggestion: "body" (Strategy: css, Confidence: 1, Reasoning: The 'body' tag is the root element of an HTML document. It is unique and always present, so it should be a reliable selector.)
+[2025-06-16 16:25:52] [AI] Attempt 2: Retrying with AI suggested step: "type (css: body) with value "Test"..."
+[2025-06-16 16:25:52] [AI] Attempt 2: Retrying with AI suggested step: "type (css: body) with value "Test"..."
+[2025-06-16 16:25:52] [AI Retry Parse Result] Action: type, Target: css: body, Value: Test
+[2025-06-16 16:25:52] [Step] Executing (Attempt 2): type on "css: body" with value "Test"
+[2025-06-16 16:25:52] [Action] type: css: body...
+[2025-06-16 16:25:52] Dispatching action: type, Target: css: body, Value: Test
+[2025-06-16 16:25:52] [Type Action Debug] Selector being passed to handleType: css: body
+[2025-06-16 16:25:52] [Type Action Debug] Full parsedStep object: Action=type, Target=css: body, Value=Test, OriginalStep=type (css: body) with value "Test"
+[2025-06-16 16:25:52] Attempting to type "Test" into element identified by "css: body"
+[2025-06-16 16:25:52] [findElementWithFallbacks] Looking for: "css: body" (css: body) at index: 0
+[2025-06-16 16:25:52] [tryFindElementImmediate] Using CSS method for: "css: body"
+[2025-06-16 16:25:52] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: body' is not a valid selector.
+[2025-06-16 16:25:52] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-06-16 16:25:52] [DOM Capture] Captured 2464 characters of DOM context
+[2025-06-16 16:25:52] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"css: body\",\n  \"descriptiveTerm\": \"css: body\",\n  \"pageUrl\": \"ht...
+[2025-06-16 16:25:57] [AI] Suggested: #root (css, confidence: 0.9)
+[2025-06-16 16:25:57] [AI] Reasoning: The 'body' element usually refers to the root element of the page. In this case, the 'root' id seems to be the main container for the page content. This selector is robust as it relies on an id which is unique per page.
+[2025-06-16 16:25:57] [AI] ✓ Successfully found element using AI suggestion
+[2025-06-16 16:25:57] Skipped clearing field due to mismatch or password input.
+[2025-06-16 16:25:57] Successfully typed "Test" into element "css: body"
+[2025-06-16 16:25:57] [Action] type successful.
+[2025-06-16 16:25:57] [Step] Result for "type" (Attempt 2): passed, Message: undefined
+[2025-06-16 16:25:57] Step 10: enter zip 1234...
+[2025-06-16 16:25:57] [AI] Parsing/Interpreting original step 10: "enter zip 1234..."
+[2025-06-16 16:25:57] [Step] Executing (Attempt 0): type on "input[id*="zip" i], input[name*="zip" i], input[pl" with value "12340"
+[2025-06-16 16:25:57] [Action] type: input[id*="zip" i], input[name...
+[2025-06-16 16:25:57] Dispatching action: type, Target: input[id*="zip" i], input[name*="zip" i], input[pl, Value: 12340
+[2025-06-16 16:25:57] [Type Action Debug] Selector being passed to handleType: input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]
+[2025-06-16 16:25:57] [Type Action Debug] Full parsedStep object: Action=type, Target=input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i], Value=12340, OriginalStep=enter zip 1234
+[2025-06-16 16:25:57] Attempting to type "12340" into element identified by "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]"
+[2025-06-16 16:25:57] [findElementWithFallbacks] Looking for: "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]" (input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]) at index: 0
+[2025-06-16 16:25:57] [tryFindElementImmediate] Using CSS method for: "input[id*=\"zip\" i], input[name*=\"zip\" i], input[placeholder*=\"zip\" i]"
+[2025-06-16 16:25:57] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:25:57] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:25:57] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:25:57] [Action] Error in type: Element not found...
+[2025-06-16 16:25:57] [Action] type failed: Element not found...
+[2025-06-16 16:25:57] [Failure Type] Element not found.
+[2025-06-16 16:25:57] [Step] Result for "type" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:25:57] [AI] Step 10 failed (Action: "type", Target: "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:25:57] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:25:57] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:25:57] [AI] Requesting selector suggestion for target: "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]", descriptive: "input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]"
+[2025-06-16 16:26:03] [AI] Received selector suggestion: "#inventory_container" (Strategy: css, Confidence: 0.5, Reasoning: Based on the provided DOM snippet, there is no input field with id, name, or placeholder containing 'zip'. The selector '#inventory_container' is suggested as it is the closest identifiable container that might contain the target in a different state of the application.)
+[2025-06-16 16:26:03] [AI] Attempt 1: Retrying with AI suggested step: "type (css: #inventory_container) with value "12340"..."
+[2025-06-16 16:26:03] [AI] Attempt 1: Retrying with AI suggested step: "type (css: #inventory_container) with value "12340"..."
+[2025-06-16 16:26:03] [AI Retry Parse Result] Action: type, Target: css: #inventory_container, Value: 12340
+[2025-06-16 16:26:03] [Step] Executing (Attempt 1): type on "css: #inventory_container" with value "12340"
+[2025-06-16 16:26:03] [Action] type: css: #inventory_container...
+[2025-06-16 16:26:03] Dispatching action: type, Target: css: #inventory_container, Value: 12340
+[2025-06-16 16:26:03] [Type Action Debug] Selector being passed to handleType: css: #inventory_container
+[2025-06-16 16:26:03] [Type Action Debug] Full parsedStep object: Action=type, Target=css: #inventory_container, Value=12340, OriginalStep=type (css: #inventory_container) with value "12340"
+[2025-06-16 16:26:03] Attempting to type "12340" into element identified by "css: #inventory_container"
+[2025-06-16 16:26:03] [findElementWithFallbacks] Looking for: "css: #inventory_container" (css: #inventory_container) at index: 0
+[2025-06-16 16:26:03] [tryFindElementImmediate] Using CSS method for: "css: #inventory_container"
+[2025-06-16 16:26:03] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: #inventory_container' is not a valid selector.
+[2025-06-16 16:26:03] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:26:03] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:26:03] [Action] Error in type: Element not found...
+[2025-06-16 16:26:03] [Action] type failed: Element not found...
+[2025-06-16 16:26:03] [Failure Type] Element not found.
+[2025-06-16 16:26:03] [Step] Result for "type" (Attempt 1): failed, Message: Element not found
+[2025-06-16 16:26:03] [AI] Step 10 failed (Action: "type", Target: "css: #inventory_container"). Attempting AI suggestion (2/2).
+[2025-06-16 16:26:03] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:26:03] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:26:03] [AI] Requesting selector suggestion for target: "css: #inventory_container", descriptive: "css: #inventory_container"
+[2025-06-16 16:26:09] [AI] Received selector suggestion: "div#inventory_container.inventory_container" (Strategy: css, Confidence: 0.9, Reasoning: The original selector '#inventory_container' matches two elements in the provided DOM snippet, which could be the reason for its failure. The suggested selector is more specific, targeting the div element with both the id 'inventory_container' and the class 'inventory_container'. This combination appears to be unique in the provided DOM snippet.)
+[2025-06-16 16:26:09] [AI] Attempt 2: Retrying with AI suggested step: "type (css: div#inventory_container.inventory_container) with value "12340"..."
+[2025-06-16 16:26:09] [AI] Attempt 2: Retrying with AI suggested step: "type (css: div#inventory_container.inventory_container) with value "12..."
+[2025-06-16 16:26:09] [AI Retry Parse Result] Action: type, Target: css: div#inventory_container.inventory_container, Value: 12340
+[2025-06-16 16:26:09] [Step] Executing (Attempt 2): type on "css: div#inventory_container.inventory_container" with value "12340"
+[2025-06-16 16:26:09] [Action] type: css: div#inventory_container.i...
+[2025-06-16 16:26:09] Dispatching action: type, Target: css: div#inventory_container.inventory_container, Value: 12340
+[2025-06-16 16:26:09] [Type Action Debug] Selector being passed to handleType: css: div#inventory_container.inventory_container
+[2025-06-16 16:26:09] [Type Action Debug] Full parsedStep object: Action=type, Target=css: div#inventory_container.inventory_container, Value=12340, OriginalStep=type (css: div#inventory_container.inventory_container) with value "12340"
+[2025-06-16 16:26:09] Attempting to type "12340" into element identified by "css: div#inventory_container.inventory_container"
+[2025-06-16 16:26:09] [findElementWithFallbacks] Looking for: "css: div#inventory_container.inventory_container" (css: div#inventory_container.inventory_container) at index: 0
+[2025-06-16 16:26:09] [tryFindElementImmediate] Using CSS method for: "css: div#inventory_container.inventory_container"
+[2025-06-16 16:26:09] [tryFindElementImmediate] Error: SyntaxError: Failed to execute 'querySelectorAll' on 'Document': 'css: div#inventory_container.inventory_container' is not a valid selector.
+[2025-06-16 16:26:09] [findElementWithFallbacks] Element not found immediately. Requesting AI assistance...
+[2025-06-16 16:26:09] [DOM Capture] Captured 2464 characters of DOM context
+[2025-06-16 16:26:09] [findElementWithFallbacks] AI Request Payload: "{\n  \"failedSelector\": \"css: div#inventory_container.inventory_container\",\n  \"descriptiveTerm...
+[2025-06-16 16:26:15] [AI] Suggested: #inventory_container (css, confidence: 0.5)
+[2025-06-16 16:26:15] [AI] Reasoning: The provided DOM snippet does not contain the exact selector 'div#inventory_container.inventory_container'. However, it's common for the 'inventory_container' to be an ID rather than a class. Therefore, the suggested selector is '#inventory_container'. This is just a best guess based on the provided information.
+[2025-06-16 16:26:15] [AI] ✓ Successfully found element using AI suggestion
+[2025-06-16 16:26:15] Skipped clearing field due to mismatch or password input.
+[2025-06-16 16:26:16] Successfully typed "12340" into element "css: div#inventory_container.inventory_container"
+[2025-06-16 16:26:16] [Action] type successful.
+[2025-06-16 16:26:16] [Step] Result for "type" (Attempt 2): passed, Message: undefined
+[2025-06-16 16:26:16] Step 11: click continue button...
+[2025-06-16 16:26:16] [AI] Parsing/Interpreting original step 11: "click continue button..."
+[2025-06-16 16:26:16] [Step] Executing (Attempt 0): click on "continue"
+[2025-06-16 16:26:16] [Action] click: continue...
+[2025-06-16 16:26:16] Dispatching action: click, Target: continue, Value: N/A
+[2025-06-16 16:26:16] [Action] click: continue...
+[2025-06-16 16:26:16] Attempting to click on element identified by: "continue" at index: 0
+[2025-06-16 16:26:16] [handleClick Verbose] Original Selector: "continue"
+[2025-06-16 16:26:16] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:26:16] [handleClick Verbose] Core Selector Value for Check: "continue"
+[2025-06-16 16:26:16] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:26:16] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:26:16] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:16] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:16] [findElementWithFallbacks] Looking for: "continue" (continue) at index: 0
+[2025-06-16 16:26:16] [tryFindElementImmediate] Using CSS method for: "continue"
+[2025-06-16 16:26:16] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:26:16] [findElementWithFallbacks] Trying id: "#continue"
+[2025-06-16 16:26:18] [findElementWithFallbacks] Trying class: ".continue"
+[2025-06-16 16:26:20] [findElementWithFallbacks] Trying name: "[name="continue"]"
+[2025-06-16 16:26:22] [findElementWithFallbacks] Trying data-testid: "[data-testid="continue"]"
+[2025-06-16 16:26:24] [findElementWithFallbacks] Trying aria-label: "[aria-label="continue"]"
+[2025-06-16 16:26:26] [findElementWithFallbacks] Trying id-contains: "[id*="continue" i]"
+[2025-06-16 16:26:28] [findElementWithFallbacks] Trying class-contains: "[class*="continue" i]"
+[2025-06-16 16:26:31] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="continue" i]"
+[2025-06-16 16:26:33] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="continue"]"
+[2025-06-16 16:26:38] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:26:38] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:26:38] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:26:38] [Action] Error in click: Element not found...
+[2025-06-16 16:26:38] [Action] click failed: Element not found...
+[2025-06-16 16:26:38] [Warning] The target 'continue' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:26:38] [Failure Type] Element not found.
+[2025-06-16 16:26:38] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:26:38] [AI] Step 11 failed (Action: "click", Target: "continue"). Attempting AI suggestion (1/2).
+[2025-06-16 16:26:38] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:26:38] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:26:38] [AI] Requesting selector suggestion for target: "continue", descriptive: "continue"
+[2025-06-16 16:26:42] [AI] Received selector suggestion: "#react-burger-menu-btn" (Strategy: css, Confidence: 0.5, Reasoning: There is no 'continue' button in the provided DOM snippet. The closest matching element is the 'Open Menu' button with id 'react-burger-menu-btn'. This selector might not be the intended target, but it's the best guess based on the given information.)
+[2025-06-16 16:26:42] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #react-burger-menu-btn)..."
+[2025-06-16 16:26:42] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #react-burger-menu-btn)..."
+[2025-06-16 16:26:42] [AI Retry Parse Result] Action: click, Target: #react-burger-menu-btn, Value: N/A
+[2025-06-16 16:26:42] [Step] Executing (Attempt 1): click on "#react-burger-menu-btn"
+[2025-06-16 16:26:42] [Action] click: #react-burger-menu-btn...
+[2025-06-16 16:26:42] Dispatching action: click, Target: #react-burger-menu-btn, Value: N/A
+[2025-06-16 16:26:42] [Action] click: #react-burger-menu-btn...
+[2025-06-16 16:26:42] Attempting to click on element identified by: "#react-burger-menu-btn" at index: 0
+[2025-06-16 16:26:42] [handleClick Verbose] Original Selector: "#react-burger-menu-btn"
+[2025-06-16 16:26:42] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:26:42] [handleClick Verbose] Core Selector Value for Check: "#react-burger-menu-btn"
+[2025-06-16 16:26:42] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:26:42] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:26:42] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:42] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:42] [findElementWithFallbacks] Looking for: "#react-burger-menu-btn" (#react-burger-menu-btn) at index: 0
+[2025-06-16 16:26:42] [tryFindElementImmediate] Using CSS method for: "#react-burger-menu-btn"
+[2025-06-16 16:26:42] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:26:42] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:26:42] Scrolling element into view before clicking.
+[2025-06-16 16:26:42] Click successful.
+[2025-06-16 16:26:42] [Action] click successful.
+[2025-06-16 16:26:42] [Step] Result for "click" (Attempt 1): passed, Message: undefined
+[2025-06-16 16:26:42] Step 12: click finish button...
+[2025-06-16 16:26:42] [AI] Parsing/Interpreting original step 12: "click finish button..."
+[2025-06-16 16:26:42] [Step] Executing (Attempt 0): click on "finish"
+[2025-06-16 16:26:42] [Action] click: finish...
+[2025-06-16 16:26:42] Dispatching action: click, Target: finish, Value: N/A
+[2025-06-16 16:26:42] [Action] click: finish...
+[2025-06-16 16:26:42] Attempting to click on element identified by: "finish" at index: 0
+[2025-06-16 16:26:42] [handleClick Verbose] Original Selector: "finish"
+[2025-06-16 16:26:42] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:26:42] [handleClick Verbose] Core Selector Value for Check: "finish"
+[2025-06-16 16:26:42] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:26:42] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:26:42] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:42] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:26:42] [findElementWithFallbacks] Looking for: "finish" (finish) at index: 0
+[2025-06-16 16:26:42] [tryFindElementImmediate] Using CSS method for: "finish"
+[2025-06-16 16:26:42] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-16 16:26:42] [findElementWithFallbacks] Trying id: "#finish"
+[2025-06-16 16:26:44] [findElementWithFallbacks] Trying class: ".finish"
+[2025-06-16 16:26:47] [findElementWithFallbacks] Trying name: "[name="finish"]"
+[2025-06-16 16:26:49] [findElementWithFallbacks] Trying data-testid: "[data-testid="finish"]"
+[2025-06-16 16:26:51] [findElementWithFallbacks] Trying aria-label: "[aria-label="finish"]"
+[2025-06-16 16:26:53] [findElementWithFallbacks] Trying id-contains: "[id*="finish" i]"
+[2025-06-16 16:26:55] [findElementWithFallbacks] Trying class-contains: "[class*="finish" i]"
+[2025-06-16 16:26:57] [findElementWithFallbacks] Trying data-testid-contains: "[data-testid*="finish" i]"
+[2025-06-16 16:26:59] [findElementWithFallbacks] Trying exact-text: "//*[normalize-space(text())="finish"]"
+[2025-06-16 16:27:04] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-16 16:27:04] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:27:04] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:27:04] [Action] Error in click: Element not found...
+[2025-06-16 16:27:04] [Action] click failed: Element not found...
+[2025-06-16 16:27:04] [Warning] The target 'finish' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-16 16:27:04] [Failure Type] Element not found.
+[2025-06-16 16:27:04] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:27:04] [AI] Step 12 failed (Action: "click", Target: "finish"). Attempting AI suggestion (1/2).
+[2025-06-16 16:27:04] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:27:04] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:27:04] [AI] Requesting selector suggestion for target: "finish", descriptive: "finish"
+[2025-06-16 16:27:12] [AI] Received selector suggestion: "#react-burger-cross-btn" (Strategy: css, Confidence: 0.5, Reasoning: There is no 'finish' button in the provided DOM snippet. The closest element that could be interpreted as 'finish' is the 'Close Menu' button with the id 'react-burger-cross-btn'. However, this is a best guess based on the available information.)
+[2025-06-16 16:27:12] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #react-burger-cross-btn)..."
+[2025-06-16 16:27:12] [AI] Attempt 1: Retrying with AI suggested step: "click (css: #react-burger-cross-btn)..."
+[2025-06-16 16:27:12] [AI Retry Parse Result] Action: click, Target: #react-burger-cross-btn, Value: N/A
+[2025-06-16 16:27:12] [Step] Executing (Attempt 1): click on "#react-burger-cross-btn"
+[2025-06-16 16:27:12] [Action] click: #react-burger-cross-btn...
+[2025-06-16 16:27:12] Dispatching action: click, Target: #react-burger-cross-btn, Value: N/A
+[2025-06-16 16:27:12] [Action] click: #react-burger-cross-btn...
+[2025-06-16 16:27:12] Attempting to click on element identified by: "#react-burger-cross-btn" at index: 0
+[2025-06-16 16:27:12] [handleClick Verbose] Original Selector: "#react-burger-cross-btn"
+[2025-06-16 16:27:12] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:27:12] [handleClick Verbose] Core Selector Value for Check: "#react-burger-cross-btn"
+[2025-06-16 16:27:12] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:27:12] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:27:12] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:27:12] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:27:12] [findElementWithFallbacks] Looking for: "#react-burger-cross-btn" (#react-burger-cross-btn) at index: 0
+[2025-06-16 16:27:12] [tryFindElementImmediate] Using CSS method for: "#react-burger-cross-btn"
+[2025-06-16 16:27:12] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:27:12] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:27:12] Scrolling element into view before clicking.
+[2025-06-16 16:27:12] Standard click failed for selector "#react-burger-cross-btn": Node is either not clickable or not an Element
+[2025-06-16 16:27:12] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:27:12] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:27:12] [Failure Type] Other error during action execution.
+[2025-06-16 16:27:12] [Step] Result for "click" (Attempt 1): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:27:12] [AI] Step 12 failed (Action: "click", Target: "#react-burger-cross-btn"). Attempting AI suggestion (2/2).
+[2025-06-16 16:27:12] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:27:12] [AI] Captured DOM context (length: 3092). Preview: <body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div id="pag...
+[2025-06-16 16:27:12] [AI] Requesting selector suggestion for target: "#react-burger-cross-btn", descriptive: "#react-burger-cross-btn"
+[2025-06-16 16:27:18] [AI] Received selector suggestion: "#react-burger-cross-btn" (Strategy: css, Confidence: 1, Reasoning: The ID selector is the most specific and fastest selector. The ID '#react-burger-cross-btn' is unique to the 'Close Menu' button, so it should work reliably.)
+[2025-06-16 16:27:18] [AI] Attempt 2: Retrying with AI suggested step: "click (css: #react-burger-cross-btn)..."
+[2025-06-16 16:27:18] [AI] Attempt 2: Retrying with AI suggested step: "click (css: #react-burger-cross-btn)..."
+[2025-06-16 16:27:18] [AI Retry Parse Result] Action: click, Target: #react-burger-cross-btn, Value: N/A
+[2025-06-16 16:27:18] [Step] Executing (Attempt 2): click on "#react-burger-cross-btn"
+[2025-06-16 16:27:18] [Action] click: #react-burger-cross-btn...
+[2025-06-16 16:27:18] Dispatching action: click, Target: #react-burger-cross-btn, Value: N/A
+[2025-06-16 16:27:18] [Action] click: #react-burger-cross-btn...
+[2025-06-16 16:27:18] Attempting to click on element identified by: "#react-burger-cross-btn" at index: 0
+[2025-06-16 16:27:18] [handleClick Verbose] Original Selector: "#react-burger-cross-btn"
+[2025-06-16 16:27:18] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:27:18] [handleClick Verbose] Core Selector Value for Check: "#react-burger-cross-btn"
+[2025-06-16 16:27:18] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:27:18] [handleClick Verbose] Page URL: https://www.saucedemo.com/inventory.html
+[2025-06-16 16:27:18] [handleClick Verbose] Context: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:27:18] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.saucedemo.com/inventory.html)
+[2025-06-16 16:27:18] [findElementWithFallbacks] Looking for: "#react-burger-cross-btn" (#react-burger-cross-btn) at index: 0
+[2025-06-16 16:27:18] [tryFindElementImmediate] Using CSS method for: "#react-burger-cross-btn"
+[2025-06-16 16:27:18] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:27:18] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:27:18] Scrolling element into view before clicking.
+[2025-06-16 16:27:18] Standard click failed for selector "#react-burger-cross-btn": Node is either not clickable or not an Element
+[2025-06-16 16:27:18] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:27:18] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:27:18] [Failure Type] Other error during action execution.
+[2025-06-16 16:27:18] [Step] Result for "click" (Attempt 2): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:27:18] Step 12 failed: Node is either not clickable or not an Element...
+[2025-06-16 16:27:18] Test case 684b0329afe9ee3c8e55dee0 finished. Status: failed, Duration: 209688ms
+[2025-06-16 16:27:18] Cleaning up browser...
+[2025-06-16 16:27:19] Browser closed successfully.
+[2025-06-16 16:28:50] AI Optimization Enabled: true
+[2025-06-16 16:28:50] Initializing browser...
+[2025-06-16 16:28:52] Browser initialized successfully.
+[2025-06-16 16:28:52] Starting test case: 684e38f02b15879e3c8c50db
+[2025-06-16 16:28:52] [AI] Resetting context for new test case 684e38f02b15879e3c8c50db.
+[2025-06-16 16:28:53] Step 1: Navigate to the application's login page from a we...
+[2025-06-16 16:28:53] [AI] Parsing/Interpreting original step 1: "Navigate to the application's login page from a web browser..."
+[2025-06-16 16:28:53] [Base URL Prompt] Asking user for base URL because it is not set.
+[2025-06-16 16:29:57] [Step] Executing (Attempt 0): navigate on "https://labnex.dev/login/the"
+[2025-06-16 16:29:57] [Action] navigate: https://labnex.dev/login/the...
+[2025-06-16 16:29:57] Dispatching action: navigate, Target: https://labnex.dev/login/the, Value: N/A
+[2025-06-16 16:29:57] Navigating to https://labnex.dev/login/the
+[2025-06-16 16:29:58] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired).
+[2025-06-16 16:29:58] Navigation to https://labnex.dev/login/the complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-16 16:30:10] No common consent buttons found or clicked. Continuing...
+[2025-06-16 16:30:10] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-16 16:30:12] [Action] navigate successful.
+[2025-06-16 16:30:12] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-16 16:30:12] Step 2: Locate the email input field and enter a valid reg...
+[2025-06-16 16:30:12] [AI] Parsing/Interpreting original step 2: "Locate the email input field and enter a valid registered email addres..."
+[2025-06-16 16:30:12] [Step] Executing (Attempt 0): click on "xpath:(//*[self::a or self::button or self::input["
+[2025-06-16 16:30:12] [Action] click: xpath:(//*[self::a or self::bu...
+[2025-06-16 16:30:12] Dispatching action: click, Target: xpath:(//*[self::a or self::button or self::input[, Value: N/A
+[2025-06-16 16:30:12] [Action] click: xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]...
+[2025-06-16 16:30:12] Attempting to click on element identified by: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" at index: 0
+[2025-06-16 16:30:12] [handleClick Verbose] Original Selector: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:30:12] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:30:12] [handleClick Verbose] Core Selector Value for Check: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:30:12] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:30:12] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:30:12] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:12] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:12] [findElementWithFallbacks] Looking for: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]" (xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]) at index: 0
+[2025-06-16 16:30:12] [tryFindElementImmediate] XPath detected by syntax/type, cleaned selector: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:30:12] [tryFindElementImmediate] Using XPath method for: "(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), \"Locate the email input field and enter a valid registered email address\")] | //*[@aria-label=\"Locate the email input field and enter a valid registered email address\"] | //*[contains(normalize-space(@placeholder), \"Locate the email input field and enter a valid registered email address\")])[1]"
+[2025-06-16 16:30:12] [tryFindElementImmediate] XPath query found 0 elements
+[2025-06-16 16:30:12] [findElementWithFallbacks] Trying xpath-original: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"
+[2025-06-16 16:30:14] [findElementWithFallbacks] Trying xpath-contains-text: "//*[contains(text(), "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]")]"
+[2025-06-16 16:30:19] [InteractiveCapture] Error: Cannot read properties of undefined (reading 'spawnargs')
+[2025-06-16 16:30:19] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-16 16:30:19] [Action] Error in click: Element not found...
+[2025-06-16 16:30:19] [Action] click failed: Element not found...
+[2025-06-16 16:30:19] [Failure Type] Element not found.
+[2025-06-16 16:30:19] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-16 16:30:19] [AI] Step 2 failed (Action: "click", Target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]"). Attempting AI suggestion (1/2).
+[2025-06-16 16:30:19] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:30:19] [AI] Captured DOM context (length: 346). Preview: <body><div id="root"><div id="_rht_toaster"></div></div><script>(function(){function c(){var b=a.con...
+[2025-06-16 16:30:19] [AI] Requesting selector suggestion for target: "xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "Locate the email input field and enter a valid registered email address")] | //*[@aria-label="Locate the email input field and enter a valid registered email address"] | //*[contains(normalize-space(@placeholder), "Locate the email input field and enter a valid registered email address")])[1]", descriptive: "xpath:(//*[self::a or self::button or self::input[@type='button'] or s"
+[2025-06-16 16:30:25] [AI] Received selector suggestion: "body > div#root" (Strategy: css, Confidence: 0.5, Reasoning: The provided DOM snippet does not contain an email input field. The suggested selector targets the root div which might contain the input field once the page is fully loaded or dynamically updated.)
+[2025-06-16 16:30:25] [AI] Attempt 1: Retrying with AI suggested step: "click (css: body > div#root)..."
+[2025-06-16 16:30:25] [AI] Attempt 1: Retrying with AI suggested step: "click (css: body > div#root)..."
+[2025-06-16 16:30:25] [AI Retry Parse Result] Action: click, Target: body > div#root, Value: N/A
+[2025-06-16 16:30:25] [Step] Executing (Attempt 1): click on "body > div#root"
+[2025-06-16 16:30:25] [Action] click: body > div#root...
+[2025-06-16 16:30:25] Dispatching action: click, Target: body > div#root, Value: N/A
+[2025-06-16 16:30:25] [Action] click: body > div#root...
+[2025-06-16 16:30:25] Attempting to click on element identified by: "body > div#root" at index: 0
+[2025-06-16 16:30:25] [handleClick Verbose] Original Selector: "body > div#root"
+[2025-06-16 16:30:25] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:30:25] [handleClick Verbose] Core Selector Value for Check: "body > div#root"
+[2025-06-16 16:30:25] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:30:25] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:30:25] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:25] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:25] [findElementWithFallbacks] Looking for: "body > div#root" (body > div#root) at index: 0
+[2025-06-16 16:30:25] [tryFindElementImmediate] Using CSS method for: "body > div#root"
+[2025-06-16 16:30:26] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:30:26] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:30:26] Scrolling element into view before clicking.
+[2025-06-16 16:30:26] Standard click failed for selector "body > div#root": Node is either not clickable or not an Element
+[2025-06-16 16:30:26] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:30:26] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:30:26] [Failure Type] Other error during action execution.
+[2025-06-16 16:30:26] [Step] Result for "click" (Attempt 1): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:30:26] [AI] Step 2 failed (Action: "click", Target: "body > div#root"). Attempting AI suggestion (2/2).
+[2025-06-16 16:30:26] [AI] Capturing DOM context for suggestion...
+[2025-06-16 16:30:26] [AI] Captured DOM context (length: 346). Preview: <body><div id="root"><div id="_rht_toaster"></div></div><script>(function(){function c(){var b=a.con...
+[2025-06-16 16:30:26] [AI] Requesting selector suggestion for target: "body > div#root", descriptive: "body > div#root"
+[2025-06-16 16:30:31] [AI] Received selector suggestion: "#root" (Strategy: css, Confidence: 1, Reasoning: The selector '#root' should work because it directly targets the element with the id 'root', which is unique on the page. The previous selector failed likely because it was overly specific, including the 'body' tag in the hierarchy. By removing 'body >', we simplify the selector while still uniquely identifying the target element.)
+[2025-06-16 16:30:31] [AI] Attempt 2: Retrying with AI suggested step: "click (css: #root)..."
+[2025-06-16 16:30:31] [AI] Attempt 2: Retrying with AI suggested step: "click (css: #root)..."
+[2025-06-16 16:30:31] [AI Retry Parse Result] Action: click, Target: #root, Value: N/A
+[2025-06-16 16:30:31] [Step] Executing (Attempt 2): click on "#root"
+[2025-06-16 16:30:31] [Action] click: #root...
+[2025-06-16 16:30:31] Dispatching action: click, Target: #root, Value: N/A
+[2025-06-16 16:30:31] [Action] click: #root...
+[2025-06-16 16:30:31] Attempting to click on element identified by: "#root" at index: 0
+[2025-06-16 16:30:31] [handleClick Verbose] Original Selector: "#root"
+[2025-06-16 16:30:31] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-16 16:30:31] [handleClick Verbose] Core Selector Value for Check: "#root"
+[2025-06-16 16:30:31] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-16 16:30:31] [handleClick Verbose] Page URL: https://www.labnex.dev/login/the
+[2025-06-16 16:30:31] [handleClick Verbose] Context: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:31] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.labnex.dev/login/the)
+[2025-06-16 16:30:31] [findElementWithFallbacks] Looking for: "#root" (#root) at index: 0
+[2025-06-16 16:30:31] [tryFindElementImmediate] Using CSS method for: "#root"
+[2025-06-16 16:30:31] [tryFindElementImmediate] CSS query found 1 elements
+[2025-06-16 16:30:31] [findElementWithFallbacks] ✓ Found element immediately
+[2025-06-16 16:30:31] Scrolling element into view before clicking.
+[2025-06-16 16:30:31] Standard click failed for selector "#root": Node is either not clickable or not an Element
+[2025-06-16 16:30:31] [Action] Error in click: Node is either not clickable or not an Element...
+[2025-06-16 16:30:31] [Action] click failed: Node is either not clickable or not an Element...
+[2025-06-16 16:30:31] [Failure Type] Other error during action execution.
+[2025-06-16 16:30:31] [Step] Result for "click" (Attempt 2): failed, Message: Node is either not clickable or not an Element
+[2025-06-16 16:30:31] Step 2 failed: Node is either not clickable or not an Element...
+[2025-06-16 16:30:31] Test case 684e38f02b15879e3c8c50db finished. Status: failed, Duration: 98756ms
+[2025-06-16 16:30:31] Cleaning up browser...
+[2025-06-16 16:30:33] Browser closed successfully.
