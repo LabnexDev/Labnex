@@ -132,6 +132,14 @@ export async function handleClick(
       elementToClick.click()
     ]);
     addLog('Click successful (navigation awaited if triggered).');
+
+    if (/shopping\s*cart/i.test(coreSelectorValue)) {
+      try {
+        addLog('[Post-Cart] Waiting for checkout button to appear...');
+        await page.waitForSelector('#checkout, [data-test="checkout" i], button[id*="checkout" i]', {timeout: 10000});
+        addLog('[Post-Cart] Checkout button detected.');
+      } catch {}
+    }
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);
     if (isW3SchoolsModalButton) {

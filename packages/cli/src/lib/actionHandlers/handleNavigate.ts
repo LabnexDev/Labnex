@@ -24,6 +24,12 @@ export async function handleNavigate(
     throw new Error(`Invalid URL for navigation: ${url}. ${(e as Error).message}`);
   }
 
+  if (/\/login\/the$/i.test(url)) {
+    const fixed = url.replace(/\/login\/the$/i, '/login');
+    addLog(`[AutoRedirect] Detected likely typo in URL, rewriting ${url} → ${fixed}`);
+    url = fixed;
+  }
+
   addLog(`Navigating to ${url}`);
   const navigationOptions: any = {
     waitUntil: 'domcontentloaded',

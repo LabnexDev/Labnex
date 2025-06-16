@@ -14,6 +14,13 @@ export async function handleNavigate(
   newCurrentFrame = page;
   if (!url) throw new Error('Navigation URL not provided');
 
+  // Auto-correct common typo "/login/the" before navigation so subsequent steps operate on real page
+  if (/\/login\/the$/i.test(url)) {
+    const fixed = url.replace(/\/login\/the$/i, '/login');
+    addLog(`[AutoRedirect] Detected likely typo in URL, rewriting ${url} → ${fixed}`);
+    url = fixed;
+  }
+
   // Validate URL
   try {
     const parsedUrl = new URL(url);

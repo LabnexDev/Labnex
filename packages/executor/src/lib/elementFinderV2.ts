@@ -556,6 +556,18 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
     strategies.unshift(...syns.reverse());
   }
   
+  // Handle verbose natural-language instructions that include phrases like
+  // "Locate the email input field …" which originate from poorly-parsed steps.
+  if (/locate the email input field/i.test(primarySelector)) {
+    const syns = [
+      { type: 'email-input', selector: 'input[type="email"]', method: 'css' as const },
+      { type: 'email-id', selector: '#email', method: 'css' as const },
+      { type: 'email-name', selector: '[name="email" i]', method: 'css' as const },
+      { type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const },
+    ];
+    strategies.unshift(...syns.reverse());
+  }
+  
   return strategies;
 }
 
