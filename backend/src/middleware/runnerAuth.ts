@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 
 export function authRunner(req: Request, res: Response, next: NextFunction) {
-  const header = req.header('Authorization') || '';
-  const token  = header.startsWith('Bearer ') ? header.slice(7).trim() : header.trim();
+  const tokenHeader = req.headers['authorization'] || '';
+  const token = tokenHeader.split(' ')[1]?.trim();
   const expected = (process.env.RUNNER_TOKEN || '').trim();
+  console.log('[runnerAuth] provided="' + token + '" len=' + (token?.length || 0));
+  console.log('[runnerAuth] expected ="' + expected + '" len=' + expected.length);
 
-  if (token !== expected) {
-    console.warn('Runner token mismatch',
-                 { providedLen: token.length, expectedLen: expected.length });
+  if (!token || token !== expected) {
+    console.warn('[runnerAuth] Token mismatch');
     return res.status(401).json({ success: false, error: 'Unauthorized runner' });
   }
   (req as any).runnerId = 'runner';
