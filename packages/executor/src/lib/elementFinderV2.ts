@@ -204,7 +204,10 @@ export async function findElementWithFallbacks(
 
   // Interactive user click capture (non-headless only)
   try {
-    const isInteractiveEnabled = !(page.browser() as any)._process.spawnargs.includes('--headless');
+    // Robustly determine if the browser was launched in headless mode – the _process property
+    // may be undefined when connecting to an existing browser. Fall back to browser().process?.spawnargs.
+    const spawnArgs: string[] | undefined = (page.browser().process as any)?.spawnargs || (page.browser() as any)._process?.spawnargs;
+    const isInteractiveEnabled = Array.isArray(spawnArgs) ? !spawnArgs.includes('--headless') : false;
     if (isInteractiveEnabled && page.isClosed() === false) {
       addLog('[InteractiveCapture] No element found. Prompting user to click desired element in the browser.');
       await page.evaluate((msg)=>{
@@ -411,7 +414,7 @@ function convertSimpleXPathToCSS(xpath: string): string | null {
 
 // Generate fallback strategies
 function generateFallbackStrategies(primarySelector: string): Array<{type: string, selector: string, method: 'css' | 'xpath'}> {
-  const strategies = [];
+  const strategies: Array<{type: string, selector: string, method: 'css' | 'xpath'}> = [];
   
   // Clean selector for fallbacks
   const cleanSelector = primarySelector.replace(/^["']|["']$/g, '').trim();
@@ -508,6 +511,25 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
     strategies.push({ type: 'button-login', selector: 'button[id*="login" i], button[class*="login" i]', method: 'css' as const });
     strategies.push({ type: 'button-signin', selector: 'button[id*="sign" i][id*="in" i], button[class*="sign" i][class*="in" i]', method: 'css' as const });
     strategies.push({ type: 'xpath-login-text', selector: `//a[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'log in') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'sign in')]`, method: 'xpath' as const });
+  }
+  
+  // ------------------------------------------------------------
+  //  Synonym expansion – map common "username/user/email" terms
+  // ------------------------------------------------------------
+  const lowerSel = cleanSelector.toLowerCase();
+
+  if (/(^|[^a-z])(user(name)?)([^a-z]|$)/i.test(lowerSel)) {
+    strategies.push({ type: 'email-id', selector: '#email', method: 'css' as const });
+    strategies.push({ type: 'email-name', selector: '[name*="email" i]', method: 'css' as const });
+    strategies.push({ type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const });
+    strategies.push({ type: 'email-input', selector: 'input[type="email"]', method: 'css' as const });
+  }
+
+  if (/(^|[^a-z])email([^a-z]|$)/i.test(lowerSel)) {
+    strategies.push({ type: 'username-id', selector: '#username', method: 'css' as const });
+    strategies.push({ type: 'user-id', selector: '#user', method: 'css' as const });
+    strategies.push({ type: 'user-name', selector: '[name*="user" i]', method: 'css' as const });
+    strategies.push({ type: 'user-placeholder', selector: '[placeholder*="user" i]', method: 'css' as const });
   }
   
   return strategies;
