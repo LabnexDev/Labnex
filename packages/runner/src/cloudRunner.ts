@@ -91,13 +91,22 @@ async function executeRun(run: TestRun) {
     for (const tc of casesToRun) {
       // eslint-disable-next-line no-console
       console.log(chalk.blue(`▶ Executing ${tc.title}`));
-      const result = await executor.executeTestCase(
+      const rawResult = await executor.executeTestCase(
         tc._id,
         tc.steps,
         tc.expectedResult,
         tc.baseUrl || runBaseUrl,
         tc.title
       );
+
+      // Map status (executor returns "passed"/"failed") to backend enum "pass"/"fail"
+      const mapStatus = (s: string) => {
+        if (s === 'passed') return 'pass';
+        if (s === 'failed') return 'fail';
+        return s;
+      };
+
+      const result = { ...rawResult, status: mapStatus(rawResult.status) };
       results.push(result);
 
       await api.patch(`/test-runs/${run._id}/progress`, {
@@ -107,8 +116,8 @@ async function executeRun(run: TestRun) {
 
     await executor.cleanup();
 
-    const passed = results.filter((r) => r.status === 'passed').length;
-    const failed = results.length - passed;
+    const passed = results.filter((r) => r.status === 'pass').length;
+    const failed = results.filter((r) => r.status === 'fail').length;
     const duration = results.reduce((acc, r) => acc + (r.duration || 0), 0);
 
     await api.patch(`/test-runs/${run._id}/complete`, {
