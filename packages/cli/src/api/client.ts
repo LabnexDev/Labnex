@@ -337,6 +337,15 @@ export class LabnexApiClient {
     }
   }
 
+  // Update existing test case (PUT)
+  async updateTestCase(projectId: string, testCaseId: string, updates: Partial<TestCase>): Promise<ApiResponse<TestCase>> {
+    try {
+      const response = await this.api.put(`/projects/${projectId}/test-cases/${testCaseId}`, updates);
+      return { success: true, data: response.data };
+    } catch (error: unknown) {
+      return { success: false, data: null as unknown as TestCase, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 
   // Test Runs
   async createTestRun(projectId: string, config: {

@@ -5,7 +5,8 @@
   "main": "dist/cloudRunner.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/cloudRunner.js"
+    "start": "node dist/cloudRunner.js",
+    "test": "echo \"(cloud-runner) No unit tests defined yet\" && exit 0"
   },
   "dependencies": {
     "axios": "^1.7.2",

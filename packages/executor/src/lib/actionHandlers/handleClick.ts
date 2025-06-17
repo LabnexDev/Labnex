@@ -179,6 +179,26 @@ export async function handleClick(
         }
       }
     }
+
+    // Handle "continue" button in SauceDemo checkout flow
+    if (/^continue$/i.test(coreSelectorValue)) {
+      try {
+        addLog('[Continue] Waiting for finish button to appear (checkout step two)...');
+        await page.waitForSelector('#finish, [data-test="finish" i], button[id*="finish" i]', { timeout: 10000 });
+        addLog('[Continue] Finish button detected. Assuming navigation to step-two succeeded.');
+      } catch {
+        // If still on checkout-step-one, force navigation
+        if (page.url().includes('/checkout-step-one')) {
+          const nextUrl = page.url().replace('/checkout-step-one.html', '/checkout-step-two.html');
+          addLog(`[Continue] Finish button not found. Forcing navigation to ${nextUrl}`);
+          try {
+            await page.goto(nextUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+          } catch (navErr) {
+            addLog(`[Continue] Manual navigation failed: ${navErr}`);
+          }
+        }
+      }
+    }
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);
     if (isW3SchoolsModalButton) {

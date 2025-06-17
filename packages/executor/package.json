@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "test": "echo \"(executor) No unit tests defined yet\" && exit 0"
   },
   "dependencies": {
     "puppeteer": "^24.9.0",

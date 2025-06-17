@@ -388,6 +388,23 @@ export class TestStepParser {
       };
     }
 
+    // Special case: "assert that the page contains \"text\""
+    const pageContainsPattern = /^(?:assert|verify|check|expect)(?: that)?\s+the page\s+(?:contains|includes)\s+(['"])(.*?)\1/i;
+    const pageContainsMatch = currentStep.match(pageContainsPattern);
+    if (pageContainsMatch) {
+      const expectedText = pageContainsMatch[2];
+      addLog(`[AssertPageContains] Matched. Expected text="${expectedText}"`);
+      return {
+        action: 'assert',
+        originalStep: originalStepInput,
+        assertion: {
+          type: 'pageText',
+          condition: 'contains',
+          expectedText
+        }
+      };
+    }
+
     return null;
   }
 

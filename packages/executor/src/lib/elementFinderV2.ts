@@ -49,6 +49,40 @@ export async function findElementWithFallbacks(
 
   addLog(`[findElementWithFallbacks] Looking for: "${selectorOrText}" (${descriptiveTerm}) at index: ${index}`);
 
+  // ------------------------------------------------------------
+  // Support user-provided multiple selectors separated by "||". 
+  // Example: "(css: #submit) || (text: \"Submit\")"
+  // We try each part in order; the first matching element wins.
+  // ------------------------------------------------------------
+  const providedAlternatives = selectorOrText
+    .split('||')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (providedAlternatives.length > 1) {
+    addLog(`[findElementWithFallbacks] Detected ${providedAlternatives.length} user-provided alternative selectors.`);
+    for (const alt of providedAlternatives) {
+      const altHint = extractHintedSelector(alt);
+      const altSelectorValue = altHint.selectorValue || alt;
+      const altSelectorType = altHint.type || 'auto';
+
+      const quick = await tryFindElementImmediate(
+        currentFrame,
+        altSelectorValue,
+        altSelectorType,
+        addLog,
+        index
+      );
+      if (quick) {
+        addLog(`[findElementWithFallbacks] ✓ Found element with provided alternative selector: "${alt}"`);
+        return quick;
+      }
+    }
+    // If none of the explicit alternatives worked, fall through to the normal
+    // heuristic/AI process using the first selector as primary.
+    selectorOrText = providedAlternatives[0];
+  }
+
   // Extract selector hint if present
   const hintExtraction = extractHintedSelector(selectorOrText);
   let primarySelector = hintExtraction.selectorValue || selectorOrText;

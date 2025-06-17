@@ -10,6 +10,7 @@ import { analyzeCommand } from './commands/analyze';
 import { setupConfigCommands } from './commands/config';
 import { listCommand } from './commands/list';
 import { completionCommand } from './commands/completion';
+import { lintCommand } from './commands/lint';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
 import ora from 'ora';
@@ -94,6 +95,9 @@ async function main() {
   program.addCommand(setupConfigCommands());
   program.addCommand(listCommand);
   program.addCommand(completionCommand(program));
+
+  // Lint command
+  program.addCommand(lintCommand);
 
   const defaultHelper = new Help();
 

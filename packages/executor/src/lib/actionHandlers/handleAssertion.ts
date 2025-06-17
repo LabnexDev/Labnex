@@ -43,11 +43,24 @@ export async function handleAssertion(
       return;
     }
 
-    // For all other assertion types that require an element
-    if (!selector) {
+    if (assertionType === 'pageText') {
+      const bodyText = await page.evaluate(() => document.body.innerText);
+      if (!bodyText.toLowerCase().includes((expectedText || '').toLowerCase())) {
+        throw new Error(`Assertion Failed: Did not find text "${expectedText}" in page content.`);
+      }
+      addLog(`Assertion Passed: Found text "${expectedText}" in page content.`);
+      return;
+    }
+
+    // For assertion types that operate on a specific element we must have a selector.
+    const elementRequiredTypes = ['elementText', 'elementVisible', 'elementValue'];
+    if (elementRequiredTypes.includes(assertionType) && !selector) {
       throw new Error(`Selector not provided for assertion type: ${assertionType}`);
     }
-    element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, parsedStep.originalStep || '', false, retryApiCallFn);
+
+    if (selector) {
+      element = await findElementWithFallbacks(page, currentFrame, addLog, selector, selector, parsedStep.originalStep || '', false, retryApiCallFn);
+    }
 
     if (!element) {
       throw new Error(`Element not found for selector: ${selector}`);
@@ -114,12 +127,6 @@ export async function handleAssertion(
         throw new Error(`Assertion Failed: Element "${selector}" is not disabled.`);
       }
       addLog(`Assertion Passed: Element "${selector}" is disabled.`);
-    } else if (assertionType === 'pageText') { // Check if expected text is in the whole page
-        const bodyText = await page.evaluate(() => document.body.innerText);
-        if (!bodyText.toLowerCase().includes((expectedText || '').toLowerCase())) {
-          throw new Error(`Assertion Failed: Did not find text "${expectedText}" in page content.`);
-        }
-        addLog(`Assertion Passed: Found text "${expectedText}" in page content.`);
     } else {
       // Check for overall test case expectation as a fallback if no other assertion matched
       if (overallTestCaseExpectedResult) {

@@ -199,7 +199,7 @@ export class LocalBrowserExecutor {
       );
       try {
         initialStepObject = TestStepParser.parseStep(stepDescription);
-        if (!initialStepObject.action && this.aiOptimizationEnabled) {
+        if (initialStepObject && !initialStepObject.action && this.aiOptimizationEnabled) {
           this.addLog(
             `[AI] Initial parsing failed to identify action for step ${stepNumber}. Attempting AI interpretation.`
           );
@@ -261,6 +261,9 @@ export class LocalBrowserExecutor {
         )}..."`
       );
       initialStepObject = TestStepParser.parseStep(stepDescriptionToParse);
+      if (!initialStepObject) {
+        throw new Error('Failed to parse step during AI retry');
+      }
       // Log the parsed result to verify target extraction
       this.addLog(`[AI Retry Parse Result] Action: ${initialStepObject.action || 'N/A'}, Target: ${initialStepObject.target || 'N/A'}, Value: ${initialStepObject.value || 'N/A'}`);
       // Fallback: If action is 'type' and target is missing, try to extract manually from common AI format
@@ -310,6 +313,12 @@ export class LocalBrowserExecutor {
       };
 
       if (!navTarget) {
+        // Direct URL present in the raw step? e.g. "Visit https://example.com/page"
+        const urlMatch = stepDescription.match(/https?:\/\/\S+/i);
+        if (urlMatch) {
+          navTarget = urlMatch[0];
+        }
+
         // Pattern: "navigate to the login page" or "navigate to login page"
         const pageMatch = stepDescription.match(/navigate\s+to\s+(?:the\s+)?([a-zA-Z0-9\s-]+?)(?:\s+page)?(?:\s|$)/i);
         if (pageMatch && pageMatch[1]) {
@@ -327,9 +336,9 @@ export class LocalBrowserExecutor {
 
       // Determine the effective base URL (priority: provided => persisted => prompt)
       let effectiveBase = baseUrl || this.baseUrlGlobal;
-      if (!effectiveBase) {
-        // Interactive prompt (only first time)
-        this.addLog('[Base URL Prompt] Asking user for base URL because it is not set.');
+      if (!effectiveBase && !/^https?:\/\//i.test(navTarget)) {
+        // Interactive prompt only needed if target is relative
+        this.addLog('[Base URL Prompt] Asking user for base URL because it is not set and target is relative.');
         effectiveBase = await promptForBaseUrl();
         this.baseUrlGlobal = effectiveBase; // Persist for remainder of session
       }
