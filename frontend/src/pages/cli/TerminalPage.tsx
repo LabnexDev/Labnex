@@ -71,7 +71,9 @@ export function TerminalPage() {
     'labnex run --project <project-id> --env staging',
     'labnex run --project <project-id> --parallel 8',
     'labnex run --project <project-id> --ai-optimize',
-    'labnex run --project <project-id> --ai-optimize --detailed',
+    'labnex run --project <project-id> --base-url https://example.com',
+    'labnex lint-tests ./tests',
+    'labnex create-test-case --project <project-id> --file steps.txt',
     'labnex generate test "Test description"',
     'labnex analyze failure --run-id <run-id>',
     'labnex optimize --project <project-id>',
@@ -449,10 +451,12 @@ export function TerminalPage() {
           '🚀 Labnex CLI - AI-Powered Testing Automation',
           '',
           'Available Commands:',
-          '  labnex run --project <id>     Run tests for a project',
-          '  labnex generate test <desc>   Generate test case with AI',
-          '  labnex analyze failure <id>   Analyze test failure',
-          '  labnex optimize --project <id> Optimize test suite',
+          '  labnex run --project <id>            Run tests for a project',
+          '  labnex lint-tests <dir>              Static-analysis & lint your tests',
+          '  labnex create-test-case --file <f>   Import raw steps as a test case',
+          '  labnex generate test <desc>          Generate test case with AI',
+          '  labnex analyze failure <id>          Analyze test failure',
+          '  labnex optimize --project <id>       Optimize test suite',
           '  labnex status                 Show active test runs',
           '  labnex projects              List your projects',
           '  labnex health                Check backend connection',
@@ -462,6 +466,9 @@ export function TerminalPage() {
           'Options:',
           '  --env <environment>           Set environment (staging, prod)',
           '  --parallel <number>           Set parallel execution count',
+          '  --base-url <url>              Provide base URL for relative links',
+          '  --username <user>             Supply login username',
+          '  --password <pass>             Supply login password',
           '  --ai-optimize                 Use AI optimization',
           '  --detailed                    Show detailed action logs and performance metrics',
           ''
@@ -841,7 +848,9 @@ export function TerminalPage() {
         ? `labnex run --project ${projects[0]._id} --ai-optimize` 
         : 'labnex run --project <project-id> --ai-optimize' 
     },
+    { label: 'Lint Tests', command: 'labnex lint-tests ./tests' },
     { label: 'Generate Test', command: 'labnex generate test "' },
+    { label: 'Create Test Case', command: 'labnex create-test-case --file steps.txt' },
     { label: 'Check Status', command: 'labnex status' },
     { label: 'List Projects', command: 'labnex projects' }
   ];
@@ -1094,8 +1103,8 @@ export function TerminalPage() {
               {[
                 { cmd: 'labnex run --project <id>', desc: 'Run all tests for a project' },
                 { cmd: 'labnex generate test', desc: 'Generate test case with AI' },
-                { cmd: 'labnex analyze failure', desc: 'Analyze test failure with AI' },
-                { cmd: 'labnex optimize', desc: 'Optimize test suite selection' }
+                { cmd: 'labnex analyze failure', desc: 'Analyze test failure' },
+                { cmd: 'labnex optimize', desc: 'Optimize test suite' }
               ].map((item, index) => (
                 <div key={index} className="border-b border-gray-700/30 pb-2">
                   <div className="font-mono text-blue-400 text-sm">{item.cmd}</div>

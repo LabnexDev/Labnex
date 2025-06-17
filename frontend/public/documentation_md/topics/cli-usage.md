@@ -67,6 +67,15 @@ labnex run --project MYAPP --watch
 
 # Combined advanced usage
 labnex run --project MYAPP --env staging --parallel 4 --ai-optimize --detailed --suite "regression"
+
+# Explicit cloud runner (default)
+labnex run --project MYAPP --mode cloud
+
+# Provide base URL for relative navigation
+labnex run --project MYAPP --base-url https://staging.myapp.com
+
+# Auth credentials for login flows
+labnex run --project MYAPP --username john --password secret123
 ```
 
 ### `labnex generate` - AI Test Generation
@@ -127,6 +136,30 @@ labnex project show MYAPP
 
 # Create new project (interactive)
 labnex project create
+```
+
+### `labnex lint-tests` - Static Analysis
+
+Automatically lint raw step files and receive AI-powered suggestions. Use `--fix` to auto-repair.
+
+```bash
+# Lint the tests directory and output JSON
+labnex lint-tests ./tests --json
+
+# Interactive auto-fix
+labnex lint-tests ./tests --fix
+```
+
+### `labnex create-test-case` - Import Raw Steps
+
+Convert a plain-text list of steps into a structured test case and upload it to a project.
+
+```bash
+# Import from a file
+labnex create-test-case --project MYAPP --file checkout-steps.txt
+
+# Pipe from stdin
+cat steps.md | labnex create-test-case --project MYAPP --stdin
 ```
 
 ## 🔍 Enhanced Logging with `--detailed`
