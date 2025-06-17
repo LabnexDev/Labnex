@@ -21,7 +21,7 @@ export function CreateTestCase() {
   const [expectedResult, setExpectedResult] = useState('');
   const [priority, setPriority] = useState<CreateTestCaseData['priority']>('MEDIUM');
   const [formError, setFormError] = useState(''); // For form validation errors
-  const [uploadingBulk, setUploadingBulk] = useState(false);
+  const [, setUploadingBulk] = useState(false);
 
   useEffect(() => {
     if (!projectId || projectId === "undefined") {
