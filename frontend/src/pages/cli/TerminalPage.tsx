@@ -592,8 +592,9 @@ export function TerminalPage() {
       const testRun = await testRunnerApi.createTestRun(projectId, {
         environment,
         parallel,
-        aiOptimization: aiOptimize
-      });
+        aiOptimization: aiOptimize,
+        useCloudRunner: true
+      } as any);
 
       const updateMethod = wsConnection ? 'Real-time updates via WebSocket' : 
         detailed ? 'Enhanced polling every 2 seconds' : 'Polling for updates every 3 seconds';
