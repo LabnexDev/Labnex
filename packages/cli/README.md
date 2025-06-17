@@ -64,6 +64,16 @@ labnex projects create --name "My Project" --code PROJECT1 --description "Descri
 labnex projects list
 ```
 
+### Linting & Importing
+
+```bash
+# Static-analysis of raw step files
+labnex lint-tests ./tests --json
+
+# Convert raw steps into a Test Case
+labnex create-test-case --project-id <PROJECT_ID> --file checkout.txt
+```
+
 ### AI Features
 
 ```bash
@@ -103,11 +113,14 @@ labnex status --run-id <RUN_ID>
 | `-p, --project-id <id>` | Project ID (required) | - |
 | `-t, --test-id <id>` | Run specific test case by ID | - |
 | `-e, --environment <env>` | Environment (staging/production) | `staging` |
-| `-m, --mode <mode>` | Execution mode (local/cloud) | `local` |
+| `-m, --mode <mode>` | Execution mode (local/cloud) | `cloud` |
 | `--optimize-ai` | Enable AI optimization for element finding | `false` |
 | `--parallel <number>` | Number of parallel workers (cloud mode) | `4` |
 | `--headless` | Run in headless mode (local mode) | `false` |
 | `--timeout <ms>` | Test timeout in milliseconds | `300000` |
+| `--base-url <url>` | Base URL for relative navigation | - |
+| `--username <user>` | Supply login username | - |
+| `--password <pass>` | Supply login password | - |
 
 ## Performance Features
 
@@ -134,12 +147,10 @@ labnex status --run-id <RUN_ID>
 - Basic login flow testing on standard websites
 - Status reporting and detailed logging
 
-#### In Development / Coming Soon
-- Cloud execution mode (currently only local execution is supported)
-- Test run monitoring for specific run IDs
-- Advanced modal handling for complex UI components
-- File upload testing improvements
-- Cross-browser test execution
+#### Recently Added
+- Cloud execution mode (default) with live progress streaming
+- Static test linter (`lint-tests`) and interactive `--fix` flow
+- Raw step importer (`create-test-case`) for quick Test Case creation
 
 #### Known Issues
 - Some complex UI interactions (like modals on certain websites) may require specific selectors

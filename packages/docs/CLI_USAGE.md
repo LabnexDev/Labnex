@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Labnex CLI is a powerful tool for automating testing workflows directly from your terminal. It allows you to run tests, generate test cases with AI, analyze failures, and more, all with a focus on local-first execution.
+The Labnex CLI is a powerful tool for automating testing workflows directly from your terminal. It allows you to run tests, generate test cases with AI, analyze failures, lint raw steps, and more — supporting both local and cloud execution.
 
 ## Installation
 
@@ -29,14 +29,16 @@ Below is a list of the primary commands available in the Labnex CLI, along with 
     - `-t, --test-id <id>`: Specifies a single test case ID to run.
     - `--optimize-ai`: Enables AI optimization for better selector suggestions and test execution.
     - `-e, --environment <env>`: Sets the environment (e.g., `staging`, `production`). Default: `staging`.
-    - `-m, --mode <mode>`: Sets the execution mode (e.g., `local`, `cloud`). Default: `local`.
+    - `-m, --mode <mode>`: Sets the execution mode (e.g., `local`, `cloud`). Default: `cloud`.
     - `--parallel <number>`: Number of parallel workers (cloud mode). Default: `4`.
     - `--headless`: Run in headless mode (local mode). Default: `false`.
     - `--timeout <ms>`: Test timeout in milliseconds. Default: `300000`.
     - `--verbose`: Enables detailed logging for debugging.
+    - `--base-url <url>`: Base URL to use when your test steps contain relative navigation.
+    - `--username <name>` / `--password <pw>`: Credentials passed to login helpers for authentication flows.
   - **Example**:
     ```bash
-    labnex run --project-id 6832ac498153de9c85b03727 --optimize-ai --environment staging --mode local --verbose
+    labnex run --project-id 6832ac498153de9c85b03727 --optimize-ai --environment staging --mode cloud --verbose
     ```
 
 - **`labnex auth login`**
@@ -111,6 +113,35 @@ Below is a list of the primary commands available in the Labnex CLI, along with 
     labnex analyze failure --run-id 1234567890
     ```
 
+- **`labnex lint-tests`**
+  - **Description**: Lints raw test-step files (`.txt`, `.md`, `.json`) and outputs JSON diagnostics or interactively fixes common issues.
+  - **Options**:
+    - `--json`: Output findings as JSON (useful for CI).
+    - `--fix`: Attempt to auto-repair problems.
+  - **Example**:
+    ```bash
+    # Lint all tests in the tests folder
+    labnex lint-tests ./tests --json
+
+    # Lint and auto-fix problems
+    labnex lint-tests ./tests --fix
+    ```
+
+- **`labnex create-test-case`**
+  - **Description**: Converts a plain-text (or Markdown) list of steps into a structured Test Case and uploads it to Labnex.
+  - **Options**:
+    - `--project-id <id>`: Project ID to attach the new test case (required).
+    - `--file <path>`: Path to a file containing raw steps.
+    - `--stdin`: Read raw steps from STDIN (pipe support).
+  - **Example**:
+    ```bash
+    # Import from file
+    labnex create-test-case --project-id 6832ac498153de9c85b03727 --file checkout-steps.txt
+
+    # Pipe from clipboard / other command
+    cat steps.md | labnex create-test-case --project-id 6832ac498153de9c85b03727 --stdin
+    ```
+
 - **`labnex status`**
   - **Description**: Checks and displays the system status, including connectivity to backend services.
   - **Options**:
@@ -158,7 +189,7 @@ Below is a list of the primary commands available in the Labnex CLI, along with 
 
 ## Usage Examples
 
-### Running a Specific Test Case
+### Running a Specific Test Case (Cloud)
 To run a specific test case with AI optimization enabled:
 
 ```bash
@@ -194,7 +225,7 @@ labnex list --projects
 labnex list --tests 6832ac498153de9c85b03727
 ```
 
-## Advanced Options
+## Advanced Options & Flags
 
 - **`--verbose`**: When used with `run` or globally, provides comprehensive test execution logs including real-time action tracking, performance metrics, and detailed error reporting.
   - **Example**:
