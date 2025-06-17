@@ -155,6 +155,30 @@ export async function handleClick(
         } catch {}
       }
     }
+
+    if (/^checkout$/i.test(coreSelectorValue)) {
+      // Already handled showing checkout wait earlier but add URL-check fallback
+      try {
+        const targetUrlSub = '/checkout-step-one';
+        await page.waitForFunction(
+          (sub: string) => window.location.pathname.includes(sub),
+          { timeout: 8000 },
+          targetUrlSub
+        );
+        addLog('[Checkout] Detected navigation to step-one page.');
+      } catch {
+        // If still on cart, force navigate
+        if (page.url().includes('/cart')) {
+          const nextUrl = page.url().replace('/cart.html', '/checkout-step-one.html');
+          addLog(`[Checkout] Forcing navigation to ${nextUrl}`);
+          try {
+            await page.goto(nextUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
+          } catch (navErr) {
+            addLog(`[Checkout] Manual navigation failed: ${navErr}`);
+          }
+        }
+      }
+    }
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);
     if (isW3SchoolsModalButton) {

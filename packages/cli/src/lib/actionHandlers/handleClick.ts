@@ -148,6 +148,20 @@ export async function handleClick(
         } catch {}
       }
     }
+
+    if (/^checkout$/i.test(coreSelectorValue)) {
+      try {
+        const targetSub = '/checkout-step-one';
+        await page.waitForFunction((sub)=>window.location.pathname.includes(sub), {timeout:8000}, targetSub);
+        addLog('[Checkout] Detected navigation to step-one page.');
+      } catch {
+        if (page.url().includes('/cart')) {
+          const nextUrl = page.url().replace('/cart.html','/checkout-step-one.html');
+          addLog(`[Checkout] Forcing navigation to ${nextUrl}`);
+          try { await page.goto(nextUrl,{waitUntil:'domcontentloaded', timeout:10000}); } catch {}
+        }
+      }
+    }
   } catch (clickError) {
     addLog(`Standard click failed for selector "${selector}": ${(clickError as Error).message}`);
     if (isW3SchoolsModalButton) {
