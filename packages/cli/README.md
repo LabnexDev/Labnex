@@ -2,7 +2,7 @@
 
 AI-Powered Testing Automation Platform Command Line Interface
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://www.npmjs.com/package/@labnex/cli)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](https://www.npmjs.com/package/@labnex/cli)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/LabnexDev/Labnex/blob/main/LICENSE)
 
 ## Installation
@@ -131,12 +131,11 @@ labnex status --run-id <RUN_ID>
 
 ## Changelog
 
-### Version 1.3.0 (Current)
-- Added main function execution to fix CLI initialization
-- Improved AI-powered element finding for better test reliability
-- Enhanced error reporting for failed test steps
-- Added verification script for quick CLI testing
-- Updated documentation for production release
+### Version 1.4.0 (Current)
+- Cloud execution mode enabled by default (`--mode cloud`)
+- Added `lint-tests` and `create-test-case` commands
+- New flags: `--base-url`, `--username`, `--password`
+- Updated docs & examples across website and npm package
 
 ### Status of Features
 
