@@ -30,9 +30,6 @@
       "@labnex/executor/*": ["../executor/src/*"]
     }
   },
-  "references": [
-    { "path": "../executor" }
-  ],
   "include": [
     "src/**/*"
   ],
