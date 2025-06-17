@@ -24,11 +24,7 @@
     "typeRoots": ["./node_modules/@types", "../node_modules/@types"],
     
     // 🔥 Add these two:
-    "baseUrl": ".",
-    "paths": {
-      "@labnex/executor": ["../executor/src/index"],
-      "@labnex/executor/*": ["../executor/src/*"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "src/**/*"
