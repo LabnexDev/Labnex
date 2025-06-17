@@ -11,6 +11,7 @@ import { setupConfigCommands } from './commands/config';
 import { listCommand } from './commands/list';
 import { completionCommand } from './commands/completion';
 import { lintCommand } from './commands/lint';
+import { createTestCaseCommand } from './commands/testcase';
 import { initConfig } from './utils/config';
 import { apiClient } from './api/client';
 import ora from 'ora';
@@ -98,6 +99,7 @@ async function main() {
 
   // Lint command
   program.addCommand(lintCommand);
+  program.addCommand(createTestCaseCommand);
 
   const defaultHelper = new Help();
 

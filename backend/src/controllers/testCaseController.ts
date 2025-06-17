@@ -3,6 +3,7 @@ import { TestCase, ITestCase } from '../models/TestCase';
 import { Project } from '../models/Project';
 import { Role, RoleType } from '../models/roleModel';
 import { JwtPayload } from '../middleware/auth';
+import { parseRawSteps } from '../utils/parseRawSteps';
 
 // Extend Express Request type to include user
 interface AuthRequest extends Request {
@@ -16,7 +17,13 @@ export const createTestCase = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { title, description, steps, expectedResult } = req.body;
+    let { title, description, steps, expectedResult, rawSteps } = req.body as any;
+
+    // Support paste-in bulk steps
+    if ((!steps || !Array.isArray(steps) || steps.length === 0) && typeof rawSteps === 'string') {
+      steps = parseRawSteps(rawSteps);
+    }
+
     const projectId = req.params.projectId;
 
     // --- Updated Permission Check ---
