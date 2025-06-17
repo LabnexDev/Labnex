@@ -917,15 +917,14 @@ export function TerminalPage() {
             </div>
           </div>
 
-          {/* Demo Notice */}
-          <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-xl p-4 mb-6">
+          {/* Cloud CLI Notice */}
+          <div className="bg-blue-600/20 border border-blue-500/30 rounded-xl p-4 mb-6">
             <div className="flex items-center gap-3">
-              <span className="text-yellow-400 text-xl">⚠️</span>
+              <span className="text-blue-400 text-xl">🌐</span>
               <div>
-                <p className="text-yellow-200 font-medium">Web CLI Demo Mode</p>
-                <p className="text-yellow-300/80 text-sm">
-                  This web terminal runs in simulation mode due to server resource limits. 
-                  For real browser automation, please use the local CLI package above.
+                <p className="text-blue-200 font-medium">Web CLI Now Powered by Labnex Cloud</p>
+                <p className="text-blue-300/80 text-sm">
+                  Execute your tests directly in this browser terminal — they run on our cloud infrastructure and stream live results in&nbsp;real&nbsp;time. For maximal resources and offline work, you can still install the standalone CLI package shown&nbsp;above.
                 </p>
               </div>
             </div>
