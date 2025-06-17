@@ -1,6 +1,6 @@
 {
   "name": "@labnex/cli",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "CLI for Labnex, an AI-Powered Testing Automation Platform",
   "main": "dist/index.js",
   "bin": {

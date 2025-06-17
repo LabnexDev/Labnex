@@ -9358,3 +9358,567 @@
 [2025-06-17 10:26:42] Test case 684b0329afe9ee3c8e55dee0 finished. Status: passed, Duration: 199392ms
 [2025-06-17 10:26:42] Cleaning up browser...
 [2025-06-17 10:26:43] Browser closed successfully.
+[2025-06-17 20:30:29] AI Optimization Enabled: false
+[2025-06-17 20:30:29] Initializing browser...
+[2025-06-17 20:30:34] Browser initialized successfully.
+[2025-06-17 20:30:34] Starting test case: 6851cf7d5135d97fc422ec90
+[2025-06-17 20:30:34] [AI] Resetting context for new test case 6851cf7d5135d97fc422ec90.
+[2025-06-17 20:30:34] Step 1: Visit https://www.techlistic.com/p/selenium-practi...
+[2025-06-17 20:30:34] [AI] Parsing/Interpreting original step 1: "Visit https://www.techlistic.com/p/selenium-practice-form.html..."
+[2025-06-17 20:30:34] [Step] Executing (Attempt 0): navigate on "https://www.techlistic.com/p/selenium-practice-for"
+[2025-06-17 20:30:34] [Action] navigate: https://www.techlistic.com/p/s...
+[2025-06-17 20:30:34] Dispatching action: navigate, Target: https://www.techlistic.com/p/selenium-practice-for, Value: N/A
+[2025-06-17 20:30:34] Navigating to https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:30:42] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired).
+[2025-06-17 20:30:43] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-17 20:30:55] No common consent buttons found or clicked. Continuing...
+[2025-06-17 20:30:55] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-17 20:30:57] [Action] navigate successful.
+[2025-06-17 20:30:57] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:30:57] Step 2: Wait for input[name="firstname"] to be visible...
+[2025-06-17 20:30:57] [AI] Parsing/Interpreting original step 2: "Wait for input[name="firstname"] to be visible..."
+[2025-06-17 20:30:57] [Step] Executing (Attempt 0): wait on "input[name="firstname"] to be visible"
+[2025-06-17 20:30:57] [Action] wait: input[name="firstname"] to be ...
+[2025-06-17 20:30:57] Dispatching action: wait, Target: input[name="firstname"] to be visible, Value: N/A
+[2025-06-17 20:30:57] [HandleWait] Waiting for selector: input[name="firstname"] to be visible (timeout 10000ms)
+[2025-06-17 20:31:07] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:31:07] [Action] wait successful.
+[2025-06-17 20:31:07] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:31:07] Step 3: Fill input[name="firstname"] with "Domenic"...
+[2025-06-17 20:31:07] [AI] Parsing/Interpreting original step 3: "Fill input[name="firstname"] with "Domenic"..."
+[2025-06-17 20:31:07] [Step] Executing (Attempt 0): type on "firstname" with value "Domenic"
+[2025-06-17 20:31:07] [Action] type: firstname...
+[2025-06-17 20:31:07] Dispatching action: type, Target: firstname, Value: Domenic
+[2025-06-17 20:31:07] [Type Action Debug] Selector being passed to handleType: firstname
+[2025-06-17 20:31:07] [Type Action Debug] Full parsedStep object: Action=type, Target=firstname, Value=Domenic, OriginalStep=Fill input[name="firstname"] with "Domenic"
+[2025-06-17 20:31:07] Attempting to type "Domenic" into element identified by "firstname"
+[2025-06-17 20:31:07] [findElementWithFallbacks] Looking for: "firstname" (firstname) at index: 0
+[2025-06-17 20:31:15] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:31:15] Cleared field before typing.
+[2025-06-17 20:31:16] Successfully typed "Domenic" into element "firstname"
+[2025-06-17 20:31:16] [Action] type successful.
+[2025-06-17 20:31:17] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:31:17] Step 4: Fill input[name="lastname"] with "Julian"...
+[2025-06-17 20:31:17] [AI] Parsing/Interpreting original step 4: "Fill input[name="lastname"] with "Julian"..."
+[2025-06-17 20:31:17] [Step] Executing (Attempt 0): type on "lastname" with value "Julian"
+[2025-06-17 20:31:17] [Action] type: lastname...
+[2025-06-17 20:31:17] Dispatching action: type, Target: lastname, Value: Julian
+[2025-06-17 20:31:17] [Type Action Debug] Selector being passed to handleType: lastname
+[2025-06-17 20:31:17] [Type Action Debug] Full parsedStep object: Action=type, Target=lastname, Value=Julian, OriginalStep=Fill input[name="lastname"] with "Julian"
+[2025-06-17 20:31:17] Attempting to type "Julian" into element identified by "lastname"
+[2025-06-17 20:31:17] [findElementWithFallbacks] Looking for: "lastname" (lastname) at index: 0
+[2025-06-17 20:31:23] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:31:23] Cleared field before typing.
+[2025-06-17 20:31:24] Successfully typed "Julian" into element "lastname"
+[2025-06-17 20:31:24] [Action] type successful.
+[2025-06-17 20:31:24] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:31:24] Step 5: Click input[value="Male"]...
+[2025-06-17 20:31:24] [AI] Parsing/Interpreting original step 5: "Click input[value="Male"]..."
+[2025-06-17 20:31:24] [Step] Executing (Attempt 0): click on "Male"
+[2025-06-17 20:31:24] [Action] click: Male...
+[2025-06-17 20:31:24] Dispatching action: click, Target: Male, Value: N/A
+[2025-06-17 20:31:24] [Action] click: Male...
+[2025-06-17 20:31:24] Attempting to click on element identified by: "Male" at index: 0
+[2025-06-17 20:31:24] [handleClick Verbose] Original Selector: "Male"
+[2025-06-17 20:31:24] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:31:24] [handleClick Verbose] Core Selector Value for Check: "Male"
+[2025-06-17 20:31:24] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:31:24] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:31:24] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:31:24] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:31:24] [findElementWithFallbacks] Looking for: "Male" (Male) at index: 0
+[2025-06-17 20:31:55] [tryFindElementImmediate] Using CSS method for: "Male"
+[2025-06-17 20:31:56] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-17 20:31:56] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-17 20:31:56] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-17 20:31:56] [Action] Error in click: Element not found...
+[2025-06-17 20:31:56] [Action] click failed: Element not found...
+[2025-06-17 20:31:56] [Warning] The target 'Male' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-17 20:31:56] [Failure Type] Element not found.
+[2025-06-17 20:31:56] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-17 20:31:56] Step 5 failed: Element not found...
+[2025-06-17 20:31:56] Test case 6851cf7d5135d97fc422ec90 finished. Status: failed, Duration: 82111ms
+[2025-06-17 20:31:56] Cleaning up browser...
+[2025-06-17 20:32:00] Browser closed successfully.
+[2025-06-17 20:39:25] AI Optimization Enabled: false
+[2025-06-17 20:39:25] Initializing browser...
+[2025-06-17 20:39:26] Browser initialized successfully.
+[2025-06-17 20:39:27] Starting test case: 6851cf7d5135d97fc422ec90
+[2025-06-17 20:39:27] [AI] Resetting context for new test case 6851cf7d5135d97fc422ec90.
+[2025-06-17 20:39:27] Step 1: Visit https://www.techlistic.com/p/selenium-practi...
+[2025-06-17 20:39:27] [AI] Parsing/Interpreting original step 1: "Visit https://www.techlistic.com/p/selenium-practice-form.html..."
+[2025-06-17 20:39:27] [Step] Executing (Attempt 0): navigate on "https://www.techlistic.com/p/selenium-practice-for"
+[2025-06-17 20:39:27] [Action] navigate: https://www.techlistic.com/p/s...
+[2025-06-17 20:39:27] Dispatching action: navigate, Target: https://www.techlistic.com/p/selenium-practice-for, Value: N/A
+[2025-06-17 20:39:27] Navigating to https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:39:33] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired).
+[2025-06-17 20:39:33] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-17 20:39:45] No common consent buttons found or clicked. Continuing...
+[2025-06-17 20:39:45] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-17 20:39:47] [Action] navigate successful.
+[2025-06-17 20:39:47] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:39:47] Step 2: Wait for input[name="firstname"] to be visible...
+[2025-06-17 20:39:47] [AI] Parsing/Interpreting original step 2: "Wait for input[name="firstname"] to be visible..."
+[2025-06-17 20:39:47] [Step] Executing (Attempt 0): wait on "input[name="firstname"] to be visible"
+[2025-06-17 20:39:47] [Action] wait: input[name="firstname"] to be ...
+[2025-06-17 20:39:47] Dispatching action: wait, Target: input[name="firstname"] to be visible, Value: N/A
+[2025-06-17 20:39:47] [HandleWait] Waiting for selector: input[name="firstname"] to be visible (timeout 10000ms)
+[2025-06-17 20:39:58] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:39:58] [Action] wait successful.
+[2025-06-17 20:39:58] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:39:58] Step 3: Fill input[name="firstname"] with "Domenic"...
+[2025-06-17 20:39:58] [AI] Parsing/Interpreting original step 3: "Fill input[name="firstname"] with "Domenic"..."
+[2025-06-17 20:39:58] [Step] Executing (Attempt 0): type on "firstname" with value "Domenic"
+[2025-06-17 20:39:58] [Action] type: firstname...
+[2025-06-17 20:39:58] Dispatching action: type, Target: firstname, Value: Domenic
+[2025-06-17 20:39:58] [Type Action Debug] Selector being passed to handleType: firstname
+[2025-06-17 20:39:58] [Type Action Debug] Full parsedStep object: Action=type, Target=firstname, Value=Domenic, OriginalStep=Fill input[name="firstname"] with "Domenic"
+[2025-06-17 20:39:58] Attempting to type "Domenic" into element identified by "firstname"
+[2025-06-17 20:39:58] [findElementWithFallbacks] Looking for: "firstname" (firstname) at index: 0
+[2025-06-17 20:40:04] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:40:04] Cleared field before typing.
+[2025-06-17 20:40:05] Successfully typed "Domenic" into element "firstname"
+[2025-06-17 20:40:05] [Action] type successful.
+[2025-06-17 20:40:05] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:40:05] Step 4: Fill input[name="lastname"] with "Julian"...
+[2025-06-17 20:40:05] [AI] Parsing/Interpreting original step 4: "Fill input[name="lastname"] with "Julian"..."
+[2025-06-17 20:40:05] [Step] Executing (Attempt 0): type on "lastname" with value "Julian"
+[2025-06-17 20:40:05] [Action] type: lastname...
+[2025-06-17 20:40:05] Dispatching action: type, Target: lastname, Value: Julian
+[2025-06-17 20:40:05] [Type Action Debug] Selector being passed to handleType: lastname
+[2025-06-17 20:40:05] [Type Action Debug] Full parsedStep object: Action=type, Target=lastname, Value=Julian, OriginalStep=Fill input[name="lastname"] with "Julian"
+[2025-06-17 20:40:05] Attempting to type "Julian" into element identified by "lastname"
+[2025-06-17 20:40:05] [findElementWithFallbacks] Looking for: "lastname" (lastname) at index: 0
+[2025-06-17 20:40:11] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:40:11] Cleared field before typing.
+[2025-06-17 20:40:12] Successfully typed "Julian" into element "lastname"
+[2025-06-17 20:40:12] [Action] type successful.
+[2025-06-17 20:40:12] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:40:12] Step 5: Click input[value="Male"]...
+[2025-06-17 20:40:12] [AI] Parsing/Interpreting original step 5: "Click input[value="Male"]..."
+[2025-06-17 20:40:12] [Step] Executing (Attempt 0): click on "Male"
+[2025-06-17 20:40:12] [Action] click: Male...
+[2025-06-17 20:40:12] Dispatching action: click, Target: Male, Value: N/A
+[2025-06-17 20:40:12] [Action] click: Male...
+[2025-06-17 20:40:12] Attempting to click on element identified by: "Male" at index: 0
+[2025-06-17 20:40:12] [handleClick Verbose] Original Selector: "Male"
+[2025-06-17 20:40:12] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:40:12] [handleClick Verbose] Core Selector Value for Check: "Male"
+[2025-06-17 20:40:12] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:40:12] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:40:12] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:40:12] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:40:12] [findElementWithFallbacks] Looking for: "Male" (Male) at index: 0
+[2025-06-17 20:40:43] [tryFindElementImmediate] Using CSS method for: "Male"
+[2025-06-17 20:40:43] [tryFindElementImmediate] CSS query found 0 elements
+[2025-06-17 20:40:43] [findElementWithFallbacks] Timeout reached after 20000ms
+[2025-06-17 20:40:43] [findElementWithFallbacks] ✗ Failed to find element after all attempts
+[2025-06-17 20:40:43] [Action] Error in click: Element not found...
+[2025-06-17 20:40:43] [Action] click failed: Element not found...
+[2025-06-17 20:40:43] [Warning] The target 'Male' for click action may be too generic. Consider specifying a selector like '#id' or '.class' for better accuracy.
+[2025-06-17 20:40:43] [Failure Type] Element not found.
+[2025-06-17 20:40:43] [Step] Result for "click" (Attempt 0): failed, Message: Element not found
+[2025-06-17 20:40:43] Step 5 failed: Element not found...
+[2025-06-17 20:40:43] Test case 6851cf7d5135d97fc422ec90 finished. Status: failed, Duration: 76440ms
+[2025-06-17 20:40:43] Cleaning up browser...
+[2025-06-17 20:40:46] Browser closed successfully.
+[2025-06-17 20:43:07] AI Optimization Enabled: false
+[2025-06-17 20:43:07] Initializing browser...
+[2025-06-17 20:43:09] Browser initialized successfully.
+[2025-06-17 20:43:09] Starting test case: 6851cf7d5135d97fc422ec90
+[2025-06-17 20:43:09] [AI] Resetting context for new test case 6851cf7d5135d97fc422ec90.
+[2025-06-17 20:43:10] Step 1: Visit https://www.techlistic.com/p/selenium-practi...
+[2025-06-17 20:43:10] [AI] Parsing/Interpreting original step 1: "Visit https://www.techlistic.com/p/selenium-practice-form.html..."
+[2025-06-17 20:43:10] [Step] Executing (Attempt 0): navigate on "https://www.techlistic.com/p/selenium-practice-for"
+[2025-06-17 20:43:10] [Action] navigate: https://www.techlistic.com/p/s...
+[2025-06-17 20:43:10] Dispatching action: navigate, Target: https://www.techlistic.com/p/selenium-practice-for, Value: N/A
+[2025-06-17 20:43:10] Navigating to https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:43:17] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired).
+[2025-06-17 20:43:17] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-17 20:43:29] No common consent buttons found or clicked. Continuing...
+[2025-06-17 20:43:29] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-17 20:43:31] [Action] navigate successful.
+[2025-06-17 20:43:31] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:43:31] Step 2: Wait for input[name="firstname"] to be visible...
+[2025-06-17 20:43:31] [AI] Parsing/Interpreting original step 2: "Wait for input[name="firstname"] to be visible..."
+[2025-06-17 20:43:31] [Step] Executing (Attempt 0): wait on "input[name="firstname"] to be visible"
+[2025-06-17 20:43:31] [Action] wait: input[name="firstname"] to be ...
+[2025-06-17 20:43:31] Dispatching action: wait, Target: input[name="firstname"] to be visible, Value: N/A
+[2025-06-17 20:43:31] [HandleWait] Waiting for selector: input[name="firstname"] to be visible (timeout 10000ms)
+[2025-06-17 20:43:41] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:43:41] [Action] wait successful.
+[2025-06-17 20:43:41] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:43:41] Step 3: Fill input[name="firstname"] with "Domenic"...
+[2025-06-17 20:43:41] [AI] Parsing/Interpreting original step 3: "Fill input[name="firstname"] with "Domenic"..."
+[2025-06-17 20:43:41] [Step] Executing (Attempt 0): type on "firstname" with value "Domenic"
+[2025-06-17 20:43:41] [Action] type: firstname...
+[2025-06-17 20:43:41] Dispatching action: type, Target: firstname, Value: Domenic
+[2025-06-17 20:43:41] [Type Action Debug] Selector being passed to handleType: firstname
+[2025-06-17 20:43:41] [Type Action Debug] Full parsedStep object: Action=type, Target=firstname, Value=Domenic, OriginalStep=Fill input[name="firstname"] with "Domenic"
+[2025-06-17 20:43:41] Attempting to type "Domenic" into element identified by "firstname"
+[2025-06-17 20:43:41] [findElementWithFallbacks] Looking for: "firstname" (firstname) at index: 0
+[2025-06-17 20:43:47] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:43:47] Cleared field before typing.
+[2025-06-17 20:43:48] Successfully typed "Domenic" into element "firstname"
+[2025-06-17 20:43:48] [Action] type successful.
+[2025-06-17 20:43:48] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:43:48] Step 4: Fill input[name="lastname"] with "Julian"...
+[2025-06-17 20:43:48] [AI] Parsing/Interpreting original step 4: "Fill input[name="lastname"] with "Julian"..."
+[2025-06-17 20:43:48] [Step] Executing (Attempt 0): type on "lastname" with value "Julian"
+[2025-06-17 20:43:48] [Action] type: lastname...
+[2025-06-17 20:43:48] Dispatching action: type, Target: lastname, Value: Julian
+[2025-06-17 20:43:48] [Type Action Debug] Selector being passed to handleType: lastname
+[2025-06-17 20:43:48] [Type Action Debug] Full parsedStep object: Action=type, Target=lastname, Value=Julian, OriginalStep=Fill input[name="lastname"] with "Julian"
+[2025-06-17 20:43:48] Attempting to type "Julian" into element identified by "lastname"
+[2025-06-17 20:43:48] [findElementWithFallbacks] Looking for: "lastname" (lastname) at index: 0
+[2025-06-17 20:43:54] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:43:54] Cleared field before typing.
+[2025-06-17 20:43:55] Successfully typed "Julian" into element "lastname"
+[2025-06-17 20:43:55] [Action] type successful.
+[2025-06-17 20:43:55] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:43:55] Step 5: Click (css: input[value="Male"])...
+[2025-06-17 20:43:55] [AI] Parsing/Interpreting original step 5: "Click (css: input[value="Male"])..."
+[2025-06-17 20:43:55] [Step] Executing (Attempt 0): click on "input[value="Male"]"
+[2025-06-17 20:43:55] [Action] click: input[value="Male"]...
+[2025-06-17 20:43:55] Dispatching action: click, Target: input[value="Male"], Value: N/A
+[2025-06-17 20:43:55] [Action] click: input[value="Male"]...
+[2025-06-17 20:43:55] Attempting to click on element identified by: "input[value="Male"]" at index: 0
+[2025-06-17 20:43:55] [handleClick Verbose] Original Selector: "input[value="Male"]"
+[2025-06-17 20:43:55] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:43:55] [handleClick Verbose] Core Selector Value for Check: "input[value="Male"]"
+[2025-06-17 20:43:55] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:43:55] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:43:55] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:43:55] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:43:55] [findElementWithFallbacks] Looking for: "input[value="Male"]" (input[value="Male"]) at index: 0
+[2025-06-17 20:43:55] [SmartWait] Found element via early wait (css-original)
+[2025-06-17 20:43:55] Scrolling element into view before clicking.
+[2025-06-17 20:44:05] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:05] [Action] click successful.
+[2025-06-17 20:44:05] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:05] Step 6: Click input[id="exp-2"]...
+[2025-06-17 20:44:05] [AI] Parsing/Interpreting original step 6: "Click input[id="exp-2"]..."
+[2025-06-17 20:44:05] [Step] Executing (Attempt 0): click on "exp-2"
+[2025-06-17 20:44:05] [Action] click: exp-2...
+[2025-06-17 20:44:05] Dispatching action: click, Target: exp-2, Value: N/A
+[2025-06-17 20:44:05] [Action] click: exp-2...
+[2025-06-17 20:44:05] Attempting to click on element identified by: "exp-2" at index: 0
+[2025-06-17 20:44:05] [handleClick Verbose] Original Selector: "exp-2"
+[2025-06-17 20:44:05] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:44:05] [handleClick Verbose] Core Selector Value for Check: "exp-2"
+[2025-06-17 20:44:05] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:44:05] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:44:05] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:05] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:05] [findElementWithFallbacks] Looking for: "exp-2" (exp-2) at index: 0
+[2025-06-17 20:44:05] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:05] Scrolling element into view before clicking.
+[2025-06-17 20:44:15] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:15] [Action] click successful.
+[2025-06-17 20:44:15] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:15] Step 7: Fill input[id="datepicker"] with "06/17/2025"...
+[2025-06-17 20:44:15] [AI] Parsing/Interpreting original step 7: "Fill input[id="datepicker"] with "06/17/2025"..."
+[2025-06-17 20:44:15] [Step] Executing (Attempt 0): type on "datepicker" with value "06/17/2025"
+[2025-06-17 20:44:15] [Action] type: datepicker...
+[2025-06-17 20:44:15] Dispatching action: type, Target: datepicker, Value: 06/17/2025
+[2025-06-17 20:44:15] [Type Action Debug] Selector being passed to handleType: datepicker
+[2025-06-17 20:44:15] [Type Action Debug] Full parsedStep object: Action=type, Target=datepicker, Value=06/17/2025, OriginalStep=Fill input[id="datepicker"] with "06/17/2025"
+[2025-06-17 20:44:15] Attempting to type "06/17/2025" into element identified by "datepicker"
+[2025-06-17 20:44:15] [findElementWithFallbacks] Looking for: "datepicker" (datepicker) at index: 0
+[2025-06-17 20:44:15] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:15] Cleared field before typing.
+[2025-06-17 20:44:16] Successfully typed "06/17/2025" into element "datepicker"
+[2025-06-17 20:44:16] [Action] type successful.
+[2025-06-17 20:44:16] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:16] Step 8: Click input[id="profession-1"]...
+[2025-06-17 20:44:16] [AI] Parsing/Interpreting original step 8: "Click input[id="profession-1"]..."
+[2025-06-17 20:44:16] [Step] Executing (Attempt 0): click on "profession-1"
+[2025-06-17 20:44:16] [Action] click: profession-1...
+[2025-06-17 20:44:16] Dispatching action: click, Target: profession-1, Value: N/A
+[2025-06-17 20:44:16] [Action] click: profession-1...
+[2025-06-17 20:44:16] Attempting to click on element identified by: "profession-1" at index: 0
+[2025-06-17 20:44:16] [handleClick Verbose] Original Selector: "profession-1"
+[2025-06-17 20:44:16] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:44:16] [handleClick Verbose] Core Selector Value for Check: "profession-1"
+[2025-06-17 20:44:16] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:44:16] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:44:16] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:16] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:16] [findElementWithFallbacks] Looking for: "profession-1" (profession-1) at index: 0
+[2025-06-17 20:44:16] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:16] Scrolling element into view before clicking.
+[2025-06-17 20:44:26] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:26] [Action] click successful.
+[2025-06-17 20:44:26] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:26] Step 9: Click input[id="tool-2"]...
+[2025-06-17 20:44:26] [AI] Parsing/Interpreting original step 9: "Click input[id="tool-2"]..."
+[2025-06-17 20:44:26] [Step] Executing (Attempt 0): click on "tool-2"
+[2025-06-17 20:44:26] [Action] click: tool-2...
+[2025-06-17 20:44:26] Dispatching action: click, Target: tool-2, Value: N/A
+[2025-06-17 20:44:26] [Action] click: tool-2...
+[2025-06-17 20:44:26] Attempting to click on element identified by: "tool-2" at index: 0
+[2025-06-17 20:44:26] [handleClick Verbose] Original Selector: "tool-2"
+[2025-06-17 20:44:26] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:44:26] [handleClick Verbose] Core Selector Value for Check: "tool-2"
+[2025-06-17 20:44:26] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:44:26] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:44:26] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:26] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:26] [findElementWithFallbacks] Looking for: "tool-2" (tool-2) at index: 0
+[2025-06-17 20:44:26] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:26] Scrolling element into view before clicking.
+[2025-06-17 20:44:36] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:36] [Action] click successful.
+[2025-06-17 20:44:36] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:36] Step 10: Select Europe from select[id="continents"]...
+[2025-06-17 20:44:36] [AI] Parsing/Interpreting original step 10: "Select Europe from select[id="continents"]..."
+[2025-06-17 20:44:36] [Step] Executing (Attempt 0): click on "continents"
+[2025-06-17 20:44:36] [Action] click: continents...
+[2025-06-17 20:44:36] Dispatching action: click, Target: continents, Value: N/A
+[2025-06-17 20:44:36] [Action] click: continents...
+[2025-06-17 20:44:36] Attempting to click on element identified by: "continents" at index: 0
+[2025-06-17 20:44:36] [handleClick Verbose] Original Selector: "continents"
+[2025-06-17 20:44:36] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:44:36] [handleClick Verbose] Core Selector Value for Check: "continents"
+[2025-06-17 20:44:36] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:44:36] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:44:36] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:36] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:36] [findElementWithFallbacks] Looking for: "continents" (continents) at index: 0
+[2025-06-17 20:44:37] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:37] Scrolling element into view before clicking.
+[2025-06-17 20:44:47] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:47] [Action] click successful.
+[2025-06-17 20:44:47] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:47] Step 11: Click button[id="submit"]...
+[2025-06-17 20:44:47] [AI] Parsing/Interpreting original step 11: "Click button[id="submit"]..."
+[2025-06-17 20:44:47] [Step] Executing (Attempt 0): click on "submit"
+[2025-06-17 20:44:47] [Action] click: submit...
+[2025-06-17 20:44:47] Dispatching action: click, Target: submit, Value: N/A
+[2025-06-17 20:44:47] [Action] click: submit...
+[2025-06-17 20:44:47] Attempting to click on element identified by: "submit" at index: 0
+[2025-06-17 20:44:47] [handleClick Verbose] Original Selector: "submit"
+[2025-06-17 20:44:47] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:44:47] [handleClick Verbose] Core Selector Value for Check: "submit"
+[2025-06-17 20:44:47] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:44:47] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:44:47] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:47] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:44:47] [findElementWithFallbacks] Looking for: "submit" (submit) at index: 0
+[2025-06-17 20:44:47] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:44:47] Scrolling element into view before clicking.
+[2025-06-17 20:44:57] Click successful (navigation awaited if triggered).
+[2025-06-17 20:44:57] [Action] click successful.
+[2025-06-17 20:44:57] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:44:57] Step 12: Wait for button[id="submit"] to disappear...
+[2025-06-17 20:44:57] [AI] Parsing/Interpreting original step 12: "Wait for button[id="submit"] to disappear..."
+[2025-06-17 20:44:57] [Step] Executing (Attempt 0): wait on "button[id="submit"] to disappear"
+[2025-06-17 20:44:57] [Action] wait: button[id="submit"] to disappe...
+[2025-06-17 20:44:57] Dispatching action: wait, Target: button[id="submit"] to disappear, Value: N/A
+[2025-06-17 20:44:57] [HandleWait] Waiting for selector: button[id="submit"] to disappear (timeout 10000ms)
+[2025-06-17 20:45:07] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:45:07] [Action] wait successful.
+[2025-06-17 20:45:07] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:45:07] Test case 6851cf7d5135d97fc422ec90 finished. Status: passed, Duration: 117977ms
+[2025-06-17 20:45:07] Cleaning up browser...
+[2025-06-17 20:45:10] Browser closed successfully.
+[2025-06-17 20:48:38] AI Optimization Enabled: true
+[2025-06-17 20:48:38] Initializing browser...
+[2025-06-17 20:48:40] Browser initialized successfully.
+[2025-06-17 20:48:41] Starting test case: 6851cf7d5135d97fc422ec90
+[2025-06-17 20:48:41] [AI] Resetting context for new test case 6851cf7d5135d97fc422ec90.
+[2025-06-17 20:48:41] Step 1: Visit https://www.techlistic.com/p/selenium-practi...
+[2025-06-17 20:48:41] [AI] Parsing/Interpreting original step 1: "Visit https://www.techlistic.com/p/selenium-practice-form.html..."
+[2025-06-17 20:48:41] [Step] Executing (Attempt 0): navigate on "https://www.techlistic.com/p/selenium-practice-for"
+[2025-06-17 20:48:42] [Action] navigate: https://www.techlistic.com/p/s...
+[2025-06-17 20:48:42] Dispatching action: navigate, Target: https://www.techlistic.com/p/selenium-practice-for, Value: N/A
+[2025-06-17 20:48:42] Navigating to https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:48:50] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired).
+[2025-06-17 20:48:50] Navigation to https://www.techlistic.com/p/selenium-practice-form.html complete (domcontentloaded event fired). Attempting to dismiss potential cookie/consent banners.
+[2025-06-17 20:49:02] No common consent buttons found or clicked. Continuing...
+[2025-06-17 20:49:02] Adding a short delay for page stabilization after navigation and consent checks.
+[2025-06-17 20:49:04] [Action] navigate successful.
+[2025-06-17 20:49:04] [Step] Result for "navigate" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:04] Step 2: Wait for input[name="firstname"] to be visible...
+[2025-06-17 20:49:04] [AI] Parsing/Interpreting original step 2: "Wait for input[name="firstname"] to be visible..."
+[2025-06-17 20:49:04] [Step] Executing (Attempt 0): wait on "input[name="firstname"] to be visible"
+[2025-06-17 20:49:04] [Action] wait: input[name="firstname"] to be ...
+[2025-06-17 20:49:04] Dispatching action: wait, Target: input[name="firstname"] to be visible, Value: N/A
+[2025-06-17 20:49:04] [HandleWait] Waiting for selector: input[name="firstname"] to be visible (timeout 10000ms)
+[2025-06-17 20:49:14] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:49:14] [Action] wait successful.
+[2025-06-17 20:49:14] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:14] Step 3: Fill input[name="firstname"] with "Domenic"...
+[2025-06-17 20:49:14] [AI] Parsing/Interpreting original step 3: "Fill input[name="firstname"] with "Domenic"..."
+[2025-06-17 20:49:14] [Step] Executing (Attempt 0): type on "firstname" with value "Domenic"
+[2025-06-17 20:49:14] [Action] type: firstname...
+[2025-06-17 20:49:14] Dispatching action: type, Target: firstname, Value: Domenic
+[2025-06-17 20:49:14] [Type Action Debug] Selector being passed to handleType: firstname
+[2025-06-17 20:49:14] [Type Action Debug] Full parsedStep object: Action=type, Target=firstname, Value=Domenic, OriginalStep=Fill input[name="firstname"] with "Domenic"
+[2025-06-17 20:49:14] Attempting to type "Domenic" into element identified by "firstname"
+[2025-06-17 20:49:14] [findElementWithFallbacks] Looking for: "firstname" (firstname) at index: 0
+[2025-06-17 20:49:21] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:49:21] Cleared field before typing.
+[2025-06-17 20:49:21] Successfully typed "Domenic" into element "firstname"
+[2025-06-17 20:49:21] [Action] type successful.
+[2025-06-17 20:49:21] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:21] Step 4: Fill input[name="lastname"] with "Julian"...
+[2025-06-17 20:49:21] [AI] Parsing/Interpreting original step 4: "Fill input[name="lastname"] with "Julian"..."
+[2025-06-17 20:49:21] [Step] Executing (Attempt 0): type on "lastname" with value "Julian"
+[2025-06-17 20:49:21] [Action] type: lastname...
+[2025-06-17 20:49:21] Dispatching action: type, Target: lastname, Value: Julian
+[2025-06-17 20:49:21] [Type Action Debug] Selector being passed to handleType: lastname
+[2025-06-17 20:49:21] [Type Action Debug] Full parsedStep object: Action=type, Target=lastname, Value=Julian, OriginalStep=Fill input[name="lastname"] with "Julian"
+[2025-06-17 20:49:21] Attempting to type "Julian" into element identified by "lastname"
+[2025-06-17 20:49:21] [findElementWithFallbacks] Looking for: "lastname" (lastname) at index: 0
+[2025-06-17 20:49:27] [SmartWait] Found element via early wait (name)
+[2025-06-17 20:49:27] Cleared field before typing.
+[2025-06-17 20:49:28] Successfully typed "Julian" into element "lastname"
+[2025-06-17 20:49:28] [Action] type successful.
+[2025-06-17 20:49:28] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:28] Step 5: Click (css: input[value="Male"])...
+[2025-06-17 20:49:28] [AI] Parsing/Interpreting original step 5: "Click (css: input[value="Male"])..."
+[2025-06-17 20:49:28] [Step] Executing (Attempt 0): click on "input[value="Male"]"
+[2025-06-17 20:49:28] [Action] click: input[value="Male"]...
+[2025-06-17 20:49:28] Dispatching action: click, Target: input[value="Male"], Value: N/A
+[2025-06-17 20:49:28] [Action] click: input[value="Male"]...
+[2025-06-17 20:49:28] Attempting to click on element identified by: "input[value="Male"]" at index: 0
+[2025-06-17 20:49:28] [handleClick Verbose] Original Selector: "input[value="Male"]"
+[2025-06-17 20:49:28] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:49:28] [handleClick Verbose] Core Selector Value for Check: "input[value="Male"]"
+[2025-06-17 20:49:28] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:49:28] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:49:28] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:28] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:28] [findElementWithFallbacks] Looking for: "input[value="Male"]" (input[value="Male"]) at index: 0
+[2025-06-17 20:49:28] [SmartWait] Found element via early wait (css-original)
+[2025-06-17 20:49:28] Scrolling element into view before clicking.
+[2025-06-17 20:49:38] Click successful (navigation awaited if triggered).
+[2025-06-17 20:49:38] [Action] click successful.
+[2025-06-17 20:49:38] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:38] Step 6: Click input[id="exp-2"]...
+[2025-06-17 20:49:38] [AI] Parsing/Interpreting original step 6: "Click input[id="exp-2"]..."
+[2025-06-17 20:49:38] [Step] Executing (Attempt 0): click on "exp-2"
+[2025-06-17 20:49:38] [Action] click: exp-2...
+[2025-06-17 20:49:38] Dispatching action: click, Target: exp-2, Value: N/A
+[2025-06-17 20:49:38] [Action] click: exp-2...
+[2025-06-17 20:49:38] Attempting to click on element identified by: "exp-2" at index: 0
+[2025-06-17 20:49:38] [handleClick Verbose] Original Selector: "exp-2"
+[2025-06-17 20:49:38] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:49:38] [handleClick Verbose] Core Selector Value for Check: "exp-2"
+[2025-06-17 20:49:38] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:49:38] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:49:38] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:38] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:38] [findElementWithFallbacks] Looking for: "exp-2" (exp-2) at index: 0
+[2025-06-17 20:49:38] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:49:38] Scrolling element into view before clicking.
+[2025-06-17 20:49:48] Click successful (navigation awaited if triggered).
+[2025-06-17 20:49:48] [Action] click successful.
+[2025-06-17 20:49:48] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:48] Step 7: Fill input[id="datepicker"] with "06/17/2025"...
+[2025-06-17 20:49:48] [AI] Parsing/Interpreting original step 7: "Fill input[id="datepicker"] with "06/17/2025"..."
+[2025-06-17 20:49:48] [Step] Executing (Attempt 0): type on "datepicker" with value "06/17/2025"
+[2025-06-17 20:49:48] [Action] type: datepicker...
+[2025-06-17 20:49:48] Dispatching action: type, Target: datepicker, Value: 06/17/2025
+[2025-06-17 20:49:48] [Type Action Debug] Selector being passed to handleType: datepicker
+[2025-06-17 20:49:48] [Type Action Debug] Full parsedStep object: Action=type, Target=datepicker, Value=06/17/2025, OriginalStep=Fill input[id="datepicker"] with "06/17/2025"
+[2025-06-17 20:49:48] Attempting to type "06/17/2025" into element identified by "datepicker"
+[2025-06-17 20:49:48] [findElementWithFallbacks] Looking for: "datepicker" (datepicker) at index: 0
+[2025-06-17 20:49:48] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:49:48] Cleared field before typing.
+[2025-06-17 20:49:49] Successfully typed "06/17/2025" into element "datepicker"
+[2025-06-17 20:49:49] [Action] type successful.
+[2025-06-17 20:49:49] [Step] Result for "type" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:49] Step 8: Click input[id="profession-1"]...
+[2025-06-17 20:49:49] [AI] Parsing/Interpreting original step 8: "Click input[id="profession-1"]..."
+[2025-06-17 20:49:49] [Step] Executing (Attempt 0): click on "profession-1"
+[2025-06-17 20:49:49] [Action] click: profession-1...
+[2025-06-17 20:49:49] Dispatching action: click, Target: profession-1, Value: N/A
+[2025-06-17 20:49:49] [Action] click: profession-1...
+[2025-06-17 20:49:49] Attempting to click on element identified by: "profession-1" at index: 0
+[2025-06-17 20:49:49] [handleClick Verbose] Original Selector: "profession-1"
+[2025-06-17 20:49:49] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:49:49] [handleClick Verbose] Core Selector Value for Check: "profession-1"
+[2025-06-17 20:49:49] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:49:49] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:49:49] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:49] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:49] [findElementWithFallbacks] Looking for: "profession-1" (profession-1) at index: 0
+[2025-06-17 20:49:49] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:49:49] Scrolling element into view before clicking.
+[2025-06-17 20:49:59] Click successful (navigation awaited if triggered).
+[2025-06-17 20:49:59] [Action] click successful.
+[2025-06-17 20:49:59] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:49:59] Step 9: Click input[id="tool-2"]...
+[2025-06-17 20:49:59] [AI] Parsing/Interpreting original step 9: "Click input[id="tool-2"]..."
+[2025-06-17 20:49:59] [Step] Executing (Attempt 0): click on "tool-2"
+[2025-06-17 20:49:59] [Action] click: tool-2...
+[2025-06-17 20:49:59] Dispatching action: click, Target: tool-2, Value: N/A
+[2025-06-17 20:49:59] [Action] click: tool-2...
+[2025-06-17 20:49:59] Attempting to click on element identified by: "tool-2" at index: 0
+[2025-06-17 20:49:59] [handleClick Verbose] Original Selector: "tool-2"
+[2025-06-17 20:49:59] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:49:59] [handleClick Verbose] Core Selector Value for Check: "tool-2"
+[2025-06-17 20:49:59] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:49:59] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:49:59] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:59] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:49:59] [findElementWithFallbacks] Looking for: "tool-2" (tool-2) at index: 0
+[2025-06-17 20:49:59] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:49:59] Scrolling element into view before clicking.
+[2025-06-17 20:50:09] Click successful (navigation awaited if triggered).
+[2025-06-17 20:50:09] [Action] click successful.
+[2025-06-17 20:50:09] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:50:09] Step 10: Select Europe from select[id="continents"]...
+[2025-06-17 20:50:09] [AI] Parsing/Interpreting original step 10: "Select Europe from select[id="continents"]..."
+[2025-06-17 20:50:09] [Step] Executing (Attempt 0): click on "continents"
+[2025-06-17 20:50:09] [Action] click: continents...
+[2025-06-17 20:50:09] Dispatching action: click, Target: continents, Value: N/A
+[2025-06-17 20:50:09] [Action] click: continents...
+[2025-06-17 20:50:09] Attempting to click on element identified by: "continents" at index: 0
+[2025-06-17 20:50:09] [handleClick Verbose] Original Selector: "continents"
+[2025-06-17 20:50:09] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:50:09] [handleClick Verbose] Core Selector Value for Check: "continents"
+[2025-06-17 20:50:09] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:50:09] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:50:09] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:50:09] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:50:09] [findElementWithFallbacks] Looking for: "continents" (continents) at index: 0
+[2025-06-17 20:50:09] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:50:09] Scrolling element into view before clicking.
+[2025-06-17 20:50:19] Click successful (navigation awaited if triggered).
+[2025-06-17 20:50:19] [Action] click successful.
+[2025-06-17 20:50:19] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:50:19] Step 11: Click button[id="submit"]...
+[2025-06-17 20:50:19] [AI] Parsing/Interpreting original step 11: "Click button[id="submit"]..."
+[2025-06-17 20:50:19] [Step] Executing (Attempt 0): click on "submit"
+[2025-06-17 20:50:19] [Action] click: submit...
+[2025-06-17 20:50:19] Dispatching action: click, Target: submit, Value: N/A
+[2025-06-17 20:50:19] [Action] click: submit...
+[2025-06-17 20:50:19] Attempting to click on element identified by: "submit" at index: 0
+[2025-06-17 20:50:19] [handleClick Verbose] Original Selector: "submit"
+[2025-06-17 20:50:19] [handleClick Verbose] Extracted Hint: type=none, selectorValue=none
+[2025-06-17 20:50:19] [handleClick Verbose] Core Selector Value for Check: "submit"
+[2025-06-17 20:50:19] [handleClick Verbose] Is W3Schools Modal Button: false
+[2025-06-17 20:50:19] [handleClick Verbose] Page URL: https://www.techlistic.com/p/selenium-practice-form.html
+[2025-06-17 20:50:19] [handleClick Verbose] Context: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:50:19] [handleClick Verbose] Effective context for finding element: Main Frame (URL: https://www.techlistic.com/p/selenium-practice-form.html)
+[2025-06-17 20:50:19] [findElementWithFallbacks] Looking for: "submit" (submit) at index: 0
+[2025-06-17 20:50:19] [SmartWait] Found element via early wait (id)
+[2025-06-17 20:50:19] Scrolling element into view before clicking.
+[2025-06-17 20:50:29] Click successful (navigation awaited if triggered).
+[2025-06-17 20:50:29] [Action] click successful.
+[2025-06-17 20:50:29] [Step] Result for "click" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:50:29] Step 12: Wait for button[id="submit"] to disappear...
+[2025-06-17 20:50:29] [AI] Parsing/Interpreting original step 12: "Wait for button[id="submit"] to disappear..."
+[2025-06-17 20:50:29] [Step] Executing (Attempt 0): wait on "button[id="submit"] to disappear"
+[2025-06-17 20:50:29] [Action] wait: button[id="submit"] to disappe...
+[2025-06-17 20:50:29] Dispatching action: wait, Target: button[id="submit"] to disappear, Value: N/A
+[2025-06-17 20:50:29] [HandleWait] Waiting for selector: button[id="submit"] to disappear (timeout 10000ms)
+[2025-06-17 20:50:39] [HandleWait] Timeout waiting for selector.
+[2025-06-17 20:50:39] [Action] wait successful.
+[2025-06-17 20:50:39] [Step] Result for "wait" (Attempt 0): passed, Message: undefined
+[2025-06-17 20:50:39] Test case 6851cf7d5135d97fc422ec90 finished. Status: passed, Duration: 118321ms
+[2025-06-17 20:50:39] Cleaning up browser...
+[2025-06-17 20:50:41] Browser closed successfully.
