@@ -30,7 +30,7 @@ export interface AssertionDetails {
 }
 
 export interface ParsedTestStep {
-  action: 'navigate' | 'click' | 'type' | 'wait' | 'assert' | 'select' | 'hover' | 'scroll' | 'upload' | 'dragAndDrop' | 'switchToIframe' | 'switchToMainContent' | 'executeScript' | 'custom';
+  action: 'navigate' | 'click' | 'type' | 'wait' | 'assert' | 'select' | 'hover' | 'scroll' | 'upload' | 'dragAndDrop' | 'switchToIframe' | 'switchToMainContent' | 'executeScript' | 'skip' | 'custom';
   target?: string;
   value?: string;
   timeout?: number;

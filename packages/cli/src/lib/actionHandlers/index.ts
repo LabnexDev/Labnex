@@ -11,4 +11,5 @@ export * from './handleScroll';
 export * from './handleHover';
 export * from './handleSwitchToIframe';
 export * from './handleSwitchToMainContent';
-export { handleDragAndDropV2 } from './handleDragAndDropV2'; 
+export { handleDragAndDropV2 } from './handleDragAndDropV2';
+export * from './handleSkip'; 

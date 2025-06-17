@@ -862,6 +862,9 @@ export class TestStepParser {
   static parseStep(step: string): ParsedTestStep {
     addLog(`[ParseStep] Parsing step: "${step}"`);
     const normalizedStep = step.trim().replace(/\s+/g, ' ');
+    if (/^\s*skip\b/i.test(normalizedStep)) {
+      return { action: 'skip', originalStep: step } as ParsedTestStep;
+    }
     let result: ParsedTestStep | null = null;
 
     // 0) Check if it's already the AI "type (css: ...) with value" format:

@@ -1130,6 +1130,14 @@ export class LocalBrowserExecutor {
           }
           break;
 
+        case 'skip':
+          await actionHandlers.handleSkip(
+            this.currentFrame || this.page,
+            this.addLog,
+            parsedStep.originalStep
+          );
+          break;
+
         default:
           this.addLog(`Unsupported action: ${parsedStep.action}`);
       }
