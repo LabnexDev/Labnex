@@ -7,6 +7,7 @@ import { Input } from '../../components/common/Input';
 import { toast } from 'react-hot-toast';
 import { PlusIcon, TrashIcon, ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { parseRawSteps } from '../../utils/parseRawSteps';
+import { createTestCase as createTestCaseApi } from '../../api/testCases';
 
 export function CreateTestCase() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -20,6 +21,7 @@ export function CreateTestCase() {
   const [expectedResult, setExpectedResult] = useState('');
   const [priority, setPriority] = useState<CreateTestCaseData['priority']>('MEDIUM');
   const [formError, setFormError] = useState(''); // For form validation errors
+  const [uploadingBulk, setUploadingBulk] = useState(false);
 
   useEffect(() => {
     if (!projectId || projectId === "undefined") {
@@ -187,6 +189,54 @@ export function CreateTestCase() {
             >
               Convert to Steps
             </Button>
+
+            <div className="mt-4 flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Or upload steps (.txt) / bulk JSON (.json)
+              </label>
+              <input
+                type="file"
+                accept=".txt,.json"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const text = await file.text();
+                  if (file.name.endsWith('.txt')) {
+                    setRawStepsText(text);
+                    toast.success('Text file loaded – click Convert to Steps');
+                  } else if (file.name.endsWith('.json')) {
+                    try {
+                      const arr = JSON.parse(text);
+                      if (!Array.isArray(arr)) throw new Error('JSON must be an array');
+                      if (!projectId || projectId === 'undefined') return;
+                      setUploadingBulk(true);
+                      let created = 0;
+                      for (const obj of arr) {
+                        if (typeof obj !== 'object') continue;
+                        const resp = await createTestCaseApi(projectId, {
+                          title: obj.title || `Imported ${Date.now()}`,
+                          description: obj.description || '',
+                          expectedResult: obj.expectedResult || '',
+                          steps: Array.isArray(obj.steps) ? obj.steps : [],
+                          priority: obj.priority || 'MEDIUM',
+                        });
+                        if (resp) created += 1;
+                      }
+                      toast.success(`Imported ${created} test cases from JSON`);
+                      navigate(`/projects/${projectId}/test-cases`);
+                    } catch (err: any) {
+                      toast.error(`Failed to import JSON: ${err.message || err}`);
+                    } finally {
+                      setUploadingBulk(false);
+                    }
+                  } else {
+                    toast.error('Unsupported file type');
+                  }
+                  // reset input
+                  e.target.value = '';
+                }}
+              />
+            </div>
 
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Test Steps
