@@ -558,11 +558,15 @@ export class TestStepParser {
     const typeOrFillPattern =
       /^(?:type|enter|fill (?:in )?|input|write|set)(?: text| value)?\s+(.+?)(?:\s+(?:in|into|to|on)\s+(.+))?$/i;
     const typeMatch = currentStep.match(typeOrFillPattern);
-    if (typeMatch) {
+
+    const typeAltPattern = /^(?:type|enter|fill|input|write|set)(?: text| value)?\s+([^\s]+)\s+with\s+(.+)/i;
+    const typeMatchAlt = currentStep.match(typeAltPattern);
+
+    if (typeMatch || typeMatchAlt) {
       addLog(`[TypeActionAttempt] Matched type pattern. Groups: ${JSON.stringify(typeMatch)}`);
 
-      const rawValueToType  = typeMatch[1].trim();
-      const rawTargetField  = typeMatch[2]?.trim();
+      const rawValueToType  = typeMatch ? typeMatch[1].trim() : typeMatchAlt![2].trim();
+      const rawTargetField  = typeMatch ? typeMatch[2]?.trim() : typeMatchAlt![1].trim();
       let valueToType       = extractQuotedText(rawValueToType) ?? rawValueToType;
 
       addLog(
