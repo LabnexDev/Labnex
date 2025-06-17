@@ -5,7 +5,8 @@ import { createTestCase, type TestCase, type CreateTestCaseData } from '../../ap
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { toast } from 'react-hot-toast';
-import { PlusIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { parseRawSteps } from '../../utils/parseRawSteps';
 
 export function CreateTestCase() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ export function CreateTestCase() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [steps, setSteps] = useState<string[]>(['']);
+  const [rawStepsText, setRawStepsText] = useState('');
   const [expectedResult, setExpectedResult] = useState('');
   const [priority, setPriority] = useState<CreateTestCaseData['priority']>('MEDIUM');
   const [formError, setFormError] = useState(''); // For form validation errors
@@ -71,6 +73,17 @@ export function CreateTestCase() {
     const newSteps = [...steps];
     newSteps[index] = value;
     setSteps(newSteps);
+  };
+
+  const handleConvertRaw = () => {
+    const parsed = parseRawSteps(rawStepsText);
+    if (parsed.length) {
+      setSteps(parsed);
+      setRawStepsText('');
+      toast.success(`Converted ${parsed.length} steps from pasted text.`);
+    } else {
+      toast.error('Could not parse any steps from the provided text.');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -154,6 +167,27 @@ export function CreateTestCase() {
           />
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Paste Raw Steps (optional)
+            </label>
+            <textarea
+              value={rawStepsText}
+              onChange={(e) => setRawStepsText(e.target.value)}
+              rows={4}
+              className="w-full p-3 border rounded-md mb-3 dark:bg-gray-800 dark:border-gray-600"
+              placeholder="1 Visit …\n2 Wait …"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleConvertRaw}
+              leftIcon={<ArrowDownTrayIcon className="h-4 w-4" />}
+              className="mb-6"
+            >
+              Convert to Steps
+            </Button>
+
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Test Steps
             </label>
