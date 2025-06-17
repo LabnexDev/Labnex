@@ -564,6 +564,34 @@ function generateFallbackStrategies(primarySelector: string): Array<{type: strin
     strategies.unshift(...syns.reverse());
   }
   
+  if (/locate the password input field/i.test(primarySelector)) {
+    const syns = [
+      { type: 'password-input', selector: 'input[type="password"]', method: 'css' as const },
+      { type: 'password-id', selector: '#password', method: 'css' as const },
+      { type: 'password-name', selector: '[name="password" i]', method: 'css' as const },
+      { type: 'password-placeholder', selector: '[placeholder*="password" i]', method: 'css' as const },
+    ];
+    strategies.unshift(...syns.reverse());
+  }
+  
+  if (/^checkout$/i.test(cleanSelector)) {
+    const syns = [
+      { type: 'checkout-id', selector: '#checkout', method: 'css' as const },
+      { type: 'checkout-data-test', selector: '[data-test*="checkout" i]', method: 'css' as const },
+      { type: 'checkout-text-ci', selector: `//*[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'checkout')]`, method: 'xpath' as const }
+    ];
+    strategies.unshift(...syns.reverse());
+  }
+  
+  if (/^finish$/i.test(cleanSelector)) {
+    const syns = [
+      { type: 'finish-id', selector: '#finish', method: 'css' as const },
+      { type: 'finish-data-test', selector: '[data-test*="finish" i]', method: 'css' as const },
+      { type: 'finish-text-ci', selector: `//*[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'finish')]`, method: 'xpath' as const }
+    ];
+    strategies.unshift(...syns.reverse());
+  }
+  
   return strategies;
 }
 
