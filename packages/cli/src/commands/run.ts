@@ -299,7 +299,7 @@ async function runTestsLocally(testCases: any[], project: any, options: any) {
             console.log(chalk.gray(`  ID: ${result.testCaseId}`));
             console.log(chalk.gray(`  Duration: ${result.duration}ms`));
             if (result.status === 'failed') {
-                const lastFailedStep = result.steps.find(s => s.status === 'failed');
+                const lastFailedStep = result.steps.find((s: any) => s.status === 'failed');
                 if (lastFailedStep) {
                     console.log(chalk.red(`  Error: ${lastFailedStep.message}`));
                 }
