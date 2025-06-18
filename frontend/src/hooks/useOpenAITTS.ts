@@ -15,8 +15,8 @@ export function useOpenAITTS() {
       const blob = new Blob([res.data], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
       if (!audioRef.current) audioRef.current = new Audio();
-      audioRef.current.src = url;
-      await audioRef.current.play();
+      audioRef.current = new Audio(url);
+      audioRef.current.play().catch(err => console.error('Audio play blocked/error', err));
       audioRef.current.onended = () => URL.revokeObjectURL(url);
     } catch (e) {
       console.error('TTS failed', e);
