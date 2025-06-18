@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import api from '../api/axios';
 import { useVoiceSettings } from '../contexts/VoiceSettingsContext';
 
@@ -6,7 +6,7 @@ export function useOpenAITTS() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { voiceOutput } = useVoiceSettings();
 
-  const speak = async (text: string) => {
+  const speak = useCallback(async (text: string) => {
     if (!voiceOutput || !text) return;
     try {
       // Avoid huge payloads
@@ -21,7 +21,7 @@ export function useOpenAITTS() {
     } catch (e) {
       console.error('TTS failed', e);
     }
-  };
+  }, [voiceOutput]);
 
   return { speak };
 } 
