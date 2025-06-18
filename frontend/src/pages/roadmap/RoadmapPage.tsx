@@ -47,7 +47,7 @@ const roadmapData: Record<string, RoadmapItem[]> = {
   ]
 };
 
-const communityGoals: CommunityGoal[] = [
+const _communityGoals: CommunityGoal[] = [
     { amount: 50, title: "Domain & 24/7 Bot Hosting", description: "Secured labnex.dev and enabled continuous backend operation for the Discord AI.", unlocked: true, icon: CheckCircleIcon },
     { amount: 100, title: "Community Feature Spotlight", description: "We'll build a requested feature, like a sponsorship page or a public feature request board.", unlocked: false, icon: SparklesIcon },
     { amount: 150, title: "Interactive Task Boards", description: "Implement full drag-and-drop functionality on the Kanban-style task boards.", unlocked: false, icon: SparklesIcon },
