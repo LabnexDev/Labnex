@@ -1,4 +1,4 @@
-import { chromium } from 'playwright-chromium';
+import { chromium } from 'playwright-core';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
@@ -33,7 +33,7 @@ async function main() {
   const previewURL = `http://localhost:${PREVIEW_PORT}/?og=true`;
   await waitForServer(previewURL, 15000);
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const page = await browser.newPage({ viewport: VIEWPORT });
   await page.goto(previewURL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
