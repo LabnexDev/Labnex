@@ -8,10 +8,18 @@ export interface ChatContext {
   history?: { role: 'user' | 'assistant'; content: string }[];
 }
 
+export interface AIChatResponse {
+  reply: string;
+  action?: { name: string; params: any };
+}
+
 export const aiChatApi = {
-  sendMessage: async (message: string, context: ChatContext = {}): Promise<string> => {
+  sendMessage: async (message: string, context: ChatContext = {}): Promise<AIChatResponse> => {
     const response = await api.post('/ai/chat', { message, context });
-    // Response format assumed: { success: boolean, data: { reply: string } }
-    return response.data?.data?.reply || 'No response from AI.';
+    const data = response.data?.data || {};
+    return {
+      reply: data.reply || 'No response from AI.',
+      action: data.action,
+    };
   },
 }; 

@@ -6,6 +6,7 @@ import { parseCommand } from '../utils/commandParser';
 import { dispatchCommand } from '../utils/commandDispatcher';
 import { aiMessagesApi } from '../api/aiMessages';
 import { aiSessionsApi } from '../api/aiSessions';
+import { dispatchAction } from '../utils/commandDispatcher';
 
 interface ChatMessage {
   id: string;
@@ -113,7 +114,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setIsTyping(false);
 
     try {
-      const reply = await aiChatApi.sendMessage(content, backendContext);
+      const { reply, action } = await aiChatApi.sendMessage(content, backendContext);
       const assistantMessage: ChatMessage = {
         id: `${Date.now()}-a`,
         role: 'assistant',
@@ -125,8 +126,18 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsScanning(false);
       setIsTyping(true);
       setTimeout(() => setIsTyping(false), 1200);
-      // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: reply }).catch(console.error);
+      // If action block present, dispatch
+      if (action) {
+        const result = await dispatchAction(action, { ...pageContext, projectId: params.id || params.projectId });
+        const resultMessage: ChatMessage = {
+          id: `${Date.now()}-ra`,
+          role: 'assistant',
+          content: result,
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, resultMessage]);
+        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: result }).catch(console.error);
+      }
     } catch (error: any) {
       const errorMessage: ChatMessage = {
         id: `${Date.now()}-e`,

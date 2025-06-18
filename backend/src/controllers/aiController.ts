@@ -722,17 +722,78 @@ export const chatWithAI = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ success: false, error: 'Message is too long' });
     }
 
-    // Build a prompt including minimal context for now. Future iterations can expand this.
-    let prompt = message;
-    if (context) {
-      const contextString = JSON.stringify(context);
-      prompt = `Context: ${contextString}\n\nUser: ${message}`;
+    // Build messages array
+    const messagesArr: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: 'You are Labnex AI, an assistant that can chat normally AND perform actions when appropriate. For normal questions reply conversationally. When the user intends an action, call the relevant function with correct arguments.' },
+      { role: 'user', content: message },
+    ];
+
+    if (context?.history) {
+      context.history.forEach((h: any) => {
+        messagesArr.unshift({ role: h.role, content: h.content });
+      });
     }
 
-    // For now, we pass conversationHistory undefined – phase-1 doesn't include memory.
-    const aiReply = await askChatGPT(prompt);
+    const functions = [
+      {
+        name: 'createProject',
+        description: 'Create a new project in Labnex',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Project name' },
+            description: { type: 'string' },
+            projectCode: { type: 'string' }
+          },
+          required: ['name']
+        }
+      },
+      {
+        name: 'createTask',
+        description: 'Create a new task inside a project',
+        parameters: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string' },
+            title: { type: 'string' },
+            dueDate: { type: 'string' },
+            assignee: { type: 'string' }
+          },
+          required: ['projectId', 'title']
+        }
+      },
+      {
+        name: 'createNote',
+        description: 'Add a note for user optionally linked to project',
+        parameters: {
+          type: 'object',
+          properties: {
+            projectId: { type: 'string' },
+            content: { type: 'string' }
+          },
+          required: ['content']
+        }
+      }
+    ];
 
-    res.json({ success: true, data: { reply: aiReply } });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: messagesArr,
+      functions,
+      function_call: 'auto',
+      temperature: 0.6,
+    });
+
+    const responseMsg = completion.choices[0].message;
+    let actionBlock: any = undefined;
+    if (responseMsg.function_call) {
+      const { name, arguments: args } = responseMsg.function_call;
+      actionBlock = { name, params: JSON.parse(args || '{}') };
+    }
+
+    const replyContent = responseMsg.content || (actionBlock ? `Sure, I'll ${actionBlock.name} for you.` : '');
+
+    res.json({ success: true, data: { reply: replyContent, action: actionBlock } });
   } catch (error: any) {
     console.error('Error in chatWithAI:', error);
     res.status(500).json({ success: false, error: error.message || 'Internal Server Error' });

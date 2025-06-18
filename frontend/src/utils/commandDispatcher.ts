@@ -3,6 +3,7 @@ import { createProject } from '../api/projects';
 import { createNote } from '../api/notes';
 import { createTask } from '../api/tasks';
 import { toast } from 'react-hot-toast';
+import { parseCommand } from './commandParser';
 
 export async function dispatchCommand(parsed: ParsedCommand, currentContext: Record<string, any>): Promise<string> {
   const { command, args, flags } = parsed;
@@ -52,5 +53,33 @@ export async function dispatchCommand(parsed: ParsedCommand, currentContext: Rec
   } catch (err: any) {
     toast.error(err.message || 'Command failed');
     return `❌ ${err.message || 'Command failed'}`;
+  }
+}
+
+export async function dispatchAction(action: { name: string; params: any }, currentContext: Record<string, any>): Promise<string> {
+  const { name, params } = action;
+  switch (name) {
+    case 'createProject': {
+      const cmd = `/create-project ${params.name || ''} ${params.description ? '--desc "' + params.description + '"' : ''} ${params.projectCode ? '--code ' + params.projectCode : ''}`;
+      const parsed = parseCommand(cmd)!;
+      return dispatchCommand(parsed, currentContext);
+    }
+    case 'createTask': {
+      const pid = params.projectId || currentContext.projectId;
+      const title = params.title ? `"${params.title}"` : '';
+      let cmd = `/new-task ${pid} ${title}`;
+      if (params.dueDate) cmd += ` --due ${params.dueDate}`;
+      if (params.assignee) cmd += ` --assignee ${params.assignee}`;
+      const parsed = parseCommand(cmd)!;
+      return dispatchCommand(parsed, currentContext);
+    }
+    case 'createNote': {
+      const content = params.content ? `"${params.content}"` : '""';
+      const cmd = `/note ${content}`;
+      const parsed = parseCommand(cmd)!;
+      return dispatchCommand(parsed, currentContext);
+    }
+    default:
+      return `⚠️ Unrecognized action: ${name}`;
   }
 } 
