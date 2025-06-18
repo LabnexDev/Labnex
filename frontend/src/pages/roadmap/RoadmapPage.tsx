@@ -4,6 +4,7 @@ import GlobalBackground from '../../components/landing/GlobalBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Seo from '../../components/common/Seo';
+import { Button } from '../../components/common/Button';
 
 interface RoadmapItem {
   status: 'implemented' | 'beta' | 'planned';
@@ -151,6 +152,10 @@ const RoadmapItemCard: React.FC<{ item: RoadmapItem }> = ({ item }) => {
 };
 
 const RoadmapPage: React.FC = () => {
+  // Hard-coded current funding amount (in USD) – update from backend/Stripe webhook in future
+  const currentFunding = 75;
+  const communityGoals = _communityGoals;
+
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate overflow-hidden">
       <GlobalBackground />
@@ -213,11 +218,40 @@ const RoadmapPage: React.FC = () => {
                 </p>
             </div>
 
-            <div className="max-w-2xl mx-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-8">
-                {/* 
-                    NOTE FOR DEVELOPER: 
-                    The `currentFunding` value is currently hardcoded. Update as donations come in.
-                */}
+            <div className="max-w-2xl mx-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-8 space-y-8">
+                {/* Funding progress */}
+                <div>
+                    <div className="flex justify-between mb-2">
+                        <span className="text-sm font-medium text-pink-400">Current Funding</span>
+                        <span className="text-sm font-semibold text-pink-400">${currentFunding}</span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+                        <div
+                            className="h-2 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full"
+                            style={{ width: `${Math.min((currentFunding / 300) * 100, 100)}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* Goals list */}
+                <ul className="space-y-6">
+                    {communityGoals.map((goal, idx) => (
+                        <li key={idx} className="flex items-start gap-4">
+                            <goal.icon className={`w-6 h-6 flex-shrink-0 ${goal.unlocked ? 'text-green-400' : 'text-slate-500'}`} />
+                            <div>
+                                <p className={`font-medium ${goal.unlocked ? 'text-green-300' : 'text-white'}`}>{typeof goal.amount === 'string' ? goal.amount : `$${goal.amount}`} – {goal.title}</p>
+                                <p className="text-sm text-slate-400">{goal.description}</p>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+
+                {/* Donate CTA */}
+                <div className="text-center pt-4">
+                    <Link to="/support">
+                       <Button variant="primary">Donate &amp; Support</Button>
+                    </Link>
+                </div>
             </div>
         </div>
       </div>
