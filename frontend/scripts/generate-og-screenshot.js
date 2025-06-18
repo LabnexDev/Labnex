@@ -2,6 +2,7 @@ import { chromium } from 'playwright-core';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
+import fs from 'node:fs';
 
 const VIEWPORT = { width: 1200, height: 630 };
 const OUT_PATH = join(process.cwd(), 'public', 'og-index.png');
@@ -52,6 +53,16 @@ async function main() {
     path: OUT_PATH,
     clip: { x: 0, y: 0, width: VIEWPORT.width, height: VIEWPORT.height },
   });
+
+  // If a dist folder exists (post-build), copy the asset there so it is deployed
+  const distDir = join(process.cwd(), 'dist');
+  try {
+    if (existsSync(distDir)) {
+      await fs.promises.copyFile(OUT_PATH, join(distDir, 'og-index.png'));
+    }
+  } catch (copyErr) {
+    console.warn('Could not copy og-index.png into dist folder:', copyErr.message);
+  }
 
   console.log('✅ OG screenshot saved to', OUT_PATH);
 
