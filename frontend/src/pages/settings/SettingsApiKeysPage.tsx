@@ -88,10 +88,10 @@ export function SettingsApiKeysPage() {
                             apiKeys.length === 0
                                 ? <p className="text-center text-gray-500 dark:text-gray-400 py-4">No API keys have been generated yet.</p>
                                 : apiKeys.map((key) => (
-                                    <div key={key._id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <div key={key._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                         <div>
                                             <p className="font-semibold text-gray-800 dark:text-gray-200">{key.label}</p>
-                                            <p className="font-mono text-sm text-gray-500 dark:text-gray-400">{key.prefix}••••••••</p>
+                                            <p className="font-mono text-sm text-gray-500 dark:text-gray-400 break-all">{key.prefix}••••••••</p>
                                         </div>
                                         <Button 
                                             variant="danger" 

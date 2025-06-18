@@ -241,7 +241,7 @@ const Settings: React.FC = () => {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Appearance</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Customize the look and feel of Labnex.</p>
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-md font-medium text-gray-800 dark:text-white">Theme</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -386,7 +386,7 @@ const Settings: React.FC = () => {
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Application Integrations</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Manage your connections to third-party services like Discord.</p>
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-md font-medium text-gray-800 dark:text-white">Discord Integration</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -408,7 +408,7 @@ const Settings: React.FC = () => {
       <section className="card p-6 sm:p-8">
          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Notifications</h2>
          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Manage how you receive notifications from Labnex.</p>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-md font-medium text-gray-800 dark:text-white">Email Notifications</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">Receive important updates and alerts via email.</p>
