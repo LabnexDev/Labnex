@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { aiChatApi } from '../api/aiChat';
 import type { ChatContext as AIChatBackendContext } from '../api/aiChat';
 import { useLocation, useParams } from 'react-router-dom';
+import { parseCommand } from '../utils/commandParser';
+import { dispatchCommand } from '../utils/commandDispatcher';
+import { aiMessagesApi } from '../api/aiMessages';
 
 interface ChatMessage {
   id: string;
@@ -52,14 +55,45 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     setMessages(prev => [...prev, userMessage]);
 
+    // Persist user message
+    aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'user', text: content }).catch(console.error);
+
+    // Check for slash command
+    if (content.startsWith('/')) {
+      const parsed = parseCommand(content);
+      if (!parsed) {
+        const errorMsg: ChatMessage = {
+          id: `${Date.now()}-e`,
+          role: 'assistant',
+          content: '❌ Unknown or malformed command',
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        // Persist assistant reply
+        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: errorMsg.content }).catch(console.error);
+        return;
+      }
+      const resultText = await dispatchCommand(parsed, { ...pageContext, projectId: params.id || params.projectId });
+      const resultMessage: ChatMessage = {
+        id: `${Date.now()}-r`,
+        role: 'assistant',
+        content: resultText,
+        timestamp: Date.now(),
+      };
+      setMessages(prev => [...prev, resultMessage]);
+      // Persist assistant reply
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: resultText }).catch(console.error);
+      return;
+    }
+
     // Build simple context based on location and params
     const backendContext: AIChatBackendContext = {
       page: location.pathname,
       ...pageContext,
+      history: messages.slice(-15).map(m => ({ role: m.role, content: m.content })),
     };
     if (params.id) backendContext.projectId = params.id;
     if (params.projectId) backendContext.projectId = params.projectId as string;
-    // Additional extraction can be added later.
 
     setIsScanning(true);
     setIsTyping(false);
@@ -77,6 +111,8 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsScanning(false);
       setIsTyping(true);
       setTimeout(() => setIsTyping(false), 1200);
+      // Persist assistant reply
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: reply }).catch(console.error);
     } catch (error: any) {
       const errorMessage: ChatMessage = {
         id: `${Date.now()}-e`,
@@ -85,13 +121,34 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      // Persist assistant reply
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: errorMessage.content }).catch(console.error);
       setIsScanning(false);
       setIsTyping(false);
     } finally {
       setIsScanning(false);
-      setIsTyping(false);
     }
   };
+
+  // Load initial messages on mount or when project changes
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await aiMessagesApi.fetchMessages(pageContext.projectId as string | undefined);
+        const transformed: ChatMessage[] = history.map(m => ({
+          id: m._id,
+          role: m.role,
+          content: m.text,
+          timestamp: new Date(m.timestamp).getTime(),
+        }));
+        setMessages(transformed);
+      } catch (e) {
+        console.error('Failed to load chat history', e);
+      }
+    };
+    loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageContext.projectId]);
 
   return (
     <AIChatContext.Provider value={{ messages, isOpen, isTyping, isScanning, pageContext, setPageContext, open, close, sendMessage }}>

@@ -4,6 +4,7 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import AIResponseBox from '../../components/visual/AIResponseBox';
 import TypingDots from '../../components/visual/TypingDots';
 import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
+import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutocomplete';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage, isTyping, isScanning } = useAIChat();
@@ -76,7 +77,7 @@ const LabnexAIPage: React.FC = () => {
       </div>
 
       {/* Input bar */}
-      <form onSubmit={handleSubmit} className="sticky bottom-0 left-0 right-0 bg-slate-800/70 backdrop-blur-md border-t border-slate-700 px-4 sm:px-6 py-3 flex items-end gap-3">
+      <form onSubmit={handleSubmit} className="sticky bottom-0 left-0 right-0 bg-slate-800/70 backdrop-blur-md border-t border-slate-700 px-4 sm:px-6 py-3 flex items-end gap-3 relative">
         <textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -85,6 +86,8 @@ const LabnexAIPage: React.FC = () => {
           placeholder="Ask Labnex AI…"
           className="flex-1 resize-none bg-transparent focus:outline-none text-slate-100 placeholder-slate-400 p-2 sm:p-3 rounded-lg max-h-40"
         />
+        {/* Autocomplete */}
+        <SlashCommandAutocomplete query={inputValue} onSelect={(cmd) => setInputValue(`/${cmd} `)} />
         <button
           type="submit"
           disabled={!inputValue.trim()}

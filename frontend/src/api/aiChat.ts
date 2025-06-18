@@ -5,6 +5,7 @@ export interface ChatContext {
   projectId?: string;
   projectName?: string;
   [key: string]: any;
+  history?: { role: 'user' | 'assistant'; content: string }[];
 }
 
 export const aiChatApi = {

@@ -76,7 +76,7 @@ const AIChatModal: React.FC = () => {
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-slate-700 flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="p-3 border-t border-slate-700 flex items-center gap-2 relative">
           <input
             ref={inputRef}
             type="text"

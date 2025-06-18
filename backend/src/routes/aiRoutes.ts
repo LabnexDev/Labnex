@@ -10,6 +10,7 @@ import {
   chatWithAI,
 } from '../controllers/aiController';
 import { auth } from '../middleware/auth';
+import { fetchMessages, saveMessage } from '../controllers/aiMessageController';
 
 const router = express.Router();
 
@@ -25,5 +26,9 @@ router.post('/interpret', interpretTestStep);
 router.post('/suggest-alternative', suggestAlternative);
 router.post('/suggest-selector', getDynamicSelectorSuggestion);
 router.post('/chat', chatWithAI);
+
+// Chat memory
+router.get('/messages', fetchMessages);
+router.post('/message', saveMessage);
 
 export default router;
