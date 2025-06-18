@@ -51,7 +51,7 @@ const AIChatModal: React.FC = () => {
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           {messages.map(msg => (
             msg.role === 'assistant' ? (
-              <AIResponseBox key={msg.id} message={msg.content} staticRender={false} />
+              <AIResponseBox key={msg.id} message={msg.content} staticRender={true} />
             ) : (
               <div key={msg.id} className="text-right">
                 <div className="inline-block bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm max-w-xs whitespace-pre-wrap">
@@ -76,7 +76,7 @@ const AIChatModal: React.FC = () => {
             aria-label="Send"
             className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <PaperAirplaneIcon className="h-5 w-5 rotate-90" />
+            <PaperAirplaneIcon className="h-5 w-5" />
           </button>
         </form>
         <button

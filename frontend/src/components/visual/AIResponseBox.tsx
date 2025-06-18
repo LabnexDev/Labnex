@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface AIResponseBoxProps {
   message: string;
@@ -75,12 +77,9 @@ const AIResponseBox: React.FC<AIResponseBoxProps> = ({
   }, [message, staticRender, charDelay, lineDelay, controls, sourceLines]);
 
   const Tag = staticRender ? 'div' : motion.div;
-  const containerProps = staticRender 
+  const containerProps = staticRender
     ? { style: { opacity: 1, y: 0, scale: 1 } }
     : { initial: { opacity: 0, y: 40, scale: 0.95 }, animate: controls };
-
-  // Render the displayedText, splitting by newlines for paragraph tags
-  const linesToRender = displayedText.split('\n');
 
   return (
     <Tag
@@ -90,12 +89,17 @@ const AIResponseBox: React.FC<AIResponseBoxProps> = ({
                   ${className}`}
       {...containerProps}
     >
-      {linesToRender.map((line, index) => (
-        <p key={index} className={`whitespace-pre-wrap min-h-[1em] ${line.startsWith('#') ? 'text-slate-400 text-xs sm:text-sm' : 'text-slate-200'}`}>
-          {/* Add a non-breaking space if the line is empty to maintain height, unless it's the last line which might be an incomplete newline character */} 
-          {line === '' && index < linesToRender.length -1 ? '\u00A0' : line}
-        </p>
-      ))}
+      {staticRender ? (
+        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-invert max-w-none">
+          {message}
+        </ReactMarkdown>
+      ) : (
+        displayedText.split('\n').map((line, index) => (
+          <p key={index} className={`whitespace-pre-wrap min-h-[1em] ${line.startsWith('#') ? 'text-slate-400 text-xs sm:text-sm' : 'text-slate-200'}`}>
+            {line === '' && index < displayedText.split('\n').length - 1 ? '\u00A0' : line}
+          </p>
+        ))
+      )}
     </Tag>
   );
 };
