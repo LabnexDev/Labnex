@@ -41,8 +41,8 @@ const LabnexAIPage: React.FC = () => {
     <div className="relative flex flex-col h-full w-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 dark:border-slate-700">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
+        <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 w-full">
+          <h1 className="text-lg font-semibold whitespace-nowrap">Labnex AI Dashboard</h1>
           <SessionDropdown />
           <VoiceControls />
         </div>

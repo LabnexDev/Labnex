@@ -44,8 +44,8 @@ const SessionDropdown: React.FC = () => {
 
   return (
     <div className="relative">
-      <button className="flex items-center gap-1 text-sm font-medium" onClick={() => setOpen(o => !o)}>
-        <span>{current?.title || 'Untitled Session'}</span>
+      <button className="flex items-center gap-1 text-sm font-medium max-w-[120px] sm:max-w-none truncate" onClick={() => setOpen(o => !o)}>
+        <span className="truncate">{current?.title || 'Untitled Session'}</span>
         <ChevronDownIcon className="h-4 w-4" />
       </button>
       {open && (

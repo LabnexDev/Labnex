@@ -15,7 +15,7 @@ const VoiceControls: React.FC = () => {
       <button
         onClick={() => setVoiceInput(!voiceInput)}
         title={voiceInput ? 'Disable voice input' : 'Enable voice input'}
-        className="p-1 rounded hover:bg-slate-700"
+        className="hidden sm:inline-flex p-1 rounded hover:bg-slate-700"
       >
         {voiceInput ? <MicrophoneIcon className="h-5 w-5 text-green-400" /> : <MicrophoneIcon className="h-5 w-5 text-slate-400 opacity-50" />}
       </button>
@@ -35,7 +35,7 @@ const VoiceControls: React.FC = () => {
       <button
         onClick={() => setVoiceOutput(!voiceOutput)}
         title={voiceOutput ? 'Disable voice output' : 'Enable voice output'}
-        className="p-1 rounded hover:bg-slate-700"
+        className="hidden sm:inline-flex p-1 rounded hover:bg-slate-700"
       >
         {voiceOutput ? <SpeakerWaveIcon className="h-5 w-5 text-green-400" /> : <SpeakerXMarkIcon className="h-5 w-5 text-slate-400" />}
       </button>
