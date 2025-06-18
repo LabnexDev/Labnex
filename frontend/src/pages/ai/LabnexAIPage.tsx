@@ -26,7 +26,7 @@ const LabnexAIPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] -my-8 -mx-4 sm:-mx-6">
+    <div className="flex flex-col h-[calc(100vh-6rem)] w-[calc(100vw-3rem)] max-w-none mx-[-1.5rem] sm:mx-[-2rem]">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 dark:border-slate-700">
         <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
@@ -66,7 +66,7 @@ const LabnexAIPage: React.FC = () => {
           type="submit"
           className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
         >
-          <PaperAirplaneIcon className="h-5 w-5" />
+          <PaperAirplaneIcon className="h-5 w-5 rotate-90" />
         </button>
       </form>
     </div>
