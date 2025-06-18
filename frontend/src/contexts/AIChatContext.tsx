@@ -125,6 +125,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         timestamp: Date.now(),
       };
       setMessages(prev => [...prev, assistantMessage]);
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: reply }).catch(console.error);
       // Switch from scanning to typing indicator for a brief moment
       setIsScanning(false);
       setIsTyping(true);

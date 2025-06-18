@@ -15,7 +15,7 @@ export const proxyOpenAITTS = async (req: Request, res: Response) => {
 
     const resp = await axios.post(
       'https://api.openai.com/v1/audio/speech',
-      { model: 'tts-1', input, voice },
+      { model: 'tts-1', input, voice, format: 'mp3' },
       {
         responseType: 'arraybuffer',
         headers: {

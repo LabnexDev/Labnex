@@ -9,27 +9,30 @@ const VoiceControls: React.FC = () => {
   const { sendMessage } = useAIChat();
   const { listening, start, stop } = useSpeechInput({ enabled: voiceInput, onResult: (txt) => sendMessage(txt) });
 
+  const handleMicClick = () => {
+    if (!voiceInput) {
+      // Enable voice input & start recording
+      setVoiceInput(true);
+      start();
+    } else if (listening) {
+      // Stop recording
+      stop();
+    } else {
+      // Already enabled, start recording again
+      start();
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
-      {/* Toggle voice input */}
+      {/* Single mic button */}
       <button
-        onClick={() => setVoiceInput(!voiceInput)}
-        title={voiceInput ? 'Disable voice input' : 'Enable voice input'}
-        className="hidden sm:inline-flex p-1 rounded hover:bg-slate-700"
+        onClick={handleMicClick}
+        title={!voiceInput ? 'Enable voice input & speak' : listening ? 'Stop recording' : 'Speak'}
+        className={`p-1 rounded ${listening ? 'bg-red-600 animate-pulse' : voiceInput ? 'bg-slate-700 text-green-400' : 'text-slate-400 hover:bg-slate-700'}`}
       >
-        {voiceInput ? <MicrophoneIcon className="h-5 w-5 text-green-400" /> : <MicrophoneIcon className="h-5 w-5 text-slate-400 opacity-50" />}
+        <MicrophoneIcon className="h-5 w-5" />
       </button>
-
-      {/* Record button */}
-      {voiceInput && (
-        <button
-          onClick={listening ? stop : start}
-          title={listening ? 'Stop recording' : 'Speak'}
-          className={`p-1 rounded ${listening ? 'bg-red-600 animate-pulse' : 'hover:bg-slate-700'}`}
-        >
-          <MicrophoneIcon className="h-5 w-5" />
-        </button>
-      )}
 
       {/* Toggle voice output */}
       <button
