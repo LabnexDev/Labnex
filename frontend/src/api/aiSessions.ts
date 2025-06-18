@@ -22,4 +22,7 @@ export const aiSessionsApi = {
   deleteSession: async (id: string): Promise<void> => {
     await api.delete(`/ai/session/${id}`);
   },
+  renameSession: async (id: string, title: string): Promise<void> => {
+    await api.patch(`/ai/session/${id}`, { title });
+  },
 }; 

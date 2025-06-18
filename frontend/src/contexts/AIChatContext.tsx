@@ -20,6 +20,8 @@ interface AIChatContextType {
   currentSessionId: string | null;
   createNewSession: () => Promise<void>;
   switchSession: (id: string) => void;
+  hasMore: boolean;
+  loadOlder: () => Promise<void>;
   isOpen: boolean;
   isTyping: boolean;
   isScanning: boolean;
@@ -40,6 +42,9 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isTyping, setIsTyping] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [pageContext, setPageContextState] = useState<Record<string, any>>({});
+  const [pageNum, setPageNum] = useState(1);
+  const limit = 30;
+  const [hasMore, setHasMore] = useState(true);
 
   const location = useLocation();
   const params = useParams();
@@ -144,7 +149,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const loadHistory = async () => {
       if (!currentSessionId) return;
       try {
-        const history = await aiMessagesApi.fetchMessages(undefined, 1, 30, currentSessionId);
+        const history = await aiMessagesApi.fetchMessages(undefined, 1, limit, currentSessionId);
         const transformed: ChatMessage[] = history.map(m => ({
           id: m._id,
           role: m.role,
@@ -152,6 +157,8 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           timestamp: new Date(m.timestamp).getTime(),
         }));
         setMessages(transformed);
+        setHasMore(history.length === limit);
+        setPageNum(1);
       } catch (e) {
         console.error('Failed to load chat history', e);
       }
@@ -190,8 +197,20 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentSessionId(id);
   };
 
+  const loadOlder = async () => {
+    if (!hasMore || !currentSessionId) return;
+    const nextPage = pageNum + 1;
+    try {
+      const older = await aiMessagesApi.fetchMessages(undefined, nextPage, limit, currentSessionId);
+      const transformed: ChatMessage[] = older.map(m => ({ id: m._id, role: m.role, content: m.text, timestamp: new Date(m.timestamp).getTime() }));
+      setMessages(prev => [...transformed, ...prev]);
+      setPageNum(nextPage);
+      if (older.length < limit) setHasMore(false);
+    } catch (e) { console.error('loadOlder', e); }
+  };
+
   return (
-    <AIChatContext.Provider value={{ messages, sessions, currentSessionId, createNewSession, switchSession, isOpen, isTyping, isScanning, pageContext, setPageContext, open, close, sendMessage }}>
+    <AIChatContext.Provider value={{ messages, sessions, currentSessionId, createNewSession, switchSession, hasMore, loadOlder, isOpen, isTyping, isScanning, pageContext, setPageContext, open, close, sendMessage }}>
       {children}
     </AIChatContext.Provider>
   );

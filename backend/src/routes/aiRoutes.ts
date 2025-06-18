@@ -11,7 +11,7 @@ import {
 } from '../controllers/aiController';
 import { auth } from '../middleware/auth';
 import { fetchMessages, saveMessage } from '../controllers/aiMessageController';
-import { createSession, listSessions, deleteSession } from '../controllers/aiSessionController';
+import { createSession, listSessions, deleteSession, renameSession } from '../controllers/aiSessionController';
 
 const router = express.Router();
 
@@ -36,5 +36,6 @@ router.post('/message', saveMessage);
 router.post('/session', createSession);
 router.get('/sessions', listSessions);
 router.delete('/session/:id', deleteSession);
+router.patch('/session/:id', renameSession);
 
 export default router;

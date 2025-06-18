@@ -46,4 +46,24 @@ export const deleteSession = async (req: AuthRequest, res: Response) => {
     console.error('deleteSession', e);
     res.status(500).json({ success: false, error: e.message });
   }
+};
+
+export const renameSession = async (req: AuthRequest, res: Response) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser?.id) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    const sessionId = req.params.id;
+    const { title } = req.body;
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'Title required' });
+    }
+    const session = await AISession.findOne({ _id: sessionId, userId: currentUser.id });
+    if (!session) return res.status(404).json({ success: false, error: 'Session not found' });
+    session.title = title.trim();
+    await session.save();
+    res.json({ success: true, data: session });
+  } catch (e: any) {
+    console.error('renameSession', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
 }; 

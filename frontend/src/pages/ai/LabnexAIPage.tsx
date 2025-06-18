@@ -8,7 +8,7 @@ import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutoc
 import SessionDropdown from '../../components/ai-chat/SessionDropdown';
 
 const LabnexAIPage: React.FC = () => {
-  const { messages, sendMessage, isTyping, isScanning } = useAIChat();
+  const { messages, sendMessage, isTyping, isScanning, hasMore, loadOlder } = useAIChat();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
 
@@ -55,6 +55,9 @@ const LabnexAIPage: React.FC = () => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 bg-slate-900/60 backdrop-blur-lg">
         <div className="max-w-3xl w-full mx-auto flex flex-col gap-6">
+          {hasMore && (
+            <button onClick={loadOlder} className="self-center text-xs text-indigo-400 hover:text-indigo-300 underline">Load older messages</button>
+          )}
           {messages.map(msg => (
             msg.role === 'assistant' ? (
               <AIResponseBox key={msg.id} message={msg.content} staticRender={true} />
