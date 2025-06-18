@@ -2,6 +2,7 @@ import React from 'react';
 import { useModal } from '../contexts/ModalContext';
 import { Link } from 'react-router-dom';
 import './LandingPage.css';
+import Seo from '../components/common/Seo';
 
 // Import background components
 import OrbBackground from '../components/visual/OrbBackground';
@@ -109,90 +110,93 @@ const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
-      <GlobalBackground />
-      <OrbBackground />
-      
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-slate-950/60 backdrop-blur-md shadow-lg border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link to="/" className="font-bold text-2xl text-white">Labnex</Link>
-            </div>
-            <div className="hidden md:flex items-center space-x-2">
-              <Button to="/roadmap" variant="tertiary" size="sm">
-                The Road Map
-              </Button>
-              <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300 hover:scale-[1.02]">
-                Join Waitlist
-              </Button>
-            </div>
-            <div className="md:hidden flex items-center space-x-2">
-              <Button to="/roadmap" variant="tertiary" size="sm" className="px-3 py-2">
-                Roadmap
-              </Button>
-              <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
-                Join
-              </Button>
+    <>
+      <Seo title="Labnex – AI Project & Test Case Management" description="Simplify project management, testing, and code snippets with AI-powered Labnex." canonical="https://www.labnex.dev/" />
+      <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
+        <GlobalBackground />
+        <OrbBackground />
+        
+        {/* Navigation Bar */}
+        <nav className="sticky top-0 z-50 bg-slate-950/60 backdrop-blur-md shadow-lg border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center">
+                <Link to="/" className="font-bold text-2xl text-white">Labnex</Link>
+              </div>
+              <div className="hidden md:flex items-center space-x-2">
+                <Button to="/roadmap" variant="tertiary" size="sm">
+                  The Road Map
+                </Button>
+                <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium transition-all duration-300 hover:scale-[1.02]">
+                  Join Waitlist
+                </Button>
+              </div>
+              <div className="md:hidden flex items-center space-x-2">
+                <Button to="/roadmap" variant="tertiary" size="sm" className="px-3 py-2">
+                  Roadmap
+                </Button>
+                <Button onClick={handleWaitlistClick} variant="primary" size="sm" className="px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+                  Join
+                </Button>
+              </div>
             </div>
           </div>
+        </nav>
+
+        {/* Waitlist Modal */}
+        {/* Waitlist Modal JSX has been removed. It is now handled by GlobalModalRenderer. */}
+
+        {/* Page Sections - Strategically Arranged for Maximum Impact */}
+        <HeroSection />
+        <BeforeAfterComparison />
+        <div id="features">
+          <FeatureGrid />
         </div>
-      </nav>
+        <TechnicalMetrics />
+        
+        {/* Discord Commands Section - Preserved from original */}
+        <section 
+          id="labnex-ai" 
+          className="py-16 sm:py-24 px-6 bg-slate-900/50 relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/50 to-slate-950" />
+          <div className="relative max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
+              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+              <span className="text-slate-300 text-sm font-medium tracking-wide">
+                Discord Integration
+              </span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white tracking-tight">
+              Meet{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                Labnex AI
+              </span>
+              {' '}Assistant
+            </h2>
+            
+            <p className="text-lg sm:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Unlock new levels of productivity. Interact with Labnex directly from Discord using simple commands or natural language for project setup and management.
+            </p>
+            
+            <AIResponseBox 
+              message={`@Labnex AI link my discord account\n# Securely connect your Labnex and Discord accounts.\n\n@Labnex AI create a note "Finalize UI mockups" for the Phoenix App project\n# Instantly capture thoughts and link them to projects.\n\n@Labnex AI set up a new mobile game project and include unit tests for player movement\n# Let AI handle the initial project scaffolding via natural language.`}
+            />
+          </div>
+        </section>
 
-      {/* Waitlist Modal */}
-      {/* Waitlist Modal JSX has been removed. It is now handled by GlobalModalRenderer. */}
+        <AdvancedCodeInterface />
+        <WorkflowSteps workflowStepsData={workflowStepsData} />
+        <FloatingUIShowcase />
+        <SystemArchitecture />
+        <SecurityCompliance />
+        <PerformanceBenchmarks />
+        <AIHighlights aiHighlightsData={aiHighlightsData} />
+        <FinalCTA />
 
-      {/* Page Sections - Strategically Arranged for Maximum Impact */}
-      <HeroSection />
-      <BeforeAfterComparison />
-      <div id="features">
-        <FeatureGrid />
       </div>
-      <TechnicalMetrics />
-      
-      {/* Discord Commands Section - Preserved from original */}
-      <section 
-        id="labnex-ai" 
-        className="py-16 sm:py-24 px-6 bg-slate-900/50 relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900/50 to-slate-950" />
-        <div className="relative max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 bg-white/5 backdrop-blur-md rounded-full border border-white/10">
-            <div className="w-2 h-2 bg-blue-500 rounded-full" />
-            <span className="text-slate-300 text-sm font-medium tracking-wide">
-              Discord Integration
-            </span>
-          </div>
-          
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-white tracking-tight">
-            Meet{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-              Labnex AI
-            </span>
-            {' '}Assistant
-          </h2>
-          
-          <p className="text-lg sm:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Unlock new levels of productivity. Interact with Labnex directly from Discord using simple commands or natural language for project setup and management.
-          </p>
-          
-          <AIResponseBox 
-            message={`@Labnex AI link my discord account\n# Securely connect your Labnex and Discord accounts.\n\n@Labnex AI create a note "Finalize UI mockups" for the Phoenix App project\n# Instantly capture thoughts and link them to projects.\n\n@Labnex AI set up a new mobile game project and include unit tests for player movement\n# Let AI handle the initial project scaffolding via natural language.`}
-          />
-        </div>
-      </section>
-
-      <AdvancedCodeInterface />
-      <WorkflowSteps workflowStepsData={workflowStepsData} />
-      <FloatingUIShowcase />
-      <SystemArchitecture />
-      <SecurityCompliance />
-      <PerformanceBenchmarks />
-      <AIHighlights aiHighlightsData={aiHighlightsData} />
-      <FinalCTA />
-
-    </div>
+    </>
   );
 };
 
