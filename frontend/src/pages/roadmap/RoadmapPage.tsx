@@ -249,8 +249,8 @@ const RoadmapPage: React.FC = () => {
 
                 {/* Donate CTA */}
                 <div className="text-center pt-4">
-                    <Link to="/donation">
-                       <Button variant="primary" className="mx-auto">Donate &amp; Support</Button>
+                    <Link to="/donation" target="_blank">
+                       <Button variant="primary" className="mx-auto">Donate with PayPal</Button>
                     </Link>
                 </div>
             </div>
