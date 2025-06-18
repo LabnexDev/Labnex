@@ -7,7 +7,10 @@ export function useOpenAITTS() {
   const { voiceOutput } = useVoiceSettings();
 
   const speak = useCallback(async (text: string) => {
-    if (!voiceOutput || !text) return;
+    if (!voiceOutput || !text) {
+      console.log('[TTS] Skipped - voiceOutput:', voiceOutput, 'text present:', !!text);
+      return;
+    }
     try {
       if (text.length > 500) text = text.slice(0, 500);
       console.log('[TTS] Sending request …');
