@@ -28,6 +28,29 @@ const supportSchema = z.object({
 
 type SupportFormData = z.infer<typeof supportSchema>;
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How do I join the Labnex waitlist?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Click the Join Waitlist button on the landing page or in the header, then submit your email.'
+      }
+    },
+    {
+      '@type': 'Question',
+      name: 'Where can I get real-time help?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Join our Discord community via the link on this page to chat with the team and other users.'
+      }
+    }
+  ]
+};
+
 const Support: React.FC = () => {
     const { user } = useAuth();
     const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setValue } = useForm<SupportFormData>({
@@ -66,7 +89,7 @@ const Support: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter p-4 sm:p-8">
-      <Seo title="Labnex Support" description="Get help, find answers, and contact the Labnex team." canonical="https://www.labnex.dev/support" />
+      <Seo title="Labnex Support" description="Get help, find answers, and contact the Labnex team." canonical="https://www.labnex.dev/support" extraJsonLd={faqSchema} />
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">

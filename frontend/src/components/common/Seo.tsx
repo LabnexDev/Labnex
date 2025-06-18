@@ -8,9 +8,10 @@ interface SeoProps {
   canonical?: string;
   image?: string;
   breadcrumbs?: BreadcrumbItem[];
+  extraJsonLd?: object | object[];
 }
 
-export default function Seo({ title, description, canonical, image, breadcrumbs }: SeoProps) {
+export default function Seo({ title, description, canonical, image, breadcrumbs, extraJsonLd }: SeoProps) {
   const fullTitle = title ? `${title} | Labnex` : 'Labnex';
   const defaultImage = 'https://www.labnex.dev/og-default.png';
   const imageUrl = image || defaultImage;
@@ -54,7 +55,7 @@ export default function Seo({ title, description, canonical, image, breadcrumbs 
     };
   }
 
-  const structuredData = [orgSchema, websiteSchema, ...(breadcrumbSchema ? [breadcrumbSchema] : [])];
+  const structuredData = [orgSchema, websiteSchema, ...(breadcrumbSchema ? [breadcrumbSchema] : []), ...(extraJsonLd ? (Array.isArray(extraJsonLd) ? extraJsonLd : [extraJsonLd]) : [])];
 
   return (
     <Helmet>

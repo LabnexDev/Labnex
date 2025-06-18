@@ -32,9 +32,23 @@ const typeDetails = {
 };
 
 const ChangelogPage: React.FC = () => {
+  // create article schema for latest
+  const latest = [...changelogData].sort((a,b)=> new Date(b.date).getTime()- new Date(a.date).getTime())[0];
+  const articleSchema = latest ? {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: latest.title,
+    datePublished: latest.date,
+    author: {
+      '@type': 'Organization',
+      name: 'Labnex'
+    },
+    url: `https://www.labnex.dev/changelog#v${latest.version}`
+  }: undefined;
+
   return (
     <>
-      <Seo title="Labnex Changelog" description="See what's new and improved in Labnex with our latest feature releases, fixes, and enhancements." canonical="https://www.labnex.dev/changelog" />
+      <Seo title="Labnex Changelog" description="See what's new and improved in Labnex with our latest feature releases, fixes, and enhancements." canonical="https://www.labnex.dev/changelog" extraJsonLd={articleSchema} />
       <div className="changelog-page bg-slate-950 text-white min-h-screen font-inter">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center mb-16">

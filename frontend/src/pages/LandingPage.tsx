@@ -109,9 +109,24 @@ const LandingPage: React.FC = () => {
     }
   ];
 
+  const softwareApp = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Labnex',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Web',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    url: 'https://www.labnex.dev',
+    logo: 'https://www.labnex.dev/logo-512.png',
+  };
+
   return (
     <>
-      <Seo title="Labnex – AI Project & Test Case Management" description="Simplify project management, testing, and code snippets with AI-powered Labnex." canonical="https://www.labnex.dev/" image="https://www.labnex.dev/og-home.png" />
+      <Seo title="Labnex – AI Project & Test Case Management" description="Simplify project management, testing, and code snippets with AI-powered Labnex." canonical="https://www.labnex.dev/" image="https://www.labnex.dev/og-home.png" extraJsonLd={softwareApp} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />
