@@ -2,9 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add theme CSS variables */
+:root {
+  --lnx-bg: #6b7280; /* gray-500 */
+  --lnx-surface: #9ca3af; /* gray-400 */
+  --lnx-border: #4b5563; /* gray-600 */
+}
+.dark {
+  --lnx-bg: #0f172a; /* slate-900 */
+  --lnx-surface: #ffffff0d; /* white 5% */
+  --lnx-border: #334155; /* slate-700 */
+}
+
 @layer base {
   body {
-    @apply bg-gray-300 dark:bg-gray-900 text-gray-700 dark:text-gray-100 font-sans;
+    @apply font-sans bg-[var(--lnx-bg)] text-gray-700 dark:text-gray-100;
   }
 }
 
@@ -16,10 +28,10 @@
   }
   
   .btn-primary {
-    @apply btn bg-blue-600 hover:bg-blue-700 text-white 
-           dark:bg-blue-500 dark:hover:bg-blue-400 
-           focus:ring-blue-500 dark:focus:ring-blue-400 
-           hover:shadow-glow-blue dark:hover:shadow-glow-blue;
+    @apply btn text-white bg-gradient-to-r from-brand-600 to-indigo-500 
+           hover:from-brand-500 hover:to-blue-500 
+           focus:ring-brand-500 dark:focus:ring-brand-400 
+           hover:shadow-glow-brand dark:hover:shadow-glow-brand;
   }
   
   .btn-secondary {
@@ -52,9 +64,7 @@
   }
   
   .card {
-    @apply bg-gray-100 dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 
-           rounded-xl p-6 shadow-lg 
-           dark:border dark:border-gray-700/50;
+    @apply backdrop-blur-lg rounded-xl p-6 shadow-lg hover:shadow-glow-brand transition-shadow duration-300 bg-[var(--lnx-surface)] border border-[var(--lnx-border)] dark:bg-white/5 dark:border-white/10;
   }
 }
 

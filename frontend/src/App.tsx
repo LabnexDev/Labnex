@@ -48,6 +48,8 @@ import RoadmapPage from './pages/roadmap/RoadmapPage';
 import ThankYouPage from './pages/donation/ThankYouPage';
 import { ModalProvider } from './contexts/ModalContext';
 import GlobalModalRenderer from './components/common/GlobalModalRenderer';
+import ResetPassword from './pages/auth/ResetPassword';
+import ResetRequested from './pages/auth/ResetRequested';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -251,6 +253,8 @@ function AppRoutes() {
         path="/cli"
         element={<PrivateRoute><TerminalPage /></PrivateRoute>}
       />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/reset-requested" element={<SimpleLayout><ResetRequested /></SimpleLayout>} />
     </Routes>
   );
 }

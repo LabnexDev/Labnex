@@ -173,76 +173,117 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ projectId, userR
       />
 
       {filteredTeamMembers && filteredTeamMembers.length > 0 ? (
-        <div className="-mx-4 sm:-mx-6 mt-4 flow-root">
-          <div className="inline-block min-w-full align-middle sm:px-6 lg:px-8 overflow-x-auto">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 sm:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700 table-fixed w-full">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <th scope="col" className="w-3/5 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">Name</th>
-                    <th scope="col" className="w-24 sm:w-[150px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Role</th>
-                    {canManageTeam && <th scope="col" className="w-20 sm:w-[100px] relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700/50 bg-white dark:bg-gray-800/50">
-                  {filteredTeamMembers?.map((member) => (
-                    <tr key={member._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
-                      <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <span className="text-base font-medium text-gray-700 dark:text-gray-300">{member.userId.name.charAt(0).toUpperCase()}</span>
-                          </div>
-                          <div className="ml-4 overflow-hidden">
-                            <div className="font-medium text-gray-900 dark:text-white truncate">{member.userId.name}</div>
-                            <div className="text-gray-500 dark:text-gray-400 truncate">{member.userId.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 text-center">
-                        <span className={`inline-flex items-center rounded-md ${member.type === RoleType.PROJECT_OWNER ? 'px-1' : 'px-2'} py-1 text-xs font-medium ring-1 ring-inset ${ 
-                          member.type === RoleType.PROJECT_OWNER
-                            ? 'bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 ring-yellow-500/30 dark:ring-yellow-500/30'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 ring-gray-500/10 dark:ring-gray-500/30'
-                        }`}>
-                          {member.type.replace(/_/g, ' ')}
-                        </span>
-                      </td>
-                      {canManageTeam && (
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
-                          {member.type !== RoleType.PROJECT_OWNER && (
-                            <>
-                              <Button
-                                variant="tertiary"
-                                size="sm"
-                                onClick={() => openEditRoleModal(member)}
-                                className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                title="Edit Role"
-                              >
-                                <PencilSquareIcon className="h-5 w-5" />
-                                <span className="sr-only">Edit Role</span>
-                              </Button>
-                              <Button
-                                variant="tertiary"
-                                size="sm"
-                                onClick={() => handleRemoveMember(member.userId._id)}
-                                isLoading={removeMemberMutation.isPending && removeMemberMutation.variables?.userId === member.userId._id}
-                                className="text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400 p-1"
-                                title="Remove Member"
-                              >
-                                <TrashIcon className="h-5 w-5" />
-                                <span className="sr-only">Remove Member</span>
-                              </Button>
-                            </>
-                          )}
-                        </td>
-                      )}
+        <>
+          {/* Desktop table (show only on 2xl and up to avoid cramped) */}
+          <div className="hidden 2xl:block -mx-4 2xl:-mx-6 mt-4 flow-root">
+            <div className="inline-block min-w-full align-middle sm:px-6 lg:px-8 overflow-x-auto">
+              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 dark:ring-gray-700 sm:rounded-lg">
+                <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-700 table-fixed w-full">
+                  <thead className="bg-[var(--lnx-surface)] dark:bg-gray-800">
+                    <tr>
+                      <th scope="col" className="w-3/5 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">Name</th>
+                      <th scope="col" className="w-24 sm:w-[150px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Role</th>
+                      {canManageTeam && <th scope="col" className="w-20 sm:w-[100px] relative py-3.5 pl-3 pr-4 sm:pr-6"><span className="sr-only">Actions</span></th>}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700/50 bg-white dark:bg-gray-800/50">
+                    {filteredTeamMembers?.map((member) => (
+                      <tr key={member._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
+                        <td className="py-4 pl-4 pr-3 text-sm sm:pl-6">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                              <span className="text-base font-medium text-gray-700 dark:text-gray-300">{member.userId.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <div className="ml-4 overflow-hidden">
+                              <div className="font-medium text-gray-900 dark:text-white truncate">{member.userId.name}</div>
+                              <div className="text-gray-500 dark:text-gray-400 truncate">{member.userId.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300 text-center">
+                          <span className={`inline-flex items-center rounded-md ${member.type === RoleType.PROJECT_OWNER ? 'px-1' : 'px-2'} py-1 text-xs font-medium ring-1 ring-inset ${ 
+                            member.type === RoleType.PROJECT_OWNER
+                              ? 'bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 ring-yellow-500/30 dark:ring-yellow-500/30'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 ring-gray-500/10 dark:ring-gray-500/30'
+                          }`}>
+                            {member.type.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        {canManageTeam && (
+                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
+                            {member.type !== RoleType.PROJECT_OWNER && (
+                              <>
+                                <Button
+                                  variant="tertiary"
+                                  size="sm"
+                                  onClick={() => openEditRoleModal(member)}
+                                  className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                  title="Edit Role"
+                                >
+                                  <PencilSquareIcon className="h-5 w-5" />
+                                  <span className="sr-only">Edit Role</span>
+                                </Button>
+                                <Button
+                                  variant="tertiary"
+                                  size="sm"
+                                  onClick={() => handleRemoveMember(member.userId._id)}
+                                  isLoading={removeMemberMutation.isPending && removeMemberMutation.variables?.userId === member.userId._id}
+                                  className="text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400 p-1"
+                                  title="Remove Member"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                  <span className="sr-only">Remove Member</span>
+                                </Button>
+                              </>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* List view for screens below 2xl */}
+          <ul className="2xl:hidden mt-4 space-y-4">
+            {filteredTeamMembers.map((member) => (
+              <li key={member._id} className="card p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="h-10 w-10 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <span className="text-base font-medium text-gray-700 dark:text-gray-300">
+                      {member.userId.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="truncate">
+                    <p className="font-medium text-gray-900 dark:text-white truncate">{member.userId.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{member.userId.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                      member.type === RoleType.PROJECT_OWNER
+                        ? 'bg-yellow-100 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 ring-yellow-500/30 dark:ring-yellow-500/30'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 ring-gray-500/10 dark:ring-gray-500/30'
+                  }`}>
+                    {member.type.replace(/_/g, ' ')}
+                  </span>
+                  {canManageTeam && member.type !== RoleType.PROJECT_OWNER && (
+                    <>
+                      <Button variant="tertiary" size="sm" className="p-1" onClick={() => openEditRoleModal(member)}>
+                        <PencilSquareIcon className="h-4 w-4" />
+                      </Button>
+                      <Button variant="tertiary" size="sm" className="p-1" onClick={() => handleRemoveMember(member.userId._id)}>
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : (
         <div className="text-center py-8 px-4 card border-dashed">
             <UsersIcon className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500" />
@@ -264,7 +305,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ projectId, userR
       )}
 
       {/* Invite User Modal */}
-      <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title="Invite New Team Member">
+      <Modal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} title="Invite New Team Member" size="2xl">
         <div className="space-y-4 mt-4">
           <Input
             label="Search users by name or email"
@@ -336,7 +377,8 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ projectId, userR
             setIsEditRoleModalOpen(false);
             setEditingMember(null);
           }}
-          title={`Edit Role for ${editingMember?.userId.name}`}
+          title="Edit Member Role"
+          size="sm"
         >
           <div className="space-y-4 mt-4">
             <Input

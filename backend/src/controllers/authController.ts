@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
 import { Role, SystemRoleType } from '../models/roleModel';
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../services/email.service';
 
 const generateToken = (user: { id: string; name: string; email: string; systemRole: SystemRoleType | null }) => {
   console.log('Generating token for user:', user.email, 'with role:', user.systemRole);
@@ -196,5 +198,57 @@ export const getMe = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('getMe error:', error);
     res.status(400).json({ message: error.message });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // To prevent user enumeration, respond success anyway
+      return res.json({ success: true, message: 'If the email exists, a reset link has been sent.' });
+    }
+    // Generate token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1h
+    await user.save({ validateBeforeSave: false });
+
+    // Build reset link
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}&id=${user._id}`;
+
+    await sendPasswordResetEmail(user.email, resetLink);
+    res.json({ success: true, message: 'Reset link sent' });
+  } catch (err: any) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { token, id, password } = req.body;
+  if (!token || !id || !password) {
+    return res.status(400).json({ message: 'Invalid request' });
+  }
+  try {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({ _id: id, passwordResetToken: hashedToken, passwordResetExpires: { $gt: new Date() } });
+    if (!user) {
+      return res.status(400).json({ message: 'Token is invalid or has expired' });
+    }
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+    res.json({ success: true, message: 'Password reset successful' });
+  } catch (err: any) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 }; 

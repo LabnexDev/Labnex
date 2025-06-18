@@ -15,7 +15,7 @@ import { Modal } from '../../components/common/Modal';
 // Themed NoteItem
 const NoteItem: React.FC<{ note: INote; onEdit: (note: INote) => void; onDelete: (noteId: string) => void }> = ({ note, onEdit, onDelete }) => {
     return (
-        <div className="mb-4 break-inside-avoid-column bg-slate-800/60 backdrop-blur-md border border-slate-700 rounded-lg shadow-md hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 group">
+        <div className="mb-4 break-inside-avoid-column card hover:shadow-glow-blue transition-shadow duration-300 group">
             <div className="p-4 flex-grow">
                 <p className="text-slate-100 whitespace-pre-wrap flex-grow break-words text-sm leading-relaxed">{note.content}</p>
             </div>
@@ -172,7 +172,7 @@ export const NotesPage: React.FC = () => {
 
     if (isLoadingNotes && !notes) { // Show full screen loader only on initial load
         return (
-            <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br from-gray-900 to-slate-800 text-slate-100 p-6">
+            <div className="flex flex-col justify-center items-center min-h-[60vh]">
                 <LoadingSpinner size="lg" />
                 <p className="mt-4 text-lg">Loading your notes...</p>
             </div>
@@ -180,27 +180,87 @@ export const NotesPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 text-slate-100 p-4 md:p-6 lg:p-8">
-            <div className="container mx-auto">
-                <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-green-300 flex items-center self-start md:self-center">
-                        <BookOpenIcon className="h-8 w-8 md:h-10 md:w-10 mr-3 text-blue-400" /> My Notes
-                    </h1>
-                    <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <Input
-                            as="select"
-                            value={filterProjectId || ''}
-                            onChange={(e) => setFilterProjectId(e.target.value || undefined)}
-                            className="w-full md:w-56 bg-slate-700/50 border-slate-600 text-slate-200 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm"
-                        >
-                            <option value="" className="bg-slate-800">All Projects</option>
-                            {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
-                            {projects && projects.map(proj => (
-                                <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
-                            ))}
-                        </Input>
+        <div className="space-y-6 py-4">
+            <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-300 to-green-300 flex items-center self-start md:self-center">
+                    <BookOpenIcon className="h-8 w-8 md:h-10 md:w-10 mr-3 text-blue-400" /> My Notes
+                </h1>
+                <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+                    <Input
+                        as="select"
+                        value={filterProjectId || ''}
+                        onChange={(e) => setFilterProjectId(e.target.value || undefined)}
+                        className="w-full md:w-56 bg-slate-700/50 border-slate-600 text-slate-200 placeholder-slate-400 focus:ring-blue-500 focus:border-blue-500 text-sm rounded-md shadow-sm"
+                    >
+                        <option value="" className="bg-slate-800">All Projects</option>
+                        {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
+                        {projects && projects.map(proj => (
+                            <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
+                        ))}
+                    </Input>
+                    <Button
+                        variant="primary"
+                        onClick={() => {
+                            setNoteToEdit(null);
+                            setNoteContent('');
+                            setSelectedProjectId(filterProjectId);
+                            setShowNoteModal(true);
+                        }}
+                        leftIcon={<PlusCircleIcon className="h-5 w-5" />}
+                        className="flex-shrink-0 shadow-md hover:shadow-blue-500/40"
+                    >
+                        Add Note
+                    </Button>
+                    <Button
+                        variant="secondary" // Or a new 'ai' variant if created
+                        onClick={() => {
+                            setAiPrompt('');
+                            setSelectedProjectIdForAI(filterProjectId);
+                            setShowAINoteModal(true);
+                        }}
+                        leftIcon={<SparklesIcon className="h-5 w-5" />} // Updated Icon
+                        className="flex-shrink-0 shadow-md"
+                    >
+                        AI Assistant
+                    </Button>
+                </div>
+            </header>
+
+            {isFetchingNotes && !isLoadingNotes && ( // Subtle loading indicator for filtering/refetching
+                <div className="fixed top-4 right-4 z-50">
+                    <div className="flex items-center bg-slate-700/80 backdrop-blur-md text-slate-200 px-3 py-2 rounded-lg shadow-lg">
+                        <LoadingSpinner size="sm" />
+                        <span className="ml-2 text-sm">Refreshing notes...</span>
+                    </div>
+                </div>
+            )}
+
+            {notesError && (
+                <Card className="bg-red-900/30 border-red-700 text-red-300 p-4 rounded-lg shadow-lg">
+                    <Card.Content className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        Error loading notes: {(notesError as any).message || "An unknown error occurred."}
+                    </Card.Content>
+                </Card>
+            )}
+
+            {notes && notes.length > 0 ? (
+                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-4 md:gap-6">
+                    {notes.map(note => (
+                        <NoteItem key={note._id} note={note} onEdit={openEditModal} onDelete={handleDeleteNote} />
+                    ))}
+                </div>
+            ) : (
+                !isLoadingNotes && !notesError && ( // Ensure error isn't also shown
+                    <div className="card text-center py-16 min-h-[60vh] flex flex-col items-center justify-center gap-4">
+                        <BookOpenIcon className="h-20 w-20 text-slate-500 mx-auto mb-6" />
+                        <h3 className="text-2xl font-semibold text-slate-300">No Notes Yet</h3>
+                        <p className="text-slate-400 mt-3 max-w-md mx-auto">
+                            {filterProjectId ? 'No notes match the current filter.' : 'Click "Add Note" or use the "AI Assistant" to create your first note!'}
+                        </p>
                         <Button
                             variant="primary"
+                            className="mt-8 shadow-lg hover:shadow-blue-500/50"
                             onClick={() => {
                                 setNoteToEdit(null);
                                 setNoteContent('');
@@ -208,184 +268,122 @@ export const NotesPage: React.FC = () => {
                                 setShowNoteModal(true);
                             }}
                             leftIcon={<PlusCircleIcon className="h-5 w-5" />}
-                            className="flex-shrink-0 shadow-md hover:shadow-blue-500/40"
                         >
-                            Add Note
-                        </Button>
-                        <Button
-                            variant="secondary" // Or a new 'ai' variant if created
-                            onClick={() => {
-                                setAiPrompt('');
-                                setSelectedProjectIdForAI(filterProjectId);
-                                setShowAINoteModal(true);
-                            }}
-                            leftIcon={<SparklesIcon className="h-5 w-5" />} // Updated Icon
-                            className="flex-shrink-0 shadow-md"
-                        >
-                            AI Assistant
+                            Create Your First Note
                         </Button>
                     </div>
-                </header>
+                )
+            )}
 
-                {isFetchingNotes && !isLoadingNotes && ( // Subtle loading indicator for filtering/refetching
-                    <div className="fixed top-4 right-4 z-50">
-                        <div className="flex items-center bg-slate-700/80 backdrop-blur-md text-slate-200 px-3 py-2 rounded-lg shadow-lg">
-                            <LoadingSpinner size="sm" />
-                            <span className="ml-2 text-sm">Refreshing notes...</span>
+            {/* Note Creation/Edit Modal */}
+            {showNoteModal && (
+                <Modal
+                    isOpen={showNoteModal}
+                    onClose={() => {
+                        setShowNoteModal(false);
+                        setNoteToEdit(null); // Clear edit state on close
+                        setNoteContent(''); // Clear content
+                        setSelectedProjectId(undefined); // Clear project
+                    }}
+                    title={noteToEdit ? 'Edit Note' : 'Create New Note'}
+                >
+                    <div className="space-y-6">
+                        <textarea
+                            value={noteContent}
+                            onChange={(e) => setNoteContent(e.target.value)}
+                            placeholder="Enter your note content here..."
+                            rows={8}
+                            className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                        <div>
+                            <label htmlFor="projectSelect" className="block text-sm font-medium text-slate-300 mb-1">Link to Project (Optional)</label>
+                            <select
+                                id="projectSelect"
+                                value={selectedProjectId || ''}
+                                onChange={(e) => setSelectedProjectId(e.target.value || undefined)}
+                                className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            >
+                                <option value="" className="bg-slate-800">No Project</option>
+                                {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
+                                {projects && projects.map(proj => (
+                                    <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
+                                ))}
+                            </select>
                         </div>
-                    </div>
-                )}
-
-                {notesError && (
-                    <Card className="bg-red-900/30 border-red-700 text-red-300 p-4 rounded-lg shadow-lg">
-                        <Card.Content className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                            Error loading notes: {(notesError as any).message || "An unknown error occurred."}
-                        </Card.Content>
-                    </Card>
-                )}
-
-                {notes && notes.length > 0 ? (
-                    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-3 xl:columns-4 gap-4 md:gap-6">
-                        {notes.map(note => (
-                            <NoteItem key={note._id} note={note} onEdit={openEditModal} onDelete={handleDeleteNote} />
-                        ))}
-                    </div>
-                ) : (
-                    !isLoadingNotes && !notesError && ( // Ensure error isn't also shown
-                        <div className="flex flex-col items-center justify-center text-center py-16 min-h-[60vh] bg-slate-800/40 backdrop-blur-sm rounded-lg shadow-md">
-                            <BookOpenIcon className="h-20 w-20 text-slate-500 mx-auto mb-6" />
-                            <h3 className="text-2xl font-semibold text-slate-300">No Notes Yet</h3>
-                            <p className="text-slate-400 mt-3 max-w-md mx-auto">
-                                {filterProjectId ? 'No notes match the current filter.' : 'Click "Add Note" or use the "AI Assistant" to create your first note!'}
-                            </p>
+                        <div className="flex justify-end space-x-3">
                             <Button
-                                variant="primary"
-                                className="mt-8 shadow-lg hover:shadow-blue-500/50"
+                                variant="secondary"
                                 onClick={() => {
+                                    setShowNoteModal(false);
                                     setNoteToEdit(null);
                                     setNoteContent('');
-                                    setSelectedProjectId(filterProjectId);
-                                    setShowNoteModal(true);
+                                    setSelectedProjectId(undefined);
                                 }}
-                                leftIcon={<PlusCircleIcon className="h-5 w-5" />}
                             >
-                                Create Your First Note
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={noteToEdit ? handleEditNote : handleCreateNote}
+                                isLoading={createNoteMutation.isPending || updateNoteMutation.isPending}
+                                className="shadow-md hover:shadow-blue-500/40"
+                            >
+                                {noteToEdit ? 'Save Changes' : 'Create Note'}
                             </Button>
                         </div>
-                    )
-                )}
+                    </div>
+                </Modal>
+            )}
 
-                {/* Note Creation/Edit Modal */}
-                {showNoteModal && (
-                    <Modal
-                        isOpen={showNoteModal}
-                        onClose={() => {
-                            setShowNoteModal(false);
-                            setNoteToEdit(null); // Clear edit state on close
-                            setNoteContent(''); // Clear content
-                            setSelectedProjectId(undefined); // Clear project
-                        }}
-                        title={noteToEdit ? 'Edit Note' : 'Create New Note'}
-                    >
-                        <div className="space-y-6">
-                            <textarea
-                                value={noteContent}
-                                onChange={(e) => setNoteContent(e.target.value)}
-                                placeholder="Enter your note content here..."
-                                rows={8}
-                                className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            />
-                            <div>
-                                <label htmlFor="projectSelect" className="block text-sm font-medium text-slate-300 mb-1">Link to Project (Optional)</label>
-                                <select
-                                    id="projectSelect"
-                                    value={selectedProjectId || ''}
-                                    onChange={(e) => setSelectedProjectId(e.target.value || undefined)}
-                                    className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                >
-                                    <option value="" className="bg-slate-800">No Project</option>
-                                    {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
-                                    {projects && projects.map(proj => (
-                                        <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-end space-x-3">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setShowNoteModal(false);
-                                        setNoteToEdit(null);
-                                        setNoteContent('');
-                                        setSelectedProjectId(undefined);
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={noteToEdit ? handleEditNote : handleCreateNote}
-                                    isLoading={createNoteMutation.isPending || updateNoteMutation.isPending}
-                                    className="shadow-md hover:shadow-blue-500/40"
-                                >
-                                    {noteToEdit ? 'Save Changes' : 'Create Note'}
-                                </Button>
-                            </div>
+            {/* AI Note Creation Modal */}
+            {showAINoteModal && (
+                <Modal
+                    isOpen={showAINoteModal}
+                    onClose={() => {
+                        setShowAINoteModal(false);
+                        setAiPrompt('');
+                        setSelectedProjectIdForAI(undefined);
+                    }}
+                    title="Create Note with AI Assistant"
+                >
+                    <div className="space-y-6">
+                        <textarea
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                            placeholder="Describe the note you want the AI to create (e.g., 'Brainstorm ideas for a new feature', 'Summarize the key points of the last meeting')..."
+                            rows={5}
+                            className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        />
+                        <div>
+                            <label htmlFor="aiProjectSelect" className="block text-sm font-medium text-slate-300 mb-1">Link to Project (Optional)</label>
+                            <select
+                                id="aiProjectSelect"
+                                value={selectedProjectIdForAI || ''}
+                                onChange={(e) => setSelectedProjectIdForAI(e.target.value || undefined)}
+                                className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                            >
+                                <option value="" className="bg-slate-800">No Project</option>
+                                {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
+                                {projects && projects.map(proj => (
+                                    <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
+                                ))}
+                            </select>
                         </div>
-                    </Modal>
-                )}
-
-                {/* AI Note Creation Modal */}
-                {showAINoteModal && (
-                    <Modal
-                        isOpen={showAINoteModal}
-                        onClose={() => {
-                            setShowAINoteModal(false);
-                            setAiPrompt('');
-                            setSelectedProjectIdForAI(undefined);
-                        }}
-                        title="Create Note with AI Assistant"
-                    >
-                        <div className="space-y-6">
-                            <textarea
-                                value={aiPrompt}
-                                onChange={(e) => setAiPrompt(e.target.value)}
-                                placeholder="Describe the note you want the AI to create (e.g., 'Brainstorm ideas for a new feature', 'Summarize the key points of the last meeting')..."
-                                rows={5}
-                                className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                            />
-                            <div>
-                                <label htmlFor="aiProjectSelect" className="block text-sm font-medium text-slate-300 mb-1">Link to Project (Optional)</label>
-                                <select
-                                    id="aiProjectSelect"
-                                    value={selectedProjectIdForAI || ''}
-                                    onChange={(e) => setSelectedProjectIdForAI(e.target.value || undefined)}
-                                    className="w-full p-3 bg-slate-700/50 border border-slate-600 rounded-md text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                >
-                                    <option value="" className="bg-slate-800">No Project</option>
-                                    {isLoadingProjects && <option value="" disabled className="bg-slate-800">Loading projects...</option>}
-                                    {projects && projects.map(proj => (
-                                        <option key={proj._id} value={proj._id} className="bg-slate-800">{proj.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-end space-x-3">
-                                <Button variant="secondary" onClick={() => setShowAINoteModal(false)}>Cancel</Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={handleCreateNoteWithAI}
-                                    isLoading={createNoteWithAIMutation.isPending}
-                                    leftIcon={<SparklesIcon className="h-5 w-5" />}
-                                    className="shadow-md hover:shadow-blue-500/40"
-                                >
-                                    Generate Note
-                                </Button>
-                            </div>
+                        <div className="flex justify-end space-x-3">
+                            <Button variant="secondary" onClick={() => setShowAINoteModal(false)}>Cancel</Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleCreateNoteWithAI}
+                                isLoading={createNoteWithAIMutation.isPending}
+                                leftIcon={<SparklesIcon className="h-5 w-5" />}
+                                className="shadow-md hover:shadow-blue-500/40"
+                            >
+                                Generate Note
+                            </Button>
                         </div>
-                    </Modal>
-                )}
-            </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }; 

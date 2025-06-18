@@ -275,7 +275,7 @@ export const ProjectDetails: React.FC = () => {
             {project.recentTestCases && project.recentTestCases.length > 0 ? (
               <ul className="space-y-3 mt-4">
                 {project.recentTestCases.map((tc) => (
-                  <li key={tc._id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <li key={tc._id} className="card p-3 hover:shadow-glow-blue transition-shadow duration-200 cursor-pointer" onClick={() => navigate(`/projects/${id}/test-cases/${tc._id}`)}>
                     <div className="flex justify-between items-center">
                       <div>
                         {tc.taskReferenceId && (

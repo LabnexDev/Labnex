@@ -12,8 +12,7 @@ interface CardSubComponents {
 
 const Card: React.FC<CardProps> & CardSubComponents = ({ children, className = '' }) => {
   return (
-    <div 
-      className={`bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden ${className}`}>
+    <div className={`card ${className}`}>
       {children}
     </div>
   );

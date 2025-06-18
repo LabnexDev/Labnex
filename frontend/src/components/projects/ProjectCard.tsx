@@ -10,7 +10,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <div
       onClick={() => navigate(`/projects/${project._id}`)}
-      className="p-4 bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 rounded-lg shadow hover:shadow-lg dark:hover:shadow-glow-blue transition-all duration-300 cursor-pointer border border-transparent dark:border-gray-700 hover:dark:border-blue-500"
+      className="card hover:shadow-glow-brand transition-shadow duration-300 cursor-pointer hover:-translate-y-1"
     >
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">

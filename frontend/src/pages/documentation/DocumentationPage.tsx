@@ -19,7 +19,7 @@ const DocumentationPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full max-h-[calc(100vh-var(--header-height,4rem))] bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 text-gray-100 p-4 md:p-6 lg:p-8 gap-6">
+    <div className="flex flex-col md:flex-row h-full max-h-[calc(100vh-var(--header-height,4rem))] p-4 md:p-6 lg:p-8 gap-6 bg-[var(--lnx-bg)] dark:bg-gradient-to-br dark:from-gray-900 dark:via-slate-900 dark:to-gray-900 text-gray-900 dark:text-gray-100">
       <DocumentationSidebar selectedTopic={selectedTopic} onSelectTopic={handleSelectTopic} />
       <DocumentationContent selectedTopic={selectedTopic} />
     </div>

@@ -66,4 +66,20 @@ export const getMe = async () => {
     }
     throw error;
   }
+};
+
+export const forgotPassword = async (email: string) => {
+  try {
+    await axiosInstance.post('/auth/forgot-password', { email });
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resetPassword = async (payload: { token: string; id: string; password: string }) => {
+  try {
+    await axiosInstance.post('/auth/reset-password', payload);
+  } catch (error) {
+    throw error;
+  }
 }; 

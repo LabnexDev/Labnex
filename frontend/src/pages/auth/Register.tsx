@@ -41,10 +41,10 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--lnx-bg)] dark:bg-gradient-to-br dark:from-gray-900 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <AuthLogo />
-        <div className="bg-white dark:bg-gray-800/70 dark:glassmorphic shadow-2xl rounded-xl p-8 sm:p-10 space-y-8 border dark:border-gray-700/50">
+        <div className="bg-[var(--lnx-surface)] dark:bg-gray-800/70 dark:glassmorphic shadow-2xl rounded-xl p-8 sm:p-10 space-y-8 border border-[var(--lnx-border)] dark:border-gray-700/50">
           <div>
             <h2 className="text-center text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               Create your Labnex account

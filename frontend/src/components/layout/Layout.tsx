@@ -2,6 +2,7 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useState } from 'react';
+import OrbBackground from '../visual/OrbBackground';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,14 +14,15 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="flex h-screen bg-[var(--lnx-bg)] dark:bg-gray-900">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="flex-1 flex flex-col md:ml-64">
           <Header onMenuToggle={() => setSidebarOpen(true)} />
 
-          <main className="flex-1 mt-16 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-            <div className="container mx-auto px-4 sm:px-6 py-8">
+          <main className="relative flex-1 mt-16 overflow-x-hidden overflow-y-auto bg-[var(--lnx-bg)] dark:bg-transparent">
+            <OrbBackground />
+            <div className="relative container mx-auto px-4 sm:px-6 py-8">
               {children}
             </div>
           </main>

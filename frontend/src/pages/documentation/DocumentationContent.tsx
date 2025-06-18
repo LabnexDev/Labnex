@@ -49,7 +49,7 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
   }, [selectedTopic]);
 
   return (
-    <main className="flex-1 p-4 md:p-6 bg-slate-800/50 backdrop-blur-md rounded-lg shadow-xl overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50">
+    <main className="flex-1 p-4 md:p-6 bg-[var(--lnx-surface)] dark:bg-slate-800/50 backdrop-blur-md rounded-lg shadow-xl overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 border border-[var(--lnx-border)] dark:border-slate-700/50">
       {isLoading && (
         <div className="flex justify-center items-center h-full">
           <p className="text-lg text-gray-400">Loading documentation...</p> {/* Replace with a proper loader component if available */}
@@ -63,7 +63,7 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
         </div>
       )}
       {!isLoading && !error && (
-        <article className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-invert max-w-none text-gray-200 prose-headings:text-blue-300 prose-headings:border-b prose-headings:border-slate-700 prose-headings:pb-2 prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-strong:text-blue-200 prose-code:bg-slate-700/50 prose-code:text-amber-300 prose-code:p-1 prose-code:rounded-md prose-blockquote:border-l-blue-400 prose-blockquote:text-gray-300 prose-ul:list-disc prose-ol:list-decimal prose-li:my-1 break-words">
+        <article className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-headings:text-blue-300 prose-headings:border-b prose-headings:border-slate-700 prose-headings:pb-2 prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-strong:text-blue-200 prose-code:bg-slate-700/50 prose-code:text-amber-300 prose-code:p-1 prose-code:rounded-md prose-blockquote:border-l-blue-400 prose-blockquote:text-gray-300 prose-ul:list-disc prose-ol:list-decimal prose-li:my-1 break-words dark:prose-invert">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {markdownContent}
           </ReactMarkdown>

@@ -177,7 +177,7 @@ const TasksPage: React.FC = () => {
     };
 
     if (isLoadingTasks || isLoadingProject || isLoadingTestCases) return (
-        <div className="p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100 flex flex-col justify-center items-center">
+        <div className="flex flex-col justify-center items-center min-h-[60vh]">
             <svg className="animate-spin h-12 w-12 text-blue-400 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -188,7 +188,7 @@ const TasksPage: React.FC = () => {
     );
 
     const renderErrorState = (title: string, message: string, details?: string) => (
-        <div className="p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100 flex flex-col justify-center items-center">
+        <div className="card p-10 max-w-lg mx-auto text-center">
             <ExclamationTriangleIcon className="h-16 w-16 text-red-400 mb-4" />
             <h2 className="text-2xl font-semibold text-red-300 mb-2">{title}</h2>
             <p className="text-slate-300 text-center">{message}</p>
@@ -201,7 +201,7 @@ const TasksPage: React.FC = () => {
     if (isErrorTestCases) return renderErrorState("Error Loading Test Cases", "There was an issue fetching test case details for this project. Please try refreshing the page.", errorTestCasesResponse?.message);
 
     return (
-        <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100">
+        <div className="space-y-6 py-4">
             <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-300">
                     {projectData?.name ? `Tasks: ${projectData.name}` : 'Project Tasks'}
@@ -220,7 +220,7 @@ const TasksPage: React.FC = () => {
                     {tasks.map(task => (
                         <div 
                             key={task._id} 
-                            className="bg-slate-800/70 backdrop-blur-md border border-slate-700/80 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/40 focus-within:shadow-blue-500/40 focus-within:ring-2 focus-within:ring-blue-500/70 transition-all duration-300 ease-in-out flex flex-col justify-between group relative cursor-pointer"
+                            className="card hover:shadow-glow-brand transition-shadow duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between group"
                             onClick={() => !isModalOpen && !isDeleteModalOpen && openEditModal(task)}
                         >
                             <div className="flex-grow">
@@ -294,7 +294,7 @@ const TasksPage: React.FC = () => {
                     ))}
                 </div>
             ) : (
-                <div className="col-span-full text-center py-12 bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/70 shadow-xl mt-8">
+                <div className="card text-center py-12 mt-8">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-slate-500 mx-auto mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6M9 17h6m-7-10V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2H7a2 2 0 01-2-2v-2m0-4h14M5 11V9a2 2 0 012-2h2" />
                     </svg>

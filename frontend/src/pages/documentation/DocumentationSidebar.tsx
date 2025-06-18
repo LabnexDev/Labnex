@@ -86,7 +86,7 @@ const DocumentationSidebar: React.FC<DocumentationSidebarProps> = ({ selectedTop
   };
 
   return (
-    <aside className="w-full md:w-1/4 md:min-w-[280px] md:max-w-[320px] p-4 bg-slate-800/70 backdrop-blur-md rounded-lg shadow-xl md:h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50">
+    <aside className="w-full md:w-1/4 md:min-w-[280px] md:max-w-[320px] p-4 bg-[var(--lnx-surface)] dark:bg-slate-800/70 backdrop-blur-md rounded-lg shadow-xl md:h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 border border-[var(--lnx-border)] dark:border-slate-700/50">
       <h2 className="text-xl font-semibold text-blue-400 mb-4 border-b border-slate-700 pb-2">Documentation</h2>
       <nav>
         <ul className="space-y-1">

@@ -86,7 +86,7 @@ const MyTasksPage: React.FC = () => {
     };
 
     if (isLoading && !isFetching) return (
-        <div className="p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100 flex flex-col justify-center items-center">
+        <div className="flex flex-col justify-center items-center min-h-[60vh]">
             <svg className="animate-spin h-12 w-12 text-blue-400 mb-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -96,7 +96,7 @@ const MyTasksPage: React.FC = () => {
         </div>
     );
     if (isError) return (
-        <div className="p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100 flex flex-col justify-center items-center">
+        <div className="card p-10 max-w-lg mx-auto text-center">
             <XCircleIcon className="h-16 w-16 text-red-400 mb-4" />
             <h2 className="text-2xl font-semibold text-red-300 mb-2">Error Loading Tasks</h2>
             <p className="text-slate-300 text-center">Could not fetch your assigned tasks. Please try again later.</p>
@@ -107,7 +107,7 @@ const MyTasksPage: React.FC = () => {
     const commonSelectClasses = "w-full p-2.5 bg-slate-700/50 border border-slate-600 text-slate-100 placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm appearance-none text-sm";
 
     return (
-        <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 min-h-screen text-slate-100">
+        <div className="space-y-6 py-4">
             <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500">
                     My Assigned Tasks
@@ -115,7 +115,7 @@ const MyTasksPage: React.FC = () => {
             </div>
 
             {/* Filters and Sorting Section */}
-            <div className="mb-8 p-4 sm:p-5 bg-slate-800/60 backdrop-blur-md border border-slate-700/80 rounded-xl shadow-lg">
+            <div className="card p-5 mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     <div>
                         <label htmlFor="filter-project" className="block text-sm font-medium text-slate-300 mb-1.5">Project</label>
@@ -186,7 +186,7 @@ const MyTasksPage: React.FC = () => {
                     {tasks.map((task: ITask) => (
                         <div 
                             key={task._id} 
-                            className="bg-slate-800/70 backdrop-blur-md border border-slate-700/80 p-4 sm:p-5 rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/40 focus-within:shadow-blue-500/40 focus-within:ring-2 focus-within:ring-blue-500/70 transition-all duration-300 ease-in-out flex flex-col justify-between group relative cursor-pointer"
+                            className="card hover:shadow-glow-brand transition-shadow duration-300 cursor-pointer hover:-translate-y-1 flex flex-col justify-between group"
                             onClick={() => navigate(`/projects/${task.project && typeof task.project === 'object' ? task.project._id : task.project}/tasks`)}
                             title={`View tasks for project: ${task.project && typeof task.project === 'object' ? task.project.name : 'N/A'}`}
                         >
@@ -253,11 +253,11 @@ const MyTasksPage: React.FC = () => {
                 </div>
             ) : (
                 !isFetching && (
-                    <div className="col-span-full text-center py-12 bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/70 shadow-xl mt-8">
+                    <div className="card text-center py-16 min-h-[60vh] flex flex-col items-center justify-center gap-4">
                         <DocumentMagnifyingGlassIcon className="h-16 w-16 text-slate-500 mx-auto mb-5" />
                         <p className="text-slate-200 text-xl font-semibold">No tasks assigned to you match the current filters.</p>
                         <p className="text-slate-400/80 mt-1.5 mb-6 text-sm max-w-md mx-auto">Try adjusting your filters or check back later. If you have no tasks, enjoy the quiet moment!</p>
-                        <Button onClick={clearFilters} variant="primary" size="lg" className="shadow-md hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300">
+                        <Button onClick={clearFilters} variant="primary" size="lg" className="shadow-md hover:shadow-blue">
                             <XCircleIcon className="h-5 w-5 mr-2"/> Clear All Filters
                         </Button>
                     </div>

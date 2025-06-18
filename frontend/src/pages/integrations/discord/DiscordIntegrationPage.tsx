@@ -171,17 +171,17 @@ const DiscordIntegrationPage: React.FC = () => {
     }
 
     return (
-        <div className="p-6 text-gray-100 min-h-screen">
+        <div className="p-6 min-h-screen bg-[var(--lnx-bg)] text-gray-900 dark:text-gray-100 dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800">
             <h1 className="text-3xl font-semibold mb-8">Discord Bot Integration</h1>
             
-            <Card className="max-w-lg shadow-xl bg-gray-800 border border-gray-700">
+            <Card className="max-w-lg shadow-xl bg-[var(--lnx-surface)] dark:bg-gray-800 border border-[var(--lnx-border)] dark:border-gray-700">
                  <Card.Title className="text-xl font-semibold text-white border-b border-gray-700 pb-4 mb-5">
                     Labnex AI Bot Management
                  </Card.Title>
                  <Card.Content className="space-y-6">
                     {error && <p className="text-red-400 bg-red-900/50 p-3 rounded-md text-sm border border-red-700">Error: {error}</p>}
                     
-                    <div className="flex items-center space-x-4 p-3 bg-gray-750 rounded-lg border border-gray-600">
+                    <div className="flex items-center space-x-4 p-3 bg-[var(--lnx-surface)] dark:bg-gray-750 rounded-lg border border-[var(--lnx-border)] dark:border-gray-600">
                         <span 
                             className={`w-4 h-4 rounded-full ${statusColorClass} ring-2 ring-offset-2 ring-offset-gray-750 ${botStatus?.status === 'running' || botStatus?.status === 'starting' ? 'animate-pulse' : ''}`}
                             title={`Status: ${botStatus?.status}`}
@@ -190,7 +190,7 @@ const DiscordIntegrationPage: React.FC = () => {
                     </div>
 
                     {botStatus?.status === 'running' && botStatus.uptime !== undefined && (
-                        <div className="p-4 bg-gray-750 rounded-lg border border-gray-600">
+                        <div className="p-4 bg-[var(--lnx-surface)] dark:bg-gray-750 rounded-lg border border-[var(--lnx-border)] dark:border-gray-600">
                             <h3 className="text-md font-semibold text-gray-200 mb-2 flex items-center">
                                 <ClockIcon className="w-5 h-5 mr-2 text-blue-400" /> Current Session Uptime
                             </h3>
@@ -201,7 +201,7 @@ const DiscordIntegrationPage: React.FC = () => {
                     {/* Display stats section if the bot is running */}
                     {botStatus?.status === 'running' && (
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Card className="bg-gray-750 p-3 border border-gray-600 shadow-md">
+                            <Card className="bg-[var(--lnx-surface)] dark:bg-gray-750 p-3 border border-[var(--lnx-border)] dark:border-gray-600 shadow-md">
                                 <Card.Title className="text-sm font-medium text-gray-300 flex items-center mb-1">
                                     <PaperAirplaneIcon className="w-4 h-4 mr-2 text-green-400"/> Messages Sent
                                 </Card.Title>
@@ -209,7 +209,7 @@ const DiscordIntegrationPage: React.FC = () => {
                                     {botStatus.messagesSent}
                                 </Card.Content>
                             </Card>
-                            <Card className="bg-gray-750 p-3 border border-gray-600 shadow-md">
+                            <Card className="bg-[var(--lnx-surface)] dark:bg-gray-750 p-3 border border-[var(--lnx-border)] dark:border-gray-600 shadow-md">
                                 <Card.Title className="text-sm font-medium text-gray-300 flex items-center mb-1">
                                     <ArrowDownOnSquareIcon className="w-4 h-4 mr-2 text-purple-400"/> Messages Received
                                 </Card.Title>
