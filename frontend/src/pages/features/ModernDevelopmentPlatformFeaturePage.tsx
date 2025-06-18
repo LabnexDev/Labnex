@@ -120,7 +120,7 @@ const ModernDevelopmentPlatformFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Modern Development Platform – Labnex" description="Learn how Labnex offers a unified, modern platform for software development lifecycle." canonical="https://www.labnex.dev/features/modern-development-platform" />
+      <Seo title="Modern Development Platform – Labnex" description="Learn how Labnex offers a unified, modern platform for software development lifecycle." canonical="https://www.labnex.dev/features/modern-development-platform" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Modern Development Platform',url:'https://www.labnex.dev/features/modern-development-platform'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

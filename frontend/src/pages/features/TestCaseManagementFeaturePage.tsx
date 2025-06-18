@@ -90,7 +90,7 @@ const TestCaseManagementFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Test Case Management – Labnex" description="Discover how Labnex helps you design, organize, and track software test cases." canonical="https://www.labnex.dev/features/test-case-management" />
+      <Seo title="Test Case Management – Labnex" description="Discover how Labnex helps you design, organize, and track software test cases." canonical="https://www.labnex.dev/features/test-case-management" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Test Case Management',url:'https://www.labnex.dev/features/test-case-management'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

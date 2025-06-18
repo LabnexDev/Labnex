@@ -101,7 +101,7 @@ const CLIAutomationFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="CLI Automation – Labnex" description="Automate your workflows with the Labnex CLI powered by AI-based test generation." canonical="https://www.labnex.dev/features/cli-automation" />
+      <Seo title="CLI Automation – Labnex" description="Automate your workflows with the Labnex CLI powered by AI-based test generation." canonical="https://www.labnex.dev/features/cli-automation" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'CLI Automation',url:'https://www.labnex.dev/features/cli-automation'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

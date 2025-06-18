@@ -111,7 +111,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Labnex – AI Project & Test Case Management" description="Simplify project management, testing, and code snippets with AI-powered Labnex." canonical="https://www.labnex.dev/" />
+      <Seo title="Labnex – AI Project & Test Case Management" description="Simplify project management, testing, and code snippets with AI-powered Labnex." canonical="https://www.labnex.dev/" image="https://www.labnex.dev/og-home.png" />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

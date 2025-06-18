@@ -78,7 +78,7 @@ const TechStackFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Labnex Tech Stack" description="Dive into the modern, scalable technology stack powering Labnex." canonical="https://www.labnex.dev/features/tech-stack" />
+      <Seo title="Labnex Tech Stack" description="Dive into the modern, scalable technology stack powering Labnex." canonical="https://www.labnex.dev/features/tech-stack" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Tech Stack',url:'https://www.labnex.dev/features/tech-stack'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

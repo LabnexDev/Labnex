@@ -1,54 +1,65 @@
 /* eslint-disable no-console */
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
-// Base URL of deployed GitHub Pages site (without trailing slash)
+// Config
 const BASE_URL = 'https://www.labnex.dev';
+const APP_FILE = resolve(process.cwd(), 'src', 'App.tsx');
 
-// Public routes to include in the sitemap
-const routes = [
-  '/',
+// Paths we don't want to list publicly (auth-gated or API-ish)
+const DISALLOWED_PATHS = [
   '/login',
   '/register',
-  '/changelog',
-  '/privacy-policy',
-  '/terms-of-service',
-  '/support',
-  '/features/project-management',
-  '/features/test-case-management',
-  '/features/notes-and-snippets',
-  '/features/modern-development-platform',
-  '/features/discord-ai-integration',
-  '/features/cli-automation',
-  '/features/tech-stack',
-  '/roadmap',
-  '/donation/thank-you',
+  '/dashboard',
+  '/projects',
+  '/settings',
+  '/notifications',
+  '/integrations',
+  '/notes',
+  '/snippets',
+  '/my-tasks',
+  '/users',
 ];
 
-const DATE = new Date().toISOString();
-
-function generateUrlXml(path) {
-  const loc = `${BASE_URL}${path === '/' ? '' : path}`;
-  return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${DATE}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>${path === '/' ? '1.0' : '0.8'}</priority>\n  </url>`;
+function extractRoutes(fileContent) {
+  const pathRegex = /path="([^"]+)"/g;
+  const routes = new Set();
+  let match;
+  while ((match = pathRegex.exec(fileContent)) !== null) {
+    let p = match[1];
+    if (!p.startsWith('/')) p = '/' + p;
+    // Skip dynamic segments and duplicates
+    if (p.includes(':')) continue;
+    routes.add(p);
+  }
+  return Array.from(routes);
 }
 
-function generateSitemap() {
-  const urlsXml = routes.map(generateUrlXml).join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-    `${urlsXml}\n` +
-    `</urlset>`;
+function isPublicRoute(path) {
+  return !DISALLOWED_PATHS.some(dis => path === dis || path.startsWith(dis + '/'));
+}
+
+function generateSitemapXml(paths) {
+  const DATE = new Date().toISOString();
+  const urls = paths.map(p => {
+    const loc = `${BASE_URL}${p === '/' ? '' : p}`;
+    return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${DATE}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>${p === '/' ? '1.0' : '0.8'}</priority>\n  </url>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
 }
 
 function main() {
-  const outputDir = join(process.cwd(), 'public'); // frontend/public
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true });
-  }
-  const filePath = join(outputDir, 'sitemap.xml');
-  const xml = generateSitemap();
-  writeFileSync(filePath, xml, 'utf8');
-  console.log(`✅ Sitemap generated at ${filePath}`);
+  const source = readFileSync(APP_FILE, 'utf8');
+  const allRoutes = extractRoutes(source);
+  const publicRoutes = allRoutes.filter(isPublicRoute);
+
+  const xml = generateSitemapXml(publicRoutes);
+
+  const publicDir = join(process.cwd(), 'public');
+  if (!existsSync(publicDir)) mkdirSync(publicDir, { recursive: true });
+  const target = join(publicDir, 'sitemap.xml');
+  writeFileSync(target, xml, 'utf8');
+  console.log(`🗺️  Sitemap generated with ${publicRoutes.length} routes -> ${target}`);
 }
 
 main(); 

@@ -115,7 +115,7 @@ const NotesAndSnippetsFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Notes & Snippets – Labnex" description="Capture ideas and manage reusable code with Labnex notes and snippet storage, integrated with AI and Discord." canonical="https://www.labnex.dev/features/notes-and-snippets" />
+      <Seo title="Notes & Snippets – Labnex" description="Capture ideas and manage reusable code with Labnex notes and snippet storage, integrated with AI and Discord." canonical="https://www.labnex.dev/features/notes-and-snippets" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Notes & Snippets',url:'https://www.labnex.dev/features/notes-and-snippets'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

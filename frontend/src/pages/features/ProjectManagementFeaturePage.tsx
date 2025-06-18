@@ -92,7 +92,7 @@ const ProjectManagementFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Project Management – Labnex" description="Explore Labnex's project management capabilities: task tracking, team collaboration, and progress monitoring." canonical="https://www.labnex.dev/features/project-management" />
+      <Seo title="Project Management – Labnex" description="Explore Labnex's project management capabilities: task tracking, team collaboration, and progress monitoring." canonical="https://www.labnex.dev/features/project-management" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Project Management',url:'https://www.labnex.dev/features/project-management'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

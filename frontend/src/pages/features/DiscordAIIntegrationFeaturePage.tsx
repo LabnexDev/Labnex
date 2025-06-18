@@ -92,7 +92,7 @@ const DiscordAIIntegrationFeaturePage: React.FC = () => {
 
   return (
     <>
-      <Seo title="Discord AI Integration – Labnex" description="Interact with Labnex AI directly in Discord to accelerate project and task management." canonical="https://www.labnex.dev/features/discord-ai-integration" />
+      <Seo title="Discord AI Integration – Labnex" description="Interact with Labnex AI directly in Discord to accelerate project and task management." canonical="https://www.labnex.dev/features/discord-ai-integration" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Features',url:'https://www.labnex.dev/#features'},{name:'Discord AI Integration',url:'https://www.labnex.dev/features/discord-ai-integration'}]} />
       <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
         <GlobalBackground />
         <OrbBackground />

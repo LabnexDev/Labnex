@@ -1,3 +1,15 @@
 User-agent: *
 Allow: /
+
+# Disallow auth-gated and private sections
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /settings
+Disallow: /notifications
+Disallow: /integrations
+Disallow: /notes
+Disallow: /snippets
+
 Sitemap: https://www.labnex.dev/sitemap.xml 
