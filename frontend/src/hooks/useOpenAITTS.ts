@@ -11,7 +11,7 @@ export function useOpenAITTS() {
     try {
       // Avoid huge payloads
       if (text.length > 500) text = text.slice(0, 500);
-      const res = await api.post('/ai/openai/tts', { input: text, voice: 'shimmer' }, { responseType: 'arraybuffer' });
+      const res = await api.post('/openai/tts', { input: text, voice: 'shimmer' }, { responseType: 'arraybuffer' });
       const blob = new Blob([res.data], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
       if (!audioRef.current) audioRef.current = new Audio();
