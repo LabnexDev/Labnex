@@ -9,7 +9,7 @@ const WIDTH = 1200;
 const HEIGHT = 630;
 
 const pages = [
-  { slug: 'index', title: 'Labnex – AI-Powered Dev Platform' },
+  { slug: 'home', title: 'Labnex – AI-Powered Dev Platform' },
   { slug: 'features-project-management', title: 'Project Management' },
   { slug: 'features-test-case-management', title: 'Test Case Management' },
   { slug: 'features-notes-and-snippets', title: 'Notes & Snippets' },
