@@ -33,7 +33,13 @@ async function main() {
   const previewURL = `http://localhost:${PREVIEW_PORT}/?og=true`;
   await waitForServer(previewURL, 15000);
 
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  let browser;
+  try {
+    browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  } catch (err) {
+    console.warn('Falling back to bundled Chromium – system Google Chrome not available:', err.message);
+    browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  }
   const page = await browser.newPage({ viewport: VIEWPORT });
   await page.goto(previewURL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
