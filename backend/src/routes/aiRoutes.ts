@@ -12,6 +12,7 @@ import {
 import { auth } from '../middleware/auth';
 import { fetchMessages, saveMessage } from '../controllers/aiMessageController';
 import { createSession, listSessions, deleteSession, renameSession } from '../controllers/aiSessionController';
+import { proxyOpenAITTS } from '../controllers/aiTtsController';
 
 const router = express.Router();
 
@@ -37,5 +38,8 @@ router.post('/session', createSession);
 router.get('/sessions', listSessions);
 router.delete('/session/:id', deleteSession);
 router.patch('/session/:id', renameSession);
+
+// TTS proxy
+router.post('/openai/tts', proxyOpenAITTS);
 
 export default router;

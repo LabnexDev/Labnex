@@ -7,6 +7,7 @@ import { dispatchCommand } from '../utils/commandDispatcher';
 import { aiMessagesApi } from '../api/aiMessages';
 import { aiSessionsApi } from '../api/aiSessions';
 import { dispatchAction } from '../utils/commandDispatcher';
+import { useOpenAITTS } from '../hooks/useOpenAITTS';
 
 interface ChatMessage {
   id: string;
@@ -46,6 +47,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [pageNum, setPageNum] = useState(1);
   const limit = 30;
   const [hasMore, setHasMore] = useState(true);
+  const { speak } = useOpenAITTS();
 
   const location = useLocation();
   const params = useParams();
@@ -97,6 +99,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setMessages(prev => [...prev, resultMessage]);
       // Persist assistant reply
       aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: resultText }).catch(console.error);
+      speak(resultText);
       return;
     }
 
@@ -137,6 +140,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         };
         setMessages(prev => [...prev, resultMessage]);
         aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: result }).catch(console.error);
+        speak(result);
       }
     } catch (error: any) {
       const errorMessage: ChatMessage = {

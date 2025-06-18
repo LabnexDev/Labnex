@@ -4,6 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useState } from 'react';
 import OrbBackground from '../visual/OrbBackground';
 import { AIChatProvider } from '../../contexts/AIChatContext';
+import { VoiceSettingsProvider } from '../../contexts/VoiceSettingsContext';
 import AIChatBubble from '../ai-chat/AIChatBubble';
 import AIChatModal from '../ai-chat/AIChatModal';
 import { useLocation } from 'react-router-dom';
@@ -18,6 +19,7 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   return (
+    <VoiceSettingsProvider>
     <AIChatProvider>
       <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
         <div className="flex h-screen bg-[var(--lnx-bg)] dark:bg-gray-900">
@@ -50,5 +52,6 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </div>
     </AIChatProvider>
+    </VoiceSettingsProvider>
   );
 }

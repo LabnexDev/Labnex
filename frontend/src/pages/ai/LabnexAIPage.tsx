@@ -6,6 +6,7 @@ import TypingDots from '../../components/visual/TypingDots';
 import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
 import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutocomplete';
 import SessionDropdown from '../../components/ai-chat/SessionDropdown';
+import VoiceControls from '../../components/ai-chat/VoiceControls';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage, isTyping, isScanning, hasMore, loadOlder } = useAIChat();
@@ -43,6 +44,7 @@ const LabnexAIPage: React.FC = () => {
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
           <SessionDropdown />
+          <VoiceControls />
         </div>
         <button
           className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
