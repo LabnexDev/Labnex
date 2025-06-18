@@ -940,7 +940,7 @@ export function TerminalPage() {
           </div>
 
           {/* Quick Commands */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {quickCommands.map((cmd, index) => (
               <button
                 key={index}
@@ -997,7 +997,7 @@ export function TerminalPage() {
           {/* Terminal Content */}
           <div
             ref={terminalRef}
-            className="h-96 overflow-x-auto overflow-y-auto p-6 font-mono text-sm"
+            className="h-[50vh] sm:h-96 overflow-x-auto overflow-y-auto p-6 font-mono text-sm"
           >
             {commands.length === 0 && (
               <div className="text-gray-500">

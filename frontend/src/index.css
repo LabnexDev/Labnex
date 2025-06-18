@@ -16,7 +16,7 @@
 
 @layer base {
   body {
-    @apply font-sans bg-[var(--lnx-bg)] text-gray-700 dark:text-gray-100;
+    @apply font-sans bg-[var(--lnx-bg)] text-gray-700 dark:text-gray-100 overflow-x-hidden;
   }
 }
 
