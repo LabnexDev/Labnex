@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/generate-sitemap.js && node scripts/generate-og-images.js",
+    "postbuild": "node scripts/generate-sitemap.js && node scripts/generate-og-images.js && node scripts/generate-og-screenshot.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",
@@ -66,6 +66,7 @@
     "vite": "^6.3.5",
     "vite-plugin-compression": "^0.5.1",
     "satori": "^0.10.0",
-    "@resvg/resvg-js": "^2.3.0"
+    "@resvg/resvg-js": "^2.3.0",
+    "playwright-chromium": "^1.43.0"
   }
 }

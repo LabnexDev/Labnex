@@ -10,14 +10,14 @@
     <meta property="og:title" content="Labnex – AI-Powered Development Platform" />
     <meta property="og:description" content="Build, test and ship faster with Labnex: integrated project & test-case management, AI coding assistance, Discord integration and more." />
     <meta property="og:url" content="https://www.labnex.dev/" />
-    <meta property="og:image" content="/og-index.png" />
+    <meta property="og:image" content="https://labnex.dev/og-index.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Labnex – AI-Powered Development Platform" />
     <meta name="twitter:description" content="Build, test and ship faster with Labnex: integrated project & test-case management, AI coding assistance, Discord integration and more." />
-    <meta name="twitter:image" content="/og-index.png" />
+    <meta name="twitter:image" content="https://labnex.dev/og-index.png" />
     <link rel="canonical" href="https://www.labnex.dev/" />
     <title>Labnex</title>
     <script type="text/javascript">
@@ -63,6 +63,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap" rel="stylesheet">
+    <script>
+      if (window.location.search.includes('og=true')) {
+        const style = document.createElement('style');
+        style.innerHTML = 'header, nav, footer { display: none !important; }';
+        document.head.appendChild(style);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
