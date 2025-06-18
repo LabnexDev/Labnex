@@ -7,27 +7,38 @@ export function useOpenAITTS() {
   const { voiceOutput } = useVoiceSettings();
 
   const speak = useCallback(async (text: string) => {
-    if (!voiceOutput || !text) {
-      console.log('[TTS] Skipped - voiceOutput:', voiceOutput, 'text present:', !!text);
+    if (!voiceOutput || !text?.trim()) {
+      console.log('[TTS] Skipped – voiceOutput:', voiceOutput, 'text len:', text?.length);
       return;
     }
+
     try {
-      if (text.length > 500) text = text.slice(0, 500);
-      console.log('[TTS] Sending request …');
-      const res = await api.post('/openai/tts', { input: text, voice: 'shimmer' }, { responseType: 'arraybuffer' });
-      console.log('[TTS] Response status', res.status, 'size', res.data?.byteLength);
+      // Strip code blocks & trim length
+      text = text.replace(/```[\s\S]*?```/g, '').trim().slice(0, 500);
+
+      console.log('[TTS] Fetching audio…');
+      const res = await api.post(
+        '/openai/tts',
+        { model: 'tts-1', input: text, voice: 'shimmer', format: 'mp3' },
+        { responseType: 'arraybuffer' }
+      );
+
+      console.log('[TTS] Response', res.status, 'bytes', res.data.byteLength);
       const blob = new Blob([res.data], { type: 'audio/mpeg' });
-      console.log('[TTS] Got blob', blob);
+      console.log('[TTS] Blob type', blob.type, 'size', blob.size);
+
       const url = URL.createObjectURL(blob);
-      console.log('[TTS] Blob URL', url);
+      if (audioRef.current) audioRef.current.pause();
       const audio = new Audio(url);
-      audio.onplay = () => console.log('✅ Audio started');
+
+      audio.onplay  = () => console.log('✅ Audio started');
       audio.onerror = (e) => console.error('❌ Audio playback error', e);
       audio.onended = () => { console.log('🔁 Audio ended'); URL.revokeObjectURL(url); };
+
       await audio.play().catch(err => console.error('❌ play() rejected', err));
       audioRef.current = audio;
-    } catch (e: any) {
-      console.error('[TTS] request error', e.response?.status, e.response?.data || e.message);
+    } catch (err: any) {
+      console.error('[TTS] Request failed', err.response?.status, err.message);
     }
   }, [voiceOutput]);
 
