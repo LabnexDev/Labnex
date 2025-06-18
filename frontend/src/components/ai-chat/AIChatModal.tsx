@@ -76,7 +76,7 @@ const AIChatModal: React.FC = () => {
             aria-label="Send"
             className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <PaperAirplaneIcon className="h-5 w-5 rotate-90" />
+            <PaperAirplaneIcon className="h-5 w-5 rotate-45" />
           </button>
         </form>
         <button

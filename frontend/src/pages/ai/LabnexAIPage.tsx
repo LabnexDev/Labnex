@@ -26,7 +26,7 @@ const LabnexAIPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] w-[calc(100vw-3rem)] max-w-none mx-[-1.5rem] sm:mx-[-2rem]">
+    <div className="flex flex-col h-full w-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 dark:border-slate-700">
         <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
@@ -39,7 +39,7 @@ const LabnexAIPage: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-900/40">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-900/40">
         {messages.map(msg => (
           msg.role === 'assistant' ? (
             <AIResponseBox key={msg.id} message={msg.content} staticRender={true} />
@@ -66,7 +66,7 @@ const LabnexAIPage: React.FC = () => {
           type="submit"
           className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
         >
-          <PaperAirplaneIcon className="h-5 w-5 rotate-90" />
+          <PaperAirplaneIcon className="h-5 w-5 rotate-45" />
         </button>
       </form>
     </div>
