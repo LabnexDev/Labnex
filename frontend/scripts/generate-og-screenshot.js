@@ -5,7 +5,9 @@ import { existsSync, mkdirSync } from 'node:fs';
 import fs from 'node:fs';
 
 const VIEWPORT = { width: 1200, height: 630 };
-const OUT_PATH = join(process.cwd(), 'public', 'og-index.png');
+const buildId = process.env.GITHUB_SHA?.slice(0, 7) || Date.now().toString();
+const FILENAME = `og-index-${buildId}.png`;
+const OUT_PATH = join(process.cwd(), 'public', FILENAME);
 const PREVIEW_PORT = 4173;
 
 async function waitForServer(url, timeout = 10000) {
@@ -58,10 +60,20 @@ async function main() {
   const distDir = join(process.cwd(), 'dist');
   try {
     if (existsSync(distDir)) {
-      await fs.promises.copyFile(OUT_PATH, join(distDir, 'og-index.png'));
+      const targetPath = join(distDir, FILENAME);
+      await fs.promises.copyFile(OUT_PATH, targetPath);
+
+      // patch dist/index.html so meta tags reference the build-specific filename
+      const indexPath = join(distDir, 'index.html');
+      if (existsSync(indexPath)) {
+        let html = await fs.promises.readFile(indexPath, 'utf8');
+        html = html.replace(/https?:\/\/[^"']*\/og-index[^"']*\.png/g, `https://labnex.dev/${FILENAME}`);
+        html = html.replace(/\/og-index[^"']*\.png/g, `/${FILENAME}`);
+        await fs.promises.writeFile(indexPath, html);
+      }
     }
   } catch (copyErr) {
-    console.warn('Could not copy og-index.png into dist folder:', copyErr.message);
+    console.warn('Could not copy patched og image or update index.html:', copyErr.message);
   }
 
   console.log('✅ OG screenshot saved to', OUT_PATH);
