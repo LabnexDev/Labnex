@@ -12,7 +12,7 @@ export interface Change {
 export const changelogData: Change[] = [
   {
     version: '1.4.1',
-    date: '2025-06-18',
+    date: '2025-06-17',
     title: 'UI/UX Overhaul & Forgot Password Flow',
     description: 'Polished the global interface with glass/gradient design, implemented a darker charcoal light theme, and delivered a full password-reset experience across backend and frontend.',
     changes: [
