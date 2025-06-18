@@ -11,6 +11,23 @@ export interface Change {
 
 export const changelogData: Change[] = [
   {
+    version: '1.4.1',
+    date: '2025-06-18',
+    title: 'UI/UX Overhaul & Forgot Password Flow',
+    description: 'Polished the global interface with glass/gradient design, implemented a darker charcoal light theme, and delivered a full password-reset experience across backend and frontend.',
+    changes: [
+      { type: 'improvement', details: 'Unified glassmorphic styling across Dashboard, Projects, Tasks, Notes, Snippets, Docs, CLI, and Discord pages.' },
+      { type: 'improvement', details: 'Added charcoal-grey light theme via CSS variables for less glare.' },
+      { type: 'feature', details: 'Restyled Login & Register pages to match landing-page design.' },
+      { type: 'feature', details: 'Introduced Forgot Password modal with email entry.' },
+      { type: 'feature', details: 'Backend endpoints /auth/forgot-password and /auth/reset-password with secure token & expiry.' },
+      { type: 'feature', details: 'Email service sends Resend-powered reset link with 1-hour validity.' },
+      { type: 'feature', details: 'Frontend Reset Password page validates token and lets users set a new password.' },
+      { type: 'feature', details: 'Confirmation screen guiding users to check their inbox.' },
+      { type: 'refactor', details: 'Updated Card, Button, Modal, and Input components to leverage theme variables.' },
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2025-06-17',
     title: 'Cloud CLI & Runner Release',
