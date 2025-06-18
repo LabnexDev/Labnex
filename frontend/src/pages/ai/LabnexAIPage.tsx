@@ -2,15 +2,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import AIResponseBox from '../../components/visual/AIResponseBox';
+import TypingDots from '../../components/visual/TypingDots';
+import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
 
 const LabnexAIPage: React.FC = () => {
-  const { messages, sendMessage } = useAIChat();
+  const { messages, sendMessage, isTyping, isScanning } = useAIChat();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isTyping, isScanning]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,6 +61,16 @@ const LabnexAIPage: React.FC = () => {
               </div>
             )
           ))}
+          {isScanning && (
+            <div className="self-start">
+              <AIScanningIndicator />
+            </div>
+          )}
+          {isTyping && !isScanning && (
+            <div className="self-start">
+              <TypingDots />
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
       </div>
@@ -78,7 +90,7 @@ const LabnexAIPage: React.FC = () => {
           disabled={!inputValue.trim()}
           className="p-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg"
         >
-          <PaperAirplaneIcon className="h-5 w-5 rotate-45" />
+          <PaperAirplaneIcon className="h-5 w-5" />
         </button>
       </form>
     </div>

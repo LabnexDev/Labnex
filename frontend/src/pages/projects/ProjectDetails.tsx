@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Button } from '../../components/common/Button';
 import { PencilIcon, TrashIcon, PlusCircleIcon, DocumentTextIcon, UsersIcon, CalendarDaysIcon, ClockIcon, InformationCircleIcon, PowerIcon, ListBulletIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { useAIChat } from '../../contexts/AIChatContext';
 
 interface ToggleSwitchProps {
   id: string;
@@ -47,6 +48,7 @@ export const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setPageContext } = useAIChat();
 
   useEffect(() => {
     if (!id || id === "undefined") {
@@ -129,6 +131,19 @@ export const ProjectDetails: React.FC = () => {
     if (!project) return;
     updateProjectMutation.mutate({ isActive: newIsActive });
   };
+
+  // Provide project context to AI chat
+  useEffect(() => {
+    if (project) {
+      setPageContext({
+        view: 'projectDetails',
+        projectId: project._id,
+        projectName: project.name,
+        description: project.description,
+        isActive: project.isActive,
+      });
+    }
+  }, [project, setPageContext]);
 
   if (isProjectLoading || (id && project && isRoleLoading)) {
     return (

@@ -4,6 +4,7 @@ export interface ChatContext {
   page?: string;
   projectId?: string;
   projectName?: string;
+  [key: string]: any;
 }
 
 export const aiChatApi = {

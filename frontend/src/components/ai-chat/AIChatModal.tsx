@@ -3,9 +3,11 @@ import { useAIChat } from '../../contexts/AIChatContext';
 import { XMarkIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import AIResponseBox from '../visual/AIResponseBox';
 import { useNavigate } from 'react-router-dom';
+import TypingDots from '../visual/TypingDots';
+import AIScanningIndicator from '../visual/AIScanningIndicator';
 
 const AIChatModal: React.FC = () => {
-  const { isOpen, close, messages, sendMessage } = useAIChat();
+  const { isOpen, close, messages, sendMessage, isTyping, isScanning } = useAIChat();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -15,7 +17,7 @@ const AIChatModal: React.FC = () => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, isTyping, isScanning]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -60,6 +62,16 @@ const AIChatModal: React.FC = () => {
               </div>
             )
           ))}
+          {isScanning && (
+            <div className="self-start">
+              <AIScanningIndicator />
+            </div>
+          )}
+          {isTyping && !isScanning && (
+            <div className="self-start">
+              <TypingDots />
+            </div>
+          )}
           <div ref={bottomRef} />
         </div>
 
@@ -76,7 +88,7 @@ const AIChatModal: React.FC = () => {
             aria-label="Send"
             className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <PaperAirplaneIcon className="h-5 w-5 rotate-45" />
+            <PaperAirplaneIcon className="h-5 w-5" />
           </button>
         </form>
         <button
