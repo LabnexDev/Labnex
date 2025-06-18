@@ -90,9 +90,9 @@ const AIResponseBox: React.FC<AIResponseBoxProps> = ({
       {...containerProps}
     >
       {staticRender ? (
-        <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-invert max-w-none">
-          {message}
-        </ReactMarkdown>
+        <div className="prose prose-invert max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
+        </div>
       ) : (
         displayedText.split('\n').map((line, index) => (
           <p key={index} className={`whitespace-pre-wrap min-h-[1em] ${line.startsWith('#') ? 'text-slate-400 text-xs sm:text-sm' : 'text-slate-200'}`}>
