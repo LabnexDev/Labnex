@@ -70,8 +70,8 @@
         document.head.appendChild(style);
       }
     </script>
-    <!-- Content Security Policy to allow OpenAI TTS streaming & blob audio playback -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://labnex-backend.onrender.com; media-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self';" />
+    <!-- Updated Content Security Policy to enable fonts, TTS, Cloudflare analytics -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: data:; connect-src 'self' https://labnex-backend.onrender.com https://api.openai.com;" />
   </head>
   <body>
     <div id="root"></div>
