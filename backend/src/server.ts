@@ -26,6 +26,7 @@ import supportRoutes from './routes/support.routes';
 import { setupWebSocket } from './utils/websocket';
 import { createServer } from 'http';
 import { fork, ChildProcess } from 'child_process';
+import { proxyOpenAITTS } from './controllers/aiTtsController';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -116,6 +117,9 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
+
+// Public TTS proxy (no auth) temporary
+app.post('/api/openai/tts', proxyOpenAITTS);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
