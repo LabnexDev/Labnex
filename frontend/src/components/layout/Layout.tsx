@@ -28,9 +28,15 @@ export function Layout({ children }: LayoutProps) {
 
             <main className="relative flex-1 mt-16 overflow-x-hidden overflow-y-auto bg-[var(--lnx-bg)] dark:bg-transparent">
               <OrbBackground />
-              <div className="relative container mx-auto px-4 sm:px-6 py-8">
-                {children}
-              </div>
+              {location.pathname === '/ai' ? (
+                <div className="flex flex-col h-full w-full px-0 py-0">
+                  {children}
+                </div>
+              ) : (
+                <div className="relative container mx-auto px-4 sm:px-6 py-8">
+                  {children}
+                </div>
+              )}
             </main>
           </div>
 
