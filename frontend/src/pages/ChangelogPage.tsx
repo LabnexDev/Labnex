@@ -43,12 +43,13 @@ const ChangelogPage: React.FC = () => {
       '@type': 'Organization',
       name: 'Labnex'
     },
-    url: `https://www.labnex.dev/changelog#v${latest.version}`
+    url: `https://www.labnex.dev/changelog#v${latest.version}`,
+    image: "https://www.labnex.dev/og-changelog.png"
   }: undefined;
 
   return (
     <>
-      <Seo title="Labnex Changelog" description="See what's new and improved in Labnex with our latest feature releases, fixes, and enhancements." canonical="https://www.labnex.dev/changelog" extraJsonLd={articleSchema} />
+      <Seo title="Labnex Changelog" description="See what's new and improved in Labnex with our latest feature releases, fixes, and enhancements." canonical="https://www.labnex.dev/changelog" extraJsonLd={articleSchema} image="https://www.labnex.dev/og-changelog.png" />
       <div className="changelog-page bg-slate-950 text-white min-h-screen font-inter">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center mb-16">

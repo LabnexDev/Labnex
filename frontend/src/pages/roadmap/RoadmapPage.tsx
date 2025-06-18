@@ -150,7 +150,7 @@ const RoadmapPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate overflow-hidden">
       <GlobalBackground />
-      <Seo title="Labnex Development Roadmap" description="Explore the upcoming features and milestones planned for Labnex." canonical="https://www.labnex.dev/roadmap" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Roadmap',url:'https://www.labnex.dev/roadmap'}]} />
+      <Seo title="Labnex Development Roadmap" description="Explore the upcoming features and milestones planned for Labnex." canonical="https://www.labnex.dev/roadmap" breadcrumbs={[{name:'Home',url:'https://www.labnex.dev/'},{name:'Roadmap',url:'https://www.labnex.dev/roadmap'}]} image="https://www.labnex.dev/og-roadmap.png" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="absolute top-8 left-4 sm:left-6 lg:left-8">
