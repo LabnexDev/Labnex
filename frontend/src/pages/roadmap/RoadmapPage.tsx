@@ -212,4 +212,13 @@ const RoadmapPage: React.FC = () => {
             <div className="max-w-2xl mx-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-8">
                 {/* 
                     NOTE FOR DEVELOPER: 
-                    The `currentFunding`
+                    The `currentFunding` value is currently hardcoded. Update as donations come in.
+                */}
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RoadmapPage;
