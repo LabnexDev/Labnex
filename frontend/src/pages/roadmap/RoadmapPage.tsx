@@ -47,6 +47,7 @@ const roadmapData: Record<string, RoadmapItem[]> = {
   ]
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _communityGoals: CommunityGoal[] = [
     { amount: 50, title: "Domain & 24/7 Bot Hosting", description: "Secured labnex.dev and enabled continuous backend operation for the Discord AI.", unlocked: true, icon: CheckCircleIcon },
     { amount: 100, title: "Community Feature Spotlight", description: "We'll build a requested feature, like a sponsorship page or a public feature request board.", unlocked: false, icon: SparklesIcon },
