@@ -9,17 +9,22 @@ export function useOpenAITTS() {
   const speak = useCallback(async (text: string) => {
     if (!voiceOutput || !text) return;
     try {
-      // Avoid huge payloads
       if (text.length > 500) text = text.slice(0, 500);
+      console.log('[TTS] Sending request …');
       const res = await api.post('/openai/tts', { input: text, voice: 'shimmer' }, { responseType: 'arraybuffer' });
+      console.log('[TTS] Response status', res.status, 'size', res.data?.byteLength);
       const blob = new Blob([res.data], { type: 'audio/mpeg' });
+      console.log('[TTS] Got blob', blob);
       const url = URL.createObjectURL(blob);
-      if (!audioRef.current) audioRef.current = new Audio();
-      audioRef.current = new Audio(url);
-      audioRef.current.play().catch(err => console.error('Audio play blocked/error', err));
-      audioRef.current.onended = () => URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error('TTS failed', e);
+      console.log('[TTS] Blob URL', url);
+      const audio = new Audio(url);
+      audio.onplay = () => console.log('✅ Audio started');
+      audio.onerror = (e) => console.error('❌ Audio playback error', e);
+      audio.onended = () => { console.log('🔁 Audio ended'); URL.revokeObjectURL(url); };
+      await audio.play().catch(err => console.error('❌ play() rejected', err));
+      audioRef.current = audio;
+    } catch (e: any) {
+      console.error('[TTS] request error', e.response?.status, e.response?.data || e.message);
     }
   }, [voiceOutput]);
 
