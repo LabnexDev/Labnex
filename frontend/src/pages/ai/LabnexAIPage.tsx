@@ -1,23 +1,30 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import AIResponseBox from '../../components/visual/AIResponseBox';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage } = useAIChat();
-  const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const value = inputRef.current?.value || '';
-    if (value.trim()) {
-      sendMessage(value.trim());
-      if (inputRef.current) inputRef.current.value = '';
+    if (!inputValue.trim()) return;
+    sendMessage(inputValue.trim());
+    setInputValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!inputValue.trim()) return;
+      sendMessage(inputValue.trim());
+      setInputValue('');
     }
   };
 
@@ -26,7 +33,7 @@ const LabnexAIPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="relative flex flex-col h-full w-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 dark:border-slate-700">
         <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
@@ -39,32 +46,37 @@ const LabnexAIPage: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-900/40">
-        {messages.map(msg => (
-          msg.role === 'assistant' ? (
-            <AIResponseBox key={msg.id} message={msg.content} staticRender={true} />
-          ) : (
-            <div key={msg.id} className="text-right">
-              <div className="inline-block bg-indigo-600 text-white px-4 py-3 rounded-lg text-sm max-w-xl whitespace-pre-wrap">
-                {msg.content}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 bg-slate-900/60 backdrop-blur-lg">
+        <div className="max-w-3xl w-full mx-auto flex flex-col gap-6">
+          {messages.map(msg => (
+            msg.role === 'assistant' ? (
+              <AIResponseBox key={msg.id} message={msg.content} staticRender={true} />
+            ) : (
+              <div key={msg.id} className="self-end text-right">
+                <div className="inline-block bg-indigo-600 text-white px-4 py-3 rounded-lg text-sm max-w-prose whitespace-pre-wrap shadow-lg">
+                  {msg.content}
+                </div>
               </div>
-            </div>
-          )
-        ))}
-        <div ref={bottomRef} />
+            )
+          ))}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-slate-700 flex items-center gap-3">
-        <input
-          ref={inputRef}
-          type="text"
+      {/* Input bar */}
+      <form onSubmit={handleSubmit} className="sticky bottom-0 left-0 right-0 bg-slate-800/70 backdrop-blur-md border-t border-slate-700 px-4 sm:px-6 py-3 flex items-end gap-3">
+        <textarea
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={1}
           placeholder="Ask Labnex AI…"
-          className="flex-1 bg-slate-800 text-slate-100 placeholder-slate-400 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 resize-none bg-transparent focus:outline-none text-slate-100 placeholder-slate-400 p-2 sm:p-3 rounded-lg max-h-40"
         />
         <button
           type="submit"
-          className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+          disabled={!inputValue.trim()}
+          className="p-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg"
         >
           <PaperAirplaneIcon className="h-5 w-5 rotate-45" />
         </button>
