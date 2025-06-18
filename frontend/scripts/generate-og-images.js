@@ -22,7 +22,24 @@ const pages = [
   { slug: 'support', title: 'Labnex Support' },
 ];
 
+const FONT_URL =
+  "https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf";
+let interFontDataPromise;
+
+async function getInterFont() {
+  if (!interFontDataPromise) {
+    interFontDataPromise = fetch(FONT_URL)
+      .then(res => res.arrayBuffer())
+      .catch(err => {
+        console.error("Failed to download Inter font for OG generation", err);
+        process.exit(1);
+      });
+  }
+  return interFontDataPromise;
+}
+
 async function render(title) {
+  const fontData = await getInterFont();
   const svg = await satori(
     React.createElement(
       'div',
@@ -42,7 +59,18 @@ async function render(title) {
       },
       React.createElement('h1', { style: { fontSize: '72px', lineHeight: 1.1 } }, title)
     ),
-    { width: WIDTH, height: HEIGHT }
+    {
+      width: WIDTH,
+      height: HEIGHT,
+      fonts: [
+        {
+          name: 'Inter',
+          data: fontData,
+          weight: 400,
+          style: 'normal',
+        },
+      ],
+    }
   );
   const png = new Resvg(svg, { background: 'transparent' }).render();
   return png.asPng();
