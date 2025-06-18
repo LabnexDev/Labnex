@@ -51,6 +51,7 @@ import { ModalProvider } from './contexts/ModalContext';
 import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 import ResetPassword from './pages/auth/ResetPassword';
 import ResetRequested from './pages/auth/ResetRequested';
+import LabnexAIPage from './pages/ai/LabnexAIPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -257,6 +258,10 @@ function AppRoutes() {
       />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/reset-requested" element={<SimpleLayout><ResetRequested /></SimpleLayout>} />
+      <Route
+        path="/ai"
+        element={<PrivateRoute><LabnexAIPage /></PrivateRoute>}
+      />
     </Routes>
   );
 }

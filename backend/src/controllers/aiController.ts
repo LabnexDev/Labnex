@@ -5,6 +5,7 @@ import { Project } from '../models/Project';
 import { Role } from '../models/roleModel';
 import OpenAI from 'openai';
 import { JwtPayload } from '../middleware/auth';
+import { askChatGPT } from '../bots/labnexAI/chatgpt.service';
 
 interface AuthRequest extends Request {
   user?: JwtPayload;
@@ -699,6 +700,42 @@ Please respond with a JSON object containing:
       success: false, 
       error: error.message || 'Failed to generate selector suggestion' 
     });
+  }
+};
+
+// Add new chat controller for in-app AI assistant
+export const chatWithAI = async (req: AuthRequest, res: Response) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser?.id) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const { message, context } = req.body as { message?: string; context?: any };
+
+    if (!message || message.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
+    // Basic safety: limit message length
+    if (message.length > 1000) {
+      return res.status(400).json({ success: false, error: 'Message is too long' });
+    }
+
+    // Build a prompt including minimal context for now. Future iterations can expand this.
+    let prompt = message;
+    if (context) {
+      const contextString = JSON.stringify(context);
+      prompt = `Context: ${contextString}\n\nUser: ${message}`;
+    }
+
+    // For now, we pass conversationHistory undefined – phase-1 doesn't include memory.
+    const aiReply = await askChatGPT(prompt);
+
+    res.json({ success: true, data: { reply: aiReply } });
+  } catch (error: any) {
+    console.error('Error in chatWithAI:', error);
+    res.status(500).json({ success: false, error: error.message || 'Internal Server Error' });
   }
 };
 

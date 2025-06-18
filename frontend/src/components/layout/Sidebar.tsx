@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { HomeIcon, FolderIcon, Cog6ToothIcon, QuestionMarkCircleIcon, ShareIcon, BookOpenIcon, CodeBracketSquareIcon, ListBulletIcon, CommandLineIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, FolderIcon, Cog6ToothIcon, QuestionMarkCircleIcon, ShareIcon, BookOpenIcon, CodeBracketSquareIcon, ListBulletIcon, CommandLineIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 // import { useTheme } from '../../contexts/ThemeContext'; // theme and useTheme are unused
 
 // Labnex Logo (simple SVG example, replace with actual logo if available)
@@ -23,6 +23,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Projects', href: '/projects', icon: FolderIcon },
+    { name: 'Labnex AI', href: '/ai', icon: ChatBubbleLeftRightIcon },
     { name: 'CLI Terminal', href: '/cli', icon: CommandLineIcon },
     { name: 'My Tasks', href: '/my-tasks', icon: ListBulletIcon },
     { name: 'Notes', href: '/notes', icon: BookOpenIcon },

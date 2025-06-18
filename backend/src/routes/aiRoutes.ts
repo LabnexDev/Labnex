@@ -7,6 +7,7 @@ import {
   suggestAlternative,
   getDynamicSelectorSuggestion,
   analyzeFailureConversational,
+  chatWithAI,
 } from '../controllers/aiController';
 import { auth } from '../middleware/auth';
 
@@ -23,5 +24,6 @@ router.post('/analyze-failure/conversational', analyzeFailureConversational);
 router.post('/interpret', interpretTestStep);
 router.post('/suggest-alternative', suggestAlternative);
 router.post('/suggest-selector', getDynamicSelectorSuggestion);
+router.post('/chat', chatWithAI);
 
 export default router;
