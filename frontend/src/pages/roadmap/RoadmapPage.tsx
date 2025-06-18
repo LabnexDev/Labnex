@@ -57,6 +57,9 @@ const _communityGoals: CommunityGoal[] = [
     { amount: '300+', title: "Community-Driven Development", description: "At this level, our development priorities will be directly influenced by community votes on major new features.", unlocked: false, icon: UserGroupIcon },
 ];
 
+// Mark as used to satisfy TypeScript
+void _communityGoals;
+
 const statusConfig = {
   implemented: {
     icon: CheckCircleIcon,
