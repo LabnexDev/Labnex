@@ -250,7 +250,7 @@ const RoadmapPage: React.FC = () => {
                 {/* Donate CTA */}
                 <div className="text-center pt-4">
                     <Link to="/donation">
-                       <Button variant="primary">Donate &amp; Support</Button>
+                       <Button variant="primary" className="mx-auto">Donate &amp; Support</Button>
                     </Link>
                 </div>
             </div>

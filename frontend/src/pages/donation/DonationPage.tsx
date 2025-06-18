@@ -19,9 +19,8 @@ const DonationPage: React.FC = () => {
           <p className="text-slate-400 text-sm text-center max-w-md">Secure payments processed by PayPal. You can donate any amount; every dollar accelerates development.</p>
 
           {/* PayPal donate button form */}
-          <form action="https://www.paypal.com/donate" method="post" target="_blank">
-            <input type="hidden" name="hosted_button_id" value="LABNEXPAYPALID" />
-            <Button type="submit" variant="primary" className="px-8 py-3 text-lg">Donate with PayPal</Button>
+          <form action="https://www.paypal.com/donate/?hosted_button_id=Y9N2YZMU9ZR9N" method="post" target="_blank" className="flex justify-center">
+            <Button type="submit" variant="primary" className="px-8 py-3 text-lg mx-auto">Donate with PayPal</Button>
           </form>
 
           <p className="text-xs text-slate-500 text-center">You'll be redirected to PayPal to complete your donation.</p>
