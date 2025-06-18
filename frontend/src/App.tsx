@@ -46,6 +46,7 @@ import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage'
 import TechStackFeaturePage from './pages/features/TechStackFeaturePage';
 import RoadmapPage from './pages/roadmap/RoadmapPage';
 import ThankYouPage from './pages/donation/ThankYouPage';
+import DonationPage from './pages/donation/DonationPage';
 import { ModalProvider } from './contexts/ModalContext';
 import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 import ResetPassword from './pages/auth/ResetPassword';
@@ -168,6 +169,7 @@ function AppRoutes() {
       <Route path="/features/cli-automation" element={<CLIAutomationFeaturePage />} />
       <Route path="/features/tech-stack" element={<TechStackFeaturePage />} />
       <Route path="/roadmap" element={<RoadmapPage />} />
+      <Route path="/donation" element={<SimpleLayout><DonationPage /></SimpleLayout>} />
       <Route path="/donation/thank-you" element={<ThankYouPage />} />
       <Route
         path="/admin/dashboard"

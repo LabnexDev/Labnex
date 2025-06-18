@@ -153,7 +153,8 @@ const RoadmapItemCard: React.FC<{ item: RoadmapItem }> = ({ item }) => {
 
 const RoadmapPage: React.FC = () => {
   // Hard-coded current funding amount (in USD) – update from backend/Stripe webhook in future
-  const currentFunding = 75;
+  const currentFunding = 50;
+  const fundingTarget = 500;
   const communityGoals = _communityGoals;
 
   return (
@@ -223,12 +224,12 @@ const RoadmapPage: React.FC = () => {
                 <div>
                     <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium text-pink-400">Current Funding</span>
-                        <span className="text-sm font-semibold text-pink-400">${currentFunding}</span>
+                        <span className="text-sm font-semibold text-pink-400">${currentFunding} / ${fundingTarget}</span>
                     </div>
                     <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
                         <div
                             className="h-2 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full"
-                            style={{ width: `${Math.min((currentFunding / 300) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((currentFunding / fundingTarget) * 100, 100)}%` }}
                         />
                     </div>
                 </div>
@@ -248,7 +249,7 @@ const RoadmapPage: React.FC = () => {
 
                 {/* Donate CTA */}
                 <div className="text-center pt-4">
-                    <Link to="/support">
+                    <Link to="/donation">
                        <Button variant="primary">Donate &amp; Support</Button>
                     </Link>
                 </div>
