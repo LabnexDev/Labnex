@@ -3,6 +3,7 @@ import { CheckCircleIcon, CubeTransparentIcon, BeakerIcon, LightBulbIcon, Chevro
 import GlobalBackground from '../../components/landing/GlobalBackground';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Seo from '../../components/common/Seo';
 
 interface RoadmapItem {
   status: 'implemented' | 'beta' | 'planned';
@@ -149,6 +150,7 @@ const RoadmapPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate overflow-hidden">
       <GlobalBackground />
+      <Seo title="Labnex Development Roadmap" description="Explore the upcoming features and milestones planned for Labnex." canonical="https://www.labnex.dev/roadmap" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="absolute top-8 left-4 sm:left-6 lg:left-8">
@@ -210,72 +212,4 @@ const RoadmapPage: React.FC = () => {
             <div className="max-w-2xl mx-auto bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-8">
                 {/* 
                     NOTE FOR DEVELOPER: 
-                    The `currentFunding` value is currently hardcoded. 
-                    This will need to be updated manually as donations are received.
-                    A future goal is to automate this by integrating a payment provider's webhooks.
-                */}
-                
-                <FundingProgress current={50} goal={500} />
-
-                <div className="text-center mt-6">
-                    {/* IMPORTANT: Replace this with your actual PayPal donation link */}
-                    <a 
-                        href="https://www.paypal.com/donate/?hosted_button_id=Y9N2YZMU9ZR9N" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-block bg-pink-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 ease-in-out hover:bg-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50 transform hover:scale-105"
-                    >
-                        Sponsor Project
-                    </a>
-                </div>
-                
-                <div className="mt-12">
-                    <h4 className="text-xl font-semibold text-white mb-6">Community Goals</h4>
-                    <div className="space-y-4">
-                        {communityGoals.map(goal => (
-                            <CommunityGoalItem key={goal.amount} goal={goal} />
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const FundingProgress: React.FC<{ current: number, goal: number }> = ({ current, goal }) => {
-    const percentage = (current / goal) * 100;
-    return (
-        <div>
-            <div className="flex justify-between items-end mb-2">
-                <span className="text-2xl font-bold text-white">${current}</span>
-                <span className="text-sm font-medium text-slate-400">raised of ${goal} goal</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-2.5">
-                <motion.div 
-                    className="bg-gradient-to-r from-pink-500 to-violet-500 h-2.5 rounded-full" 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                />
-            </div>
-        </div>
-    );
-};
-
-const CommunityGoalItem: React.FC<{ goal: CommunityGoal }> = ({ goal }) => (
-    <div className={`flex items-start gap-4 p-4 rounded-lg transition-all duration-300 ${goal.unlocked ? 'bg-green-500/10' : 'bg-slate-700/30'}`}>
-        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${goal.unlocked ? 'bg-green-500/20 text-green-400' : 'bg-slate-600 text-slate-400'}`}>
-            <goal.icon className="w-5 h-5" />
-        </div>
-        <div>
-            <h5 className={`font-semibold ${goal.unlocked ? 'text-white' : 'text-slate-300'}`}>
-                ${goal.amount} - {goal.title} {goal.unlocked && '(Unlocked)'}
-            </h5>
-            <p className="text-sm text-slate-400">{goal.description}</p>
-        </div>
-    </div>
-);
-
-export default RoadmapPage; 
+                    The `currentFunding`

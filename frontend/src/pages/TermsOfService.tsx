@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Seo from '../components/common/Seo';
 
 const TermsOfService: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter p-8">
+      <Seo title="Labnex Terms of Service" description="Read the terms and conditions for using the Labnex platform and services." canonical="https://www.labnex.dev/terms-of-service" />
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
           Labnex Terms of Service

@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground';
 import OrbBackground from '../../components/visual/OrbBackground';
+import Seo from '../../components/common/Seo';
 
 // Relevant icons for Modern Development Platform
 import {
@@ -118,115 +119,118 @@ const ModernDevelopmentPlatformFeaturePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
-      <GlobalBackground />
-      <OrbBackground />
+    <>
+      <Seo title="Modern Development Platform – Labnex" description="Learn how Labnex offers a unified, modern platform for software development lifecycle." canonical="https://www.labnex.dev/features/modern-development-platform" />
+      <div className="min-h-screen bg-slate-950 text-white font-inter relative isolate">
+        <GlobalBackground />
+        <OrbBackground />
 
-      <header className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors duration-150"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            Back to Features
-          </button>
-        </div>
-      </header>
-
-      <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="bg-slate-900/60 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl p-6 sm:p-10">
-          <div className="text-center mb-12">
-            <div className="inline-block p-4 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-xl mb-6 border border-white/10">
-              <CpuChipIcon className="w-12 h-12 text-white" />
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-4">
-              Modern Development Platform
-            </h1>
-            <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Labnex is built from the ground up using a robust stack of modern technologies, ensuring a scalable, maintainable, and high-performance experience for all users and developers.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {benefits.map((benefit, index) => (
-              <div 
-                key={index} 
-                className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300 flex flex-col"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg border border-white/10 flex-shrink-0">
-                      <benefit.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <h3 className="text-md font-semibold text-white">{benefit.title}</h3>
-                  </div>
-                  {getStatusBadge(benefit.status)}
-                </div>
-                <p className="text-slate-400 text-sm leading-relaxed flex-grow">{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="my-16 text-center">
-            <h2 className="text-2xl font-semibold text-white mb-6">Engineered for Excellence</h2>
-            <div className="bg-slate-800/70 border border-slate-700 rounded-lg p-8 min-h-[200px] flex flex-col items-center justify-center">
-              <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
-                <CubeIcon className="w-10 h-10 text-indigo-400" title="React/Vite"/>
-                <ServerIcon className="w-10 h-10 text-purple-400" title="Node.js/Express"/>
-                <ShieldCheckIcon className="w-10 h-10 text-indigo-300" title="TypeScript"/>
-                <CircleStackIcon className="w-10 h-10 text-purple-300" title="MongoDB"/>
-                <PaintBrushIcon className="w-10 h-10 text-indigo-400" title="TailwindCSS"/>
-              </div>
-              <p className="text-slate-400 text-lg italic max-w-2xl mx-auto">
-                Our choice of technologies reflects our commitment to building a reliable, fast, and future-proof platform. We prioritize developer experience and robust architecture to deliver value consistently.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-10">
-            <div>
-              <h3 className="text-2xl font-semibold text-indigo-300 mb-3 flex items-center"><RocketLaunchIcon className="w-6 h-6 mr-2"/>Continuous Improvement</h3>
-              <p className="text-slate-400 leading-relaxed">
-                The Labnex platform is not static. We are continuously working on performance enhancements, exploring new architectural patterns for better scalability, and refining our development practices. Our goal is to always leverage the best of modern technology to serve our users.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-2xl font-semibold text-purple-300 mb-3 flex items-center"><ArrowsPointingOutIcon className="w-6 h-6 mr-2"/>Built for Growth</h3>
-              <p className="text-slate-400 leading-relaxed">
-                From database design to API structure and frontend component architecture, Labnex is built to scale. We anticipate future growth and are laying the groundwork for more advanced features, integrations, and a larger user base without compromising on stability or speed.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-2xl font-semibold text-emerald-300 mb-3 flex items-center"><CloudArrowUpIcon className="w-6 h-6 mr-2"/>Embracing Automation</h3>
-              <p className="text-slate-400 leading-relaxed">
-                While comprehensive testing and linting are already in place, we are moving towards more sophisticated CI/CD automation. This will allow for faster, more reliable deployments, ensuring that new features and improvements reach you quickly and safely.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-16 text-center">
-            <p className="text-lg text-slate-300 mb-6">Interested in the technical foundation of Labnex?</p>
+        <header className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
             <button
-              onClick={() => navigate('/features/tech-stack')}
-              className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors duration-150"
             >
-              Learn More About Our Stack
+              <ArrowLeftIcon className="w-5 h-5" />
+              Back to Features
             </button>
-            <p className="text-slate-400 mt-6">
-              Have feedback or suggestions? <a href="mailto:labnexcontact@gmail.com" className="text-indigo-400 hover:underline">We'd love to hear from you!</a>
-            </p>
-            <p className="text-sm text-slate-500 mt-3">
-              Or, <button onClick={() => navigate(-1)} className="text-indigo-400 hover:underline">explore other Labnex features</button>.
-            </p>
           </div>
-        </div>
-      </main>
+        </header>
 
-      <footer className="relative z-10 text-center p-8 text-slate-400 border-t border-white/10 bg-slate-950/70 backdrop-blur-sm mt-12">
-        <p className="text-sm">© {new Date().getFullYear()} Labnex. All rights reserved. Platform architecture and features are subject to ongoing development.</p>
-      </footer>
-    </div>
+        <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="bg-slate-900/60 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl p-6 sm:p-10">
+            <div className="text-center mb-12">
+              <div className="inline-block p-4 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-xl mb-6 border border-white/10">
+                <CpuChipIcon className="w-12 h-12 text-white" />
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-4">
+                Modern Development Platform
+              </h1>
+              <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                Labnex is built from the ground up using a robust stack of modern technologies, ensuring a scalable, maintainable, and high-performance experience for all users and developers.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              {benefits.map((benefit, index) => (
+                <div 
+                  key={index} 
+                  className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300 flex flex-col"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg border border-white/10 flex-shrink-0">
+                        <benefit.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="text-md font-semibold text-white">{benefit.title}</h3>
+                    </div>
+                    {getStatusBadge(benefit.status)}
+                  </div>
+                  <p className="text-slate-400 text-sm leading-relaxed flex-grow">{benefit.description}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="my-16 text-center">
+              <h2 className="text-2xl font-semibold text-white mb-6">Engineered for Excellence</h2>
+              <div className="bg-slate-800/70 border border-slate-700 rounded-lg p-8 min-h-[200px] flex flex-col items-center justify-center">
+                <div className="flex flex-wrap justify-center items-center gap-6 mb-4">
+                  <CubeIcon className="w-10 h-10 text-indigo-400" title="React/Vite"/>
+                  <ServerIcon className="w-10 h-10 text-purple-400" title="Node.js/Express"/>
+                  <ShieldCheckIcon className="w-10 h-10 text-indigo-300" title="TypeScript"/>
+                  <CircleStackIcon className="w-10 h-10 text-purple-300" title="MongoDB"/>
+                  <PaintBrushIcon className="w-10 h-10 text-indigo-400" title="TailwindCSS"/>
+                </div>
+                <p className="text-slate-400 text-lg italic max-w-2xl mx-auto">
+                  Our choice of technologies reflects our commitment to building a reliable, fast, and future-proof platform. We prioritize developer experience and robust architecture to deliver value consistently.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-10">
+              <div>
+                <h3 className="text-2xl font-semibold text-indigo-300 mb-3 flex items-center"><RocketLaunchIcon className="w-6 h-6 mr-2"/>Continuous Improvement</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  The Labnex platform is not static. We are continuously working on performance enhancements, exploring new architectural patterns for better scalability, and refining our development practices. Our goal is to always leverage the best of modern technology to serve our users.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-purple-300 mb-3 flex items-center"><ArrowsPointingOutIcon className="w-6 h-6 mr-2"/>Built for Growth</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  From database design to API structure and frontend component architecture, Labnex is built to scale. We anticipate future growth and are laying the groundwork for more advanced features, integrations, and a larger user base without compromising on stability or speed.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-emerald-300 mb-3 flex items-center"><CloudArrowUpIcon className="w-6 h-6 mr-2"/>Embracing Automation</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  While comprehensive testing and linting are already in place, we are moving towards more sophisticated CI/CD automation. This will allow for faster, more reliable deployments, ensuring that new features and improvements reach you quickly and safely.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-16 text-center">
+              <p className="text-lg text-slate-300 mb-6">Interested in the technical foundation of Labnex?</p>
+              <button
+                onClick={() => navigate('/features/tech-stack')}
+                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] text-lg"
+              >
+                Learn More About Our Stack
+              </button>
+              <p className="text-slate-400 mt-6">
+                Have feedback or suggestions? <a href="mailto:labnexcontact@gmail.com" className="text-indigo-400 hover:underline">We'd love to hear from you!</a>
+              </p>
+              <p className="text-sm text-slate-500 mt-3">
+                Or, <button onClick={() => navigate(-1)} className="text-indigo-400 hover:underline">explore other Labnex features</button>.
+              </p>
+            </div>
+          </div>
+        </main>
+
+        <footer className="relative z-10 text-center p-8 text-slate-400 border-t border-white/10 bg-slate-950/70 backdrop-blur-sm mt-12">
+          <p className="text-sm">© {new Date().getFullYear()} Labnex. All rights reserved. Platform architecture and features are subject to ongoing development.</p>
+        </footer>
+      </div>
+    </>
   );
 };
 

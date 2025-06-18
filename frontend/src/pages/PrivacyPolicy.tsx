@@ -1,8 +1,10 @@
 import React from 'react';
+import Seo from '../components/common/Seo';
 
 const PrivacyPolicy: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-inter p-8">
+      <Seo title="Labnex Privacy Policy" description="Understand how Labnex collects, uses, and protects your data." canonical="https://www.labnex.dev/privacy-policy" />
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
           Labnex Privacy Policy
