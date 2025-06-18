@@ -11,6 +11,7 @@ import {
 } from '../controllers/aiController';
 import { auth } from '../middleware/auth';
 import { fetchMessages, saveMessage } from '../controllers/aiMessageController';
+import { createSession, listSessions, deleteSession } from '../controllers/aiSessionController';
 
 const router = express.Router();
 
@@ -30,5 +31,10 @@ router.post('/chat', chatWithAI);
 // Chat memory
 router.get('/messages', fetchMessages);
 router.post('/message', saveMessage);
+
+// Sessions
+router.post('/session', createSession);
+router.get('/sessions', listSessions);
+router.delete('/session/:id', deleteSession);
 
 export default router;

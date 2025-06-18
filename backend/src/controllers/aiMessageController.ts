@@ -13,12 +13,13 @@ export const fetchMessages = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    const { projectId, page = '1', limit = '30' } = req.query;
+    const { projectId, sessionId, page = '1', limit = '30' } = req.query;
     const pageNum = parseInt(page as string, 10) || 1;
     const limitNum = parseInt(limit as string, 10) || 30;
 
     const filter: any = { userId: currentUser.id };
     if (projectId) filter.projectId = projectId;
+    if (sessionId) filter.sessionId = sessionId;
 
     const messages = await AIMessage.find(filter)
       .sort({ timestamp: -1 })
@@ -40,13 +41,17 @@ export const saveMessage = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    const { projectId, role, text, action } = req.body;
+    const { projectId, sessionId, role, text, action } = req.body;
     if (!role || !text) {
       return res.status(400).json({ success: false, error: 'role and text are required' });
+    }
+    if (!sessionId) {
+      return res.status(400).json({ success: false, error: 'sessionId is required' });
     }
 
     const msg = await AIMessage.create({
       projectId: projectId || undefined,
+      sessionId,
       userId: currentUser.id,
       role,
       text,
@@ -55,9 +60,9 @@ export const saveMessage = async (req: AuthRequest, res: Response) => {
 
     // Keep at most 500 messages per user/project to limit DB size
     if (projectId) {
-      const count = await AIMessage.countDocuments({ userId: currentUser.id, projectId });
+      const count = await AIMessage.countDocuments({ userId: currentUser.id, sessionId });
       if (count > 500) {
-        const toDelete = await AIMessage.find({ userId: currentUser.id, projectId })
+        const toDelete = await AIMessage.find({ userId: currentUser.id, sessionId })
           .sort({ timestamp: 1 })
           .limit(count - 500);
         const ids = toDelete.map(d => d._id);

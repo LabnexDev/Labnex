@@ -5,6 +5,7 @@ import AIResponseBox from '../../components/visual/AIResponseBox';
 import TypingDots from '../../components/visual/TypingDots';
 import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
 import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutocomplete';
+import SessionDropdown from '../../components/ai-chat/SessionDropdown';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage, isTyping, isScanning } = useAIChat();
@@ -39,7 +40,10 @@ const LabnexAIPage: React.FC = () => {
     <div className="relative flex flex-col h-full w-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 dark:border-slate-700">
-        <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold">Labnex AI Dashboard</h1>
+          <SessionDropdown />
+        </div>
         <button
           className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
           onClick={handleSummarize}

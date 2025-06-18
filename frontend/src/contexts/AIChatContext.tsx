@@ -5,6 +5,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { parseCommand } from '../utils/commandParser';
 import { dispatchCommand } from '../utils/commandDispatcher';
 import { aiMessagesApi } from '../api/aiMessages';
+import { aiSessionsApi } from '../api/aiSessions';
 
 interface ChatMessage {
   id: string;
@@ -15,6 +16,10 @@ interface ChatMessage {
 
 interface AIChatContextType {
   messages: ChatMessage[];
+  sessions: { id: string; title: string }[];
+  currentSessionId: string | null;
+  createNewSession: () => Promise<void>;
+  switchSession: (id: string) => void;
   isOpen: boolean;
   isTyping: boolean;
   isScanning: boolean;
@@ -29,6 +34,8 @@ const AIChatContext = createContext<AIChatContextType | undefined>(undefined);
 
 export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; title: string }[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -56,7 +63,8 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setMessages(prev => [...prev, userMessage]);
 
     // Persist user message
-    aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'user', text: content }).catch(console.error);
+    if (!currentSessionId) return;
+    aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'user', text: content }).catch(console.error);
 
     // Check for slash command
     if (content.startsWith('/')) {
@@ -70,7 +78,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         };
         setMessages(prev => [...prev, errorMsg]);
         // Persist assistant reply
-        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: errorMsg.content }).catch(console.error);
+        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: errorMsg.content }).catch(console.error);
         return;
       }
       const resultText = await dispatchCommand(parsed, { ...pageContext, projectId: params.id || params.projectId });
@@ -82,7 +90,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       };
       setMessages(prev => [...prev, resultMessage]);
       // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: resultText }).catch(console.error);
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: resultText }).catch(console.error);
       return;
     }
 
@@ -91,6 +99,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       page: location.pathname,
       ...pageContext,
       history: messages.slice(-15).map(m => ({ role: m.role, content: m.content })),
+      sessionId: currentSessionId!,
     };
     if (params.id) backendContext.projectId = params.id;
     if (params.projectId) backendContext.projectId = params.projectId as string;
@@ -112,7 +121,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsTyping(true);
       setTimeout(() => setIsTyping(false), 1200);
       // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: reply }).catch(console.error);
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: reply }).catch(console.error);
     } catch (error: any) {
       const errorMessage: ChatMessage = {
         id: `${Date.now()}-e`,
@@ -122,7 +131,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       };
       setMessages(prev => [...prev, errorMessage]);
       // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, role: 'assistant', text: errorMessage.content }).catch(console.error);
+      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: errorMessage.content }).catch(console.error);
       setIsScanning(false);
       setIsTyping(false);
     } finally {
@@ -133,8 +142,9 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Load initial messages on mount or when project changes
   useEffect(() => {
     const loadHistory = async () => {
+      if (!currentSessionId) return;
       try {
-        const history = await aiMessagesApi.fetchMessages(pageContext.projectId as string | undefined);
+        const history = await aiMessagesApi.fetchMessages(undefined, 1, 30, currentSessionId);
         const transformed: ChatMessage[] = history.map(m => ({
           id: m._id,
           role: m.role,
@@ -148,10 +158,40 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     loadHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSessionId]);
+
+  // Load sessions list
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const list = await aiSessionsApi.listSessions(pageContext.projectId as string | undefined);
+        setSessions(list.map(s => ({ id: s._id, title: s.title })));
+        if (list.length) {
+          setCurrentSessionId(list[0]._id);
+        } else {
+          // create first session
+          const newSession = await aiSessionsApi.createSession(pageContext.projectId as string | undefined);
+          setSessions([{ id: newSession._id, title: newSession.title }]);
+          setCurrentSessionId(newSession._id);
+        }
+      } catch (e) { console.error('loadSessions', e); }
+    };
+    loadSessions();
   }, [pageContext.projectId]);
 
+  const createNewSession = async () => {
+    const newSession = await aiSessionsApi.createSession(pageContext.projectId as string | undefined);
+    setSessions(prev => [{ id: newSession._id, title: newSession.title }, ...prev]);
+    setCurrentSessionId(newSession._id);
+    setMessages([]);
+  };
+
+  const switchSession = (id: string) => {
+    setCurrentSessionId(id);
+  };
+
   return (
-    <AIChatContext.Provider value={{ messages, isOpen, isTyping, isScanning, pageContext, setPageContext, open, close, sendMessage }}>
+    <AIChatContext.Provider value={{ messages, sessions, currentSessionId, createNewSession, switchSession, isOpen, isTyping, isScanning, pageContext, setPageContext, open, close, sendMessage }}>
       {children}
     </AIChatContext.Provider>
   );
