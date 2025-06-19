@@ -49,7 +49,7 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
   }, [selectedTopic]);
 
   return (
-    <main className="flex-1 max-w-full min-w-0 p-4 md:p-6 bg-[var(--lnx-surface)] dark:bg-slate-800/50 backdrop-blur-md rounded-lg shadow-xl overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 border border-[var(--lnx-border)] dark:border-slate-700/50">
+    <main className="flex-1 max-w-full min-w-0 p-4 md:p-6 bg-[var(--lnx-surface)] dark:bg-slate-800/50 backdrop-blur-md rounded-lg shadow-xl overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/50 border border-[var(--lnx-border)] dark:border-slate-700/50">
       {isLoading && (
         <div className="flex justify-center items-center h-full">
           <p className="text-lg text-gray-400">Loading documentation...</p> {/* Replace with a proper loader component if available */}
