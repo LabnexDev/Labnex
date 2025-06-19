@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      RENDER_BOT_DEPLOY_HOOK: ${{ secrets.RENDER_BOT_DEPLOY_HOOK }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,3 +35,6 @@ jobs:
           file: docker/bot.Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/labnex-bot:latest 
+      - name: Trigger Render deploy
+        if: ${{ env.RENDER_BOT_DEPLOY_HOOK != '' }}
+        run: curl -fsSL -X POST "$RENDER_BOT_DEPLOY_HOOK" 
