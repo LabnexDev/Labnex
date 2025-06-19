@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 import MicWave from '../../components/ai-chat/MicWave';
 import TypingDots from '../../components/visual/TypingDots';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
-import { Switch } from '@headlessui/react';
 
 interface VoiceMessage {
   id: string;
@@ -23,35 +22,6 @@ declare global {
   }
 }
 
-type Tone = 'whisper' | 'normal' | 'announcer';
-
-const speakTTS = (text: string, tone: Tone = 'normal') => {
-  return new Promise<void>((resolve) => {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.voice = (speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('shimmer')) as SpeechSynthesisVoice) || null;
-
-    // Adjust tone characteristics
-    switch (tone) {
-      case 'whisper':
-        utter.volume = 0.6;
-        utter.rate = 1.1;
-        utter.pitch = 1.2;
-        break;
-      case 'announcer':
-        utter.volume = 1;
-        utter.rate = 0.9;
-        utter.pitch = 0.9;
-        break;
-      default:
-        utter.volume = 1;
-        utter.rate = 1;
-        utter.pitch = 1;
-    }
-    utter.onend = () => resolve();
-    speechSynthesis.speak(utter);
-  });
-};
-
 const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { pageContext, setPageContext } = useAIChat();
@@ -62,11 +32,12 @@ const AIVoiceMode: React.FC = () => {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [paused, setPaused] = useState(false);
-  const [voiceTone, setVoiceTone] = useState<Tone>('normal');
   const [loadingReply, setLoadingReply] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [useOpenAIEngine, setUseOpenAIEngine] = useState(false);
+  const isSpeakingRef = useRef(false);
   const { speak: speakOpenAI } = useOpenAITTS();
+
+  useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
   // Auto-set page context once (current route info)
   useEffect(() => {
@@ -92,6 +63,7 @@ const AIVoiceMode: React.FC = () => {
     recog.lang = 'en-US';
 
     recog.onresult = (e: any) => {
+      if (isSpeakingRef.current) return; // ignore while AI speaks
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const res = e.results[i];
@@ -128,11 +100,7 @@ const AIVoiceMode: React.FC = () => {
     const welcome = async () => {
       setIsSpeaking(true);
       stopListening();
-      if (useOpenAIEngine) {
-        await speakOpenAI('Welcome to Labnex Voice Mode. How can I help you today?');
-      } else {
-        await speakTTS('Welcome to Labnex Voice Mode. How can I help you today?', voiceTone);
-      }
+      await speakOpenAI('Welcome to Labnex Voice Mode. How can I help you today?');
       setIsSpeaking(false);
       startListening();
     };
@@ -147,11 +115,7 @@ const AIVoiceMode: React.FC = () => {
       toast(msg);
       setIsSpeaking(true);
       stopListening();
-      if (useOpenAIEngine) {
-        await speakOpenAI(msg);
-      } else {
-        await speakTTS(msg, voiceTone);
-      }
+      await speakOpenAI(msg);
       setIsSpeaking(false);
       navigate(path);
       startListening();
@@ -210,11 +174,7 @@ const AIVoiceMode: React.FC = () => {
       setMessages(prev => [...prev, botMsg]);
       setIsSpeaking(true);
       stopListening();
-      if (useOpenAIEngine) {
-        await speakOpenAI(reply);
-      } else {
-        await speakTTS(reply, voiceTone);
-      }
+      await speakOpenAI(reply);
       setIsSpeaking(false);
       startListening();
     } catch (e:any) {
@@ -223,11 +183,7 @@ const AIVoiceMode: React.FC = () => {
       setMessages(prev => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: err }]);
       setIsSpeaking(true);
       stopListening();
-      if (useOpenAIEngine) {
-        await speakOpenAI(err);
-      } else {
-        await speakTTS(err, voiceTone);
-      }
+      await speakOpenAI(err);
       setIsSpeaking(false);
       startListening();
     } finally {
@@ -249,30 +205,6 @@ const AIVoiceMode: React.FC = () => {
       <div className="flex items-center justify-between p-4 border-b border-slate-700">
         <h2 className="text-lg font-semibold">AI Voice Call</h2>
         <div className="flex items-center gap-3">
-          {/* Tone selector */}
-          <select
-            value={voiceTone}
-            onChange={(e) => setVoiceTone(e.target.value as Tone)}
-            className="bg-slate-800 text-slate-200 text-sm rounded-lg px-2 py-1 focus:outline-none"
-            title="Voice tone"
-          >
-            <option value="whisper">Whisper</option>
-            <option value="normal">Normal</option>
-            <option value="announcer">Announcer</option>
-          </select>
-          <div className="flex items-center gap-1">
-            <span className="text-xs">TTS</span>
-            <Switch
-              checked={useOpenAIEngine}
-              onChange={setUseOpenAIEngine}
-              className={`${useOpenAIEngine ? 'bg-indigo-600' : 'bg-slate-600'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none`}
-            >
-              <span
-                aria-hidden="true"
-                className={`${useOpenAIEngine ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200`}
-              />
-            </Switch>
-          </div>
           <button onClick={toggleListening} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700" title={listening ? 'Pause' : 'Resume'}>
             {listening ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
           </button>
@@ -310,7 +242,6 @@ const AIVoiceMode: React.FC = () => {
             <MicrophoneIcon className="h-6 w-6" /> {paused ? 'Paused' : 'Not listening'}
           </div>
         )}
-        <span className="text-xs text-slate-500">Tone: {voiceTone}</span>
       </div>
     </div>
   );
