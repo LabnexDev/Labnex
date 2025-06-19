@@ -11,6 +11,7 @@ export interface TimelineEvent {
 
 interface VoiceStatusTimelineProps {
   events: TimelineEvent[];
+  compact?: boolean; // For mobile/smaller displays
 }
 
 const stateIcons: Record<TimelineEventState, React.FC<{ className: string }>> = {
@@ -33,12 +34,65 @@ const stateColors: Record<TimelineEventState, string> = {
   error: 'bg-red-500/50 text-red-300 border-red-400/30',
 };
 
-const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events }) => {
-  const displayEvents = events.slice(0, 8); // Show last 8 events
+const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events, compact = false }) => {
+  const displayEvents = events.slice(0, compact ? 4 : 8);
 
+  if (compact) {
+    // Mobile compact horizontal layout
+    return (
+      <div className="w-full">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {displayEvents.map((event, index) => {
+            const Icon = stateIcons[event.state] || EllipsisHorizontalCircleIcon;
+            const isLatest = index === 0;
+            const colorClasses = stateColors[event.state];
+            
+            return (
+              <div 
+                key={event.id} 
+                className={`flex-shrink-0 flex flex-col items-center gap-2 p-2 rounded-lg transition-all duration-300 ${
+                  isLatest ? 'bg-slate-800/50' : 'bg-slate-800/20'
+                }`}
+                style={{ minWidth: '80px' }}
+              >
+                <div className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300 ${colorClasses}`}>
+                  <Icon className="h-4 w-4" />
+                  {(event.state === 'listening' || event.state === 'analyzing') && isLatest && (
+                    <span className="absolute h-full w-full animate-ping rounded-full bg-current opacity-20"></span>
+                  )}
+                </div>
+                <div className="text-center">
+                  <div className={`text-xs font-medium truncate max-w-[70px] ${
+                    isLatest ? 'text-white' : 'text-slate-400'
+                  }`}>
+                    {event.label.length > 10 ? event.label.slice(0, 8) + '...' : event.label}
+                  </div>
+                  <div className="text-xs text-slate-500 mt-1">
+                    {isLatest ? 'now' : `${index}m`}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <style>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Desktop vertical layout
   return (
-    <div className="h-full max-h-[400px] overflow-y-auto rounded-xl bg-slate-800/30 p-5 backdrop-blur-md border border-slate-600/20 shadow-lg">
-      <div className="space-y-4">
+    <div className="h-full max-h-[400px] overflow-y-auto rounded-xl bg-slate-800/30 p-4 sm:p-5 backdrop-blur-md border border-slate-600/20 shadow-lg">
+      <div className="space-y-3 sm:space-y-4">
         {displayEvents.map((event, index) => {
           const Icon = stateIcons[event.state] || EllipsisHorizontalCircleIcon;
           const isRecent = index < 3;
@@ -48,7 +102,7 @@ const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events }) => 
           return (
             <div 
               key={event.id} 
-              className={`flex items-start gap-4 transition-all duration-500 ${
+              className={`flex items-start gap-3 sm:gap-4 transition-all duration-500 ${
                 isRecent ? 'opacity-100' : 'opacity-60'
               } ${isLatest ? 'transform scale-105' : ''}`}
               style={{ 
@@ -58,8 +112,8 @@ const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events }) => 
             >
               {/* Timeline connector */}
               <div className="relative flex flex-col items-center">
-                <div className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all duration-300 ${colorClasses}`}>
-                  <Icon className="h-4 w-4" />
+                <div className={`relative flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border-2 transition-all duration-300 ${colorClasses}`}>
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   
                   {/* Pulse animation for active states */}
                   {(event.state === 'listening' || event.state === 'analyzing') && isLatest && (
@@ -74,13 +128,13 @@ const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events }) => 
                 
                 {/* Connecting line */}
                 {index < displayEvents.length - 1 && (
-                  <div className="w-0.5 h-6 bg-gradient-to-b from-slate-500/50 to-transparent mt-2"></div>
+                  <div className="w-0.5 h-5 sm:h-6 bg-gradient-to-b from-slate-500/50 to-transparent mt-2"></div>
                 )}
               </div>
               
               {/* Event content */}
               <div className="flex-1 min-w-0 pb-2">
-                <div className={`font-medium text-sm leading-tight transition-colors duration-300 ${
+                <div className={`font-medium text-xs sm:text-sm leading-tight transition-colors duration-300 break-words ${
                   isLatest ? 'text-white' : isRecent ? 'text-slate-300' : 'text-slate-400'
                 }`}>
                   {event.label}
@@ -104,9 +158,9 @@ const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events }) => 
         
         {/* Empty state */}
         {displayEvents.length === 0 && (
-          <div className="text-center py-8 text-slate-500">
-            <CubeTransparentIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No activity yet</p>
+          <div className="text-center py-6 sm:py-8 text-slate-500">
+            <CubeTransparentIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-xs sm:text-sm">No activity yet</p>
           </div>
         )}
       </div>

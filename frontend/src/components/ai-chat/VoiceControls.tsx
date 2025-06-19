@@ -25,22 +25,32 @@ const VoiceControls: React.FC = () => {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Single mic button */}
+      {/* Single mic button - Enhanced for mobile */}
       <button
         onClick={handleMicClick}
         title={!voiceInput ? 'Enable voice input & speak' : listening ? 'Stop recording' : 'Speak'}
-        className={`p-1 rounded ${listening ? 'bg-red-600 animate-pulse' : voiceInput ? 'bg-slate-700 text-green-400' : 'text-slate-400 hover:bg-slate-700'}`}
+        className={`p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
+          listening 
+            ? 'bg-red-600 animate-pulse shadow-lg shadow-red-500/50' 
+            : voiceInput 
+              ? 'bg-slate-700 text-green-400 hover:bg-slate-600' 
+              : 'text-slate-400 hover:bg-slate-700 bg-slate-800/50'
+        }`}
       >
         <MicrophoneIcon className="h-5 w-5" />
       </button>
 
-      {/* Toggle voice output */}
+      {/* Toggle voice output - Better mobile support */}
       <button
         onClick={() => setVoiceOutput(!voiceOutput)}
         title={voiceOutput ? 'Disable voice output' : 'Enable voice output'}
-        className="hidden sm:inline-flex p-1 rounded hover:bg-slate-700"
+        className="hidden sm:inline-flex p-2 rounded-lg hover:bg-slate-700 bg-slate-800/50 transition-all duration-200 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95"
       >
-        {voiceOutput ? <SpeakerWaveIcon className="h-5 w-5 text-green-400" /> : <SpeakerXMarkIcon className="h-5 w-5 text-slate-400" />}
+        {voiceOutput ? (
+          <SpeakerWaveIcon className="h-5 w-5 text-green-400" />
+        ) : (
+          <SpeakerXMarkIcon className="h-5 w-5 text-slate-400" />
+        )}
       </button>
     </div>
   );
