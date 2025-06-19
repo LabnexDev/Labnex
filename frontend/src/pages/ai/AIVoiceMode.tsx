@@ -62,36 +62,7 @@ const AIVoiceMode: React.FC = () => {
     setEvents(prev => [{ id: Date.now(), label, state }, ...prev]);
   }, []);
 
-  // Add comprehensive cleanup and reset function (defined after vadLoop)
-  const resetVoiceSystem = useCallback(() => {
-    // Clear all timeouts
-    if (vadTimeoutRef.current) {
-      clearTimeout(vadTimeoutRef.current);
-      vadTimeoutRef.current = null;
-    }
-    if (silenceTimeoutRef.current) {
-      clearTimeout(silenceTimeoutRef.current);
-      silenceTimeoutRef.current = null;
-    }
 
-    // Reset manual pause state
-    isManuallyPausedRef.current = false;
-
-    // Reset voice activity tracking
-    lastVoiceActivityRef.current = Date.now();
-    setVoiceActivityLevel(0);
-
-    // Reset status to waiting if smart listening is enabled
-    if (isSmartListening && audioStreamRef.current) {
-      setStatus('waiting');
-      setCurrentAction('Voice system reset - waiting for activity');
-      pushEvent('Voice System Reset', 'idle');
-    } else {
-      setStatus('idle');
-      setCurrentAction('Voice system reset - tap to start');
-      pushEvent('Voice System Reset', 'idle');
-    }
-  }, [isSmartListening, pushEvent]);
 
   // Voice Activity Detection (VAD) system
   const detectVoiceActivity = useCallback(() => {
@@ -729,81 +700,9 @@ const AIVoiceMode: React.FC = () => {
     return message;
   }, []);
 
-  // Enhanced voice response with better context
-  const handleVoiceResponse = useCallback(async (response: string, action: string) => {
-    if (response && response.trim()) {
-      // Provide contextual feedback based on the action
-      const contextualResponse = `${provideVoiceFeedback(action)} ${response}`;
-      
-      speakAndThen(contextualResponse, () => {
-        setCurrentAction('Ready for next command');
-        pushEvent('Command Completed', 'done');
-        
-        // Auto-resume listening in smart mode
-        if (isSmartListening && status !== 'listening') {
-          setTimeout(() => {
-            if (!isSpeaking) {
-              vadLoop();
-            }
-          }, 500);
-        }
-      });
-    } else {
-      speakAndThen('I didn\'t get a proper response. Please try again.', () => {
-        setCurrentAction('Ready for next command');
-      });
-    }
-  }, [provideVoiceFeedback, speakAndThen, setCurrentAction, pushEvent, isSmartListening, status, isSpeaking, vadLoop]);
 
-  // Comprehensive cleanup function
-  const cleanup = useCallback(() => {
-    // Clear all timeouts
-    if (vadTimeoutRef.current) {
-      clearTimeout(vadTimeoutRef.current);
-      vadTimeoutRef.current = null;
-    }
-    if (silenceTimeoutRef.current) {
-      clearTimeout(silenceTimeoutRef.current);
-      silenceTimeoutRef.current = null;
-    }
 
-    // Stop and cleanup speech recognition
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onend = null;
-        recognitionRef.current.onstart = null;
-      } catch (e) {
-        console.log('Recognition cleanup error:', e);
-      }
-      recognitionRef.current = null;
-    }
 
-    // Cleanup audio context and stream
-    if (audioContextRef.current) {
-      try {
-        audioContextRef.current.close();
-      } catch (e) {
-        console.log('Audio context cleanup error:', e);
-      }
-      audioContextRef.current = null;
-    }
-
-    if (audioStreamRef.current) {
-      audioStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
-      audioStreamRef.current = null;
-    }
-
-    // Reset analyzer references
-    analyserRef.current = null;
-    vadDataArrayRef.current = null;
-
-    setAudioStream(null);
-  }, []);
 
   // Main initialization effect - only run once
   useEffect(() => {
@@ -1098,37 +997,7 @@ const AIVoiceMode: React.FC = () => {
     return {};
   };
 
-  // Enhanced error recovery for microphone permissions
-  const handleMicrophoneError = useCallback(async (error: any) => {
-    console.error('Microphone error:', error);
-    
-    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-      setCurrentAction('Microphone access denied - please allow microphone access');
-      pushEvent('Permission Denied', 'error');
-      setStatus('paused');
-      
-      // Show user how to re-enable permissions
-      toast.error('Please allow microphone access in your browser settings and refresh the page');
-    } else if (error.name === 'NotFoundError') {
-      setCurrentAction('No microphone found - please connect a microphone');
-      pushEvent('No Microphone', 'error');
-      setStatus('paused');
-    } else if (error.name === 'NotReadableError') {
-      setCurrentAction('Microphone in use by another app - please close other apps using microphone');
-      pushEvent('Microphone Busy', 'error');
-      setStatus('paused');
-      
-      // Show user they can try refreshing
-      toast.error('Microphone is busy. Please close other apps using the microphone and refresh the page.');
-    } else {
-      setCurrentAction('Audio system error occurred');
-      pushEvent('Audio Error', 'error');
-      setStatus('paused');
-      
-      // Show user they can try refreshing
-      toast.error('Audio system error. Please refresh the page to restart.');
-    }
-  }, [pushEvent]);
+
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 flex flex-col font-sans overflow-hidden">

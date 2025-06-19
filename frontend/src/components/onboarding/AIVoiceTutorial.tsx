@@ -2,7 +2,7 @@ import React from 'react';
 import OnboardingTutorial from './OnboardingTutorial';
 import type { TutorialStep } from './OnboardingTutorial';
 import { MicrophoneIcon, SpeakerWaveIcon, EyeIcon, HandRaisedIcon } from '@heroicons/react/24/solid';
-import { ArrowUpIcon, ArrowDownIcon, PlayIcon, PauseIcon } from '@heroicons/react/24/outline';
+import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
 interface AIVoiceTutorialProps {
   onComplete: () => void;

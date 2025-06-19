@@ -1160,7 +1160,7 @@ export function TerminalPage() {
       </div>
 
       {/* Mobile-specific styles */}
-      <style jsx>{`
+      <style>{`
         /* Mobile viewport optimizations */
         @media (max-width: 640px) {
           /* Prevent zoom on input focus for iOS */
