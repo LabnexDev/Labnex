@@ -28,10 +28,13 @@ const LabnexAIPage: React.FC = () => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
         navigate('/ai/voice');
       }
+      if (e.key === 'Escape' && showMobileMenu) {
+        setShowMobileMenu(false);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [navigate]);
+  }, [navigate, showMobileMenu]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -90,9 +93,9 @@ const LabnexAIPage: React.FC = () => {
   };
 
   return (
-    <div className="relative flex flex-col h-full w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="relative flex flex-col h-full w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen overflow-hidden">
       {/* Enhanced Header with Gradient */}
-      <header className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md sticky top-0 z-20 shadow-lg shadow-purple-500/5">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-md sticky top-0 z-30 shadow-lg shadow-purple-500/5">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             {/* Enhanced icon with gradient */}
@@ -145,9 +148,17 @@ const LabnexAIPage: React.FC = () => {
         </button>
       </header>
 
+      {/* Mobile Menu Backdrop */}
+      {showMobileMenu && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/20 z-10 top-[73px]"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+
       {/* Enhanced Mobile Menu */}
       {showMobileMenu && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-md border-b border-slate-700/50 z-10 p-4 space-y-4 shadow-xl">
+        <div className="md:hidden fixed top-[73px] left-0 right-0 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-md border-b border-slate-700/50 z-20 px-4 py-4 space-y-4 shadow-xl animate-in slide-in-from-top-5 duration-200">
           <SessionDropdown />
           
           {/* Primary Actions */}
@@ -193,7 +204,7 @@ const LabnexAIPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-indigo-500/10"></div>
         </div>
 
-        <div className="relative px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
           <div className="max-w-4xl w-full mx-auto flex flex-col gap-4 sm:gap-6">
             {hasMore && (
               <button 
@@ -239,7 +250,7 @@ const LabnexAIPage: React.FC = () => {
 
       {/* Enhanced Input Bar */}
       <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-md border-t border-slate-700/50 shadow-2xl shadow-purple-500/5">
-        <form onSubmit={handleSubmit} className="p-3 sm:p-4">
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="max-w-4xl mx-auto relative">
                          {/* Autocomplete */}
              {showAutocomplete && (
@@ -293,15 +304,51 @@ const LabnexAIPage: React.FC = () => {
 
             {/* Input hints */}
             <div className="flex items-center justify-between mt-2 px-2 text-xs text-slate-500">
-              <div className="flex items-center gap-4">
-                <span>Press <kbd className="px-1.5 py-0.5 bg-slate-700/50 rounded border border-slate-600/50">Enter</kbd> to send</span>
-                <span className="hidden sm:inline">Press <kbd className="px-1.5 py-0.5 bg-slate-700/50 rounded border border-slate-600/50">Ctrl+Shift+V</kbd> for voice</span>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <span className="hidden sm:inline">Press <kbd className="px-1.5 py-0.5 bg-slate-700/50 rounded border border-slate-600/50">Enter</kbd> to send</span>
+                <span className="hidden md:inline">Press <kbd className="px-1.5 py-0.5 bg-slate-700/50 rounded border border-slate-600/50">Ctrl+Shift+V</kbd> for voice</span>
+                <span className="sm:hidden text-purple-400/70">Tap send or press Enter</span>
               </div>
-              <span className="text-purple-400/70">Type <code>/</code> for commands</span>
+              <span className="text-purple-400/70 hidden sm:inline">Type <code>/</code> for commands</span>
+              <span className="text-purple-400/70 sm:hidden"><code>/</code> = cmd</span>
             </div>
           </div>
         </form>
       </div>
+
+      {/* Mobile-specific styles */}
+      <style>{`
+        @media (max-width: 640px) {
+          .animate-in {
+            animation: slideInFromTop 0.2s ease-out;
+          }
+        }
+        
+        @keyframes slideInFromTop {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Ensure full mobile coverage */
+        @media (max-width: 640px) {
+          body {
+            padding: 0;
+            margin: 0;
+          }
+          
+          #root {
+            padding: 0;
+            margin: 0;
+            max-width: 100vw;
+          }
+        }
+      `}</style>
     </div>
   );
 };

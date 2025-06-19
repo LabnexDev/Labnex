@@ -33,12 +33,34 @@ const AIVoiceMode: React.FC = () => {
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [currentAction, setCurrentAction] = useState('Initializing...');
   const [showMobilePanel, setShowMobilePanel] = useState(false);
+  const [aiSpeechIntensity, setAiSpeechIntensity] = useState(0);
 
   const { speak: speakOpenAI, isSpeaking } = useOpenAITTS();
 
   const pushEvent = useCallback((label: string, state: TimelineEventState) => {
     setEvents(prev => [{ id: Date.now(), label, state }, ...prev]);
   }, []);
+
+  // AI Speech Intensity Effect for waveform visualization
+  useEffect(() => {
+    if (!isSpeaking) {
+      setAiSpeechIntensity(0);
+      return;
+    }
+
+    // Simulate AI speech intensity with randomized patterns
+    const intensityInterval = setInterval(() => {
+      // Generate more realistic speech intensity patterns
+      const baseIntensity = 0.3 + Math.random() * 0.4; // 0.3-0.7 base
+      const speechPattern = Math.sin(Date.now() * 0.01) * 0.3; // Sinusoidal variation
+      const randomSpike = Math.random() > 0.8 ? Math.random() * 0.3 : 0; // Occasional spikes
+      
+      const finalIntensity = Math.min(1, Math.max(0, baseIntensity + speechPattern + randomSpike));
+      setAiSpeechIntensity(finalIntensity);
+    }, 100); // Update every 100ms for smooth animation
+
+    return () => clearInterval(intensityInterval);
+  }, [isSpeaking]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -69,7 +91,7 @@ const AIVoiceMode: React.FC = () => {
   }, [stopListening, pushEvent, speakOpenAI]);
 
   const handleFinalTranscript = useCallback(async (text: string) => {
-    if (!text || isSpeaking) return;
+    if (!text.trim() || isSpeaking || status === 'analyzing') return;
 
     setTranscript('');
     setCurrentAction(`Processing: "${text}"`);
@@ -99,21 +121,33 @@ const AIVoiceMode: React.FC = () => {
 
     try {
       const { reply } = await aiChatApi.sendMessage(text, pageContext);
-      setCurrentAction('Generating response...');
-      speakAndThen(reply, () => {
-          setCurrentAction('Ready for next command');
-          startListening();
-      });
+      if (reply) {
+        setCurrentAction('Generating response...');
+        speakAndThen(reply, () => {
+            setCurrentAction('Ready for next command');
+            setStatus('idle');
+            setTimeout(() => {
+              if (recognitionRef.current && status !== 'paused') {
+                startListening();
+              }
+            }, 100);
+        });
+      } else {
+        setCurrentAction('No response received');
+        setStatus('idle');
+        setTimeout(() => startListening(), 1000);
+      }
     } catch (e: any) {
       console.error(e);
       const errorMsg = 'I apologize, but I encountered a connection issue. Please try again.';
       setCurrentAction('Connection error occurred');
+      setStatus('idle');
       speakAndThen(errorMsg, () => {
         setCurrentAction('Ready - please try again');
-        startListening();
+        setTimeout(() => startListening(), 1000);
       });
     }
-  }, [isSpeaking, pushEvent, setCurrentAction, setStatus, setTranscript, speakAndThen, stopListening, startListening, navigate]);
+  }, [isSpeaking, status, pushEvent, speakAndThen, stopListening, startListening, navigate, pageContext]);
 
   // Main initialization effect - only run once
   useEffect(() => {
@@ -179,8 +213,17 @@ const AIVoiceMode: React.FC = () => {
         };
 
         recog.onend = () => {
-            if (status === 'listening') {
-                startListening();
+            // Only restart if we're supposed to be listening and not analyzing/speaking
+            if (status === 'listening' && !isSpeaking) {
+                setTimeout(() => {
+                  if (recognitionRef.current && status === 'listening' && !isSpeaking) {
+                    try {
+                      recognitionRef.current.start();
+                    } catch (e) {
+                      console.log('Restart recognition failed:', e);
+                    }
+                  }
+                }, 100);
             }
         };
         
@@ -211,14 +254,14 @@ const AIVoiceMode: React.FC = () => {
     };
   }, []); // Only run once on mount
 
-  // Separate effect to handle speech recognition events
+  // Separate effect to handle speech recognition events when dependencies change
   useEffect(() => {
     if (!recognitionRef.current) return;
 
     const recog = recognitionRef.current;
     
     recog.onresult = (e: any) => {
-        if (isSpeaking) return;
+        if (isSpeaking || status === 'analyzing') return;
         let interim = '';
         for (let i = e.resultIndex; i < e.results.length; i++) {
             const res = e.results[i];
@@ -233,7 +276,7 @@ const AIVoiceMode: React.FC = () => {
             setCurrentAction(`Transcribing: "${interim.slice(0, 30)}${interim.length > 30 ? '...' : ''}"`);
         }
     };
-  }, [isSpeaking, handleFinalTranscript, setTranscript, setCurrentAction]);
+  }, [isSpeaking, status, handleFinalTranscript]);
 
   const togglePause = () => {
     if (status === 'listening') {
@@ -380,7 +423,13 @@ const AIVoiceMode: React.FC = () => {
                 <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
                   <AudioWaveform 
                     audioStream={audioStream} 
-                    isActive={status === 'listening' && Boolean(transcript)}
+                    isActive={status === 'listening' || status === 'speaking' || status === 'idle'}
+                    mode={
+                      status === 'listening' ? 'input' :
+                      status === 'speaking' ? 'output' :
+                      'idle'
+                    }
+                    intensity={status === 'speaking' ? aiSpeechIntensity : 0}
                   />
                 </div>
               </div>

@@ -6,7 +6,7 @@ import { useAIChat } from '../../contexts/AIChatContext';
 
 const VoiceControls: React.FC = () => {
   const { voiceInput, voiceOutput, setVoiceInput, setVoiceOutput } = useVoiceSettings();
-  const { sendMessage } = useAIChat();
+  const { sendMessage, isTyping } = useAIChat();
   const { listening, start, stop } = useSpeechInput({ enabled: voiceInput, onResult: (txt) => sendMessage(txt) });
 
   const handleMicClick = () => {
@@ -28,23 +28,30 @@ const VoiceControls: React.FC = () => {
       {/* Single mic button - Enhanced for mobile */}
       <button
         onClick={handleMicClick}
-        title={!voiceInput ? 'Enable voice input & speak' : listening ? 'Stop recording' : 'Speak'}
-        className={`p-2 rounded-lg transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
-          listening 
-            ? 'bg-red-600 animate-pulse shadow-lg shadow-red-500/50' 
-            : voiceInput 
-              ? 'bg-slate-700 text-green-400 hover:bg-slate-600' 
-              : 'text-slate-400 hover:bg-slate-700 bg-slate-800/50'
+        disabled={isTyping}
+        title={
+          isTyping ? 'AI is responding...' :
+          !voiceInput ? 'Enable voice input & speak' : 
+          listening ? 'Stop recording' : 'Speak'
+        }
+        className={`p-2 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
+          isTyping
+            ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed opacity-50'
+            : listening 
+              ? 'bg-red-600/90 animate-pulse shadow-lg shadow-red-500/50 text-white' 
+              : voiceInput 
+                ? 'bg-slate-700/80 text-green-400 hover:bg-slate-600/80 border border-green-500/30' 
+                : 'text-slate-400 hover:bg-slate-700/60 bg-slate-800/50 border border-slate-600/30'
         }`}
       >
-        <MicrophoneIcon className="h-5 w-5" />
+        <MicrophoneIcon className={`h-5 w-5 ${isTyping ? '' : 'transition-transform duration-200'}`} />
       </button>
 
       {/* Toggle voice output - Better mobile support */}
       <button
         onClick={() => setVoiceOutput(!voiceOutput)}
         title={voiceOutput ? 'Disable voice output' : 'Enable voice output'}
-        className="hidden sm:inline-flex p-2 rounded-lg hover:bg-slate-700 bg-slate-800/50 transition-all duration-200 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95"
+        className="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-700/60 bg-slate-800/50 transition-all duration-200 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 border border-slate-600/30"
       >
         {voiceOutput ? (
           <SpeakerWaveIcon className="h-5 w-5 text-green-400" />
