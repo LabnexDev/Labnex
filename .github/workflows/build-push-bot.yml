@@ -29,7 +29,7 @@ jobs:
       - name: Build and push bot image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend
           file: docker/bot.Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/labnex-bot:latest 
