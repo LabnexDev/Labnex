@@ -52,6 +52,7 @@ import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 import ResetPassword from './pages/auth/ResetPassword';
 import ResetRequested from './pages/auth/ResetRequested';
 import LabnexAIPage from './pages/ai/LabnexAIPage';
+import AIVoiceMode from './pages/ai/AIVoiceMode';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -261,6 +262,10 @@ function AppRoutes() {
       <Route
         path="/ai"
         element={<PrivateRoute><LabnexAIPage /></PrivateRoute>}
+      />
+      <Route
+        path="/ai/voice"
+        element={<PrivateRoute><AIVoiceMode /></PrivateRoute>}
       />
     </Routes>
   );
