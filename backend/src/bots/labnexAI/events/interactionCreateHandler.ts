@@ -72,16 +72,46 @@ import {
     return i.isRepliable();
   }
   
-  async function safeReply (
+  function safeReply (
     interaction: Interaction,
     content: string | MessagePayload | InteractionReplyOptions
   ) {
-    if (!isRepliable(interaction)) return;
-    if (interaction.deferred || interaction.replied) {
-      await interaction.followUp(content);
-    } else {
-      await interaction.reply(content);
+    // Ensure the interaction is properly acknowledged before attempting to reply.
+    // 1. If not yet deferred/replied, defer first (helps with >3s API calls).
+    // 2. Then send a follow-up or initial reply accordingly.
+    // 3. Gracefully handle the case where the interaction was already acknowledged elsewhere (error code 40060).
+
+    async function inner () {
+      if (!isRepliable(interaction)) return;
+
+      try {
+        if (!interaction.deferred && !interaction.replied) {
+          // Defer to buy us time if the command handler is long-running.
+          const isEphemeral =
+            typeof content === 'object' && content !== null && 'ephemeral' in content
+              ? (content as InteractionReplyOptions).ephemeral === true
+              : false;
+          await (interaction as ChatInputCommandInteraction<CacheType>).deferReply({ ephemeral: isEphemeral });
+        }
+
+        if (interaction.deferred || interaction.replied) {
+          await interaction.followUp(content as any);
+        } else {
+          await interaction.reply(content as any);
+        }
+      } catch (err: any) {
+        // 40060 = "Interaction has already been acknowledged" – fall back to followUp.
+        if (err?.code === 40060) {
+          try {
+            await interaction.followUp(content as any);
+          } catch (_) {/* ignore */}
+        } else {
+          throw err;
+        }
+      }
     }
+
+    return inner();
   }
   
   /* -------------------------------------------------------------------------- */
