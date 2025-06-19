@@ -22,13 +22,13 @@ export function Layout({ children }: LayoutProps) {
     <VoiceSettingsProvider>
     <AIChatProvider>
       <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
-        <div className="flex h-screen bg-[var(--lnx-bg)] dark:bg-gray-900">
+        <div className="flex min-h-screen bg-[var(--lnx-bg)] dark:bg-gray-900">
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
           <div className="flex-1 flex flex-col md:ml-64">
             <Header onMenuToggle={() => setSidebarOpen(true)} />
 
-            <main className="relative flex-1 mt-16 overflow-x-hidden overflow-y-auto bg-[var(--lnx-bg)] dark:bg-transparent">
+            <main className="relative flex-1 mt-16 overflow-x-hidden bg-[var(--lnx-bg)] dark:bg-transparent">
               <OrbBackground />
               {location.pathname === '/ai' ? (
                 <div className="flex flex-col h-full w-full px-4 py-2">
