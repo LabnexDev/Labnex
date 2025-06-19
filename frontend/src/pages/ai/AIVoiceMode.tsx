@@ -6,6 +6,8 @@ import { useAIChat } from '../../contexts/AIChatContext';
 import { toast } from 'react-hot-toast';
 import MicWave from '../../components/ai-chat/MicWave';
 import TypingDots from '../../components/visual/TypingDots';
+import { useOpenAITTS } from '../../hooks/useOpenAITTS';
+import { Switch } from '@headlessui/react';
 
 interface VoiceMessage {
   id: string;
@@ -62,6 +64,9 @@ const AIVoiceMode: React.FC = () => {
   const [paused, setPaused] = useState(false);
   const [voiceTone, setVoiceTone] = useState<Tone>('normal');
   const [loadingReply, setLoadingReply] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [useOpenAIEngine, setUseOpenAIEngine] = useState(false);
+  const { speak: speakOpenAI } = useOpenAITTS();
 
   // Auto-set page context once (current route info)
   useEffect(() => {
@@ -118,13 +123,38 @@ const AIVoiceMode: React.FC = () => {
     setListening(false);
   };
 
+  // Welcome message once
+  useEffect(() => {
+    const welcome = async () => {
+      setIsSpeaking(true);
+      stopListening();
+      if (useOpenAIEngine) {
+        await speakOpenAI('Welcome to Labnex Voice Mode. How can I help you today?');
+      } else {
+        await speakTTS('Welcome to Labnex Voice Mode. How can I help you today?', voiceTone);
+      }
+      setIsSpeaking(false);
+      startListening();
+    };
+    welcome();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Simple voice command router
   const tryVoiceCommand = (lower: string): boolean => {
     const pid = pageContext.projectId;
     const speakAndNav = async (msg: string, path: string) => {
       toast(msg);
-      await speakTTS(msg, voiceTone);
+      setIsSpeaking(true);
+      stopListening();
+      if (useOpenAIEngine) {
+        await speakOpenAI(msg);
+      } else {
+        await speakTTS(msg, voiceTone);
+      }
+      setIsSpeaking(false);
       navigate(path);
+      startListening();
     };
 
     if (lower.includes('go back to chat')) {
@@ -178,12 +208,28 @@ const AIVoiceMode: React.FC = () => {
       const { reply } = await aiChatApi.sendMessage(text, pageContext);
       const botMsg: VoiceMessage = { id: `${Date.now()}-b`, role: 'assistant', text: reply };
       setMessages(prev => [...prev, botMsg]);
-      await speakTTS(reply, voiceTone);
+      setIsSpeaking(true);
+      stopListening();
+      if (useOpenAIEngine) {
+        await speakOpenAI(reply);
+      } else {
+        await speakTTS(reply, voiceTone);
+      }
+      setIsSpeaking(false);
+      startListening();
     } catch (e:any) {
       console.error(e);
       const err = 'Sorry, I had trouble reaching the server.';
       setMessages(prev => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: err }]);
-      await speakTTS(err, voiceTone);
+      setIsSpeaking(true);
+      stopListening();
+      if (useOpenAIEngine) {
+        await speakOpenAI(err);
+      } else {
+        await speakTTS(err, voiceTone);
+      }
+      setIsSpeaking(false);
+      startListening();
     } finally {
       setLoadingReply(false);
     }
@@ -214,6 +260,19 @@ const AIVoiceMode: React.FC = () => {
             <option value="normal">Normal</option>
             <option value="announcer">Announcer</option>
           </select>
+          <div className="flex items-center gap-1">
+            <span className="text-xs">TTS</span>
+            <Switch
+              checked={useOpenAIEngine}
+              onChange={setUseOpenAIEngine}
+              className={`${useOpenAIEngine ? 'bg-indigo-600' : 'bg-slate-600'} relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none`}
+            >
+              <span
+                aria-hidden="true"
+                className={`${useOpenAIEngine ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200`}
+              />
+            </Switch>
+          </div>
           <button onClick={toggleListening} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700" title={listening ? 'Pause' : 'Resume'}>
             {listening ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
           </button>
@@ -223,43 +282,20 @@ const AIVoiceMode: React.FC = () => {
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6" id="voice-scroll">
-        {messages.map(m => (
-          <div
-            key={m.id}
-            className={
-              m.role === 'user'
-                ? 'self-end text-right'
-                : 'self-start text-left'
-            }
-          >
-            <div
-              className={
-                m.role === 'user'
-                  ? 'inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md max-w-prose'
-                  : 'inline-block bg-slate-800 text-slate-100 px-4 py-2 rounded-lg shadow-md max-w-prose'
-              }
-            >
-              {m.text}
-            </div>
-          </div>
-        ))}
+      {/* Orb & transcript */}
+      <div className="flex-1 flex flex-col items-center justify-center space-y-8 select-none">
+        <div
+          className={`rounded-full bg-indigo-600 shadow-2xl transition-all duration-500 ${loadingReply || isSpeaking ? 'animate-pulse scale-110' : 'scale-100'} w-40 h-40 flex items-center justify-center`}
+        >
+          <div className="rounded-full bg-indigo-500 w-32 h-32"></div>
+        </div>
         {loadingReply && (
-          <div className="self-start text-left">
-            <div className="inline-block bg-slate-800 text-slate-100 px-4 py-2 rounded-lg shadow-md max-w-prose">
-              <TypingDots />
-            </div>
-          </div>
+          <TypingDots />
         )}
         {transcript && (
-          <div className="self-end text-right opacity-70">
-            <div className="inline-block border border-indigo-400 text-indigo-300 px-4 py-2 rounded-lg max-w-prose animate-pulse">
-              {transcript}
-            </div>
-          </div>
+          <p className="text-indigo-200 text-xl animate-pulse px-4 text-center max-w-xl">{transcript}</p>
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-0 w-0"/>
       </div>
 
       {/* Mic status */}
