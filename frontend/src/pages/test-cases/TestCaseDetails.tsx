@@ -21,6 +21,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
+import { useAIChat } from '../../contexts/AIChatContext';
 
 const statusBadgeColors: Record<TestCase['status'], string> = {
   PASSED: 'bg-green-100 text-green-700 dark:bg-green-600/30 dark:text-green-300',
@@ -38,6 +39,7 @@ export function TestCaseDetails() {
   const { id: projectId, testCaseId } = useParams<{ id: string; testCaseId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setPageContext } = useAIChat();
 
   useEffect(() => {
     if (!projectId || projectId === "undefined" || !testCaseId || testCaseId === "undefined") {
@@ -60,6 +62,17 @@ export function TestCaseDetails() {
     },
     enabled: !!projectId && projectId !== "undefined" && !!testCaseId && testCaseId !== "undefined",
   });
+
+  useEffect(() => {
+    if (testCase && projectId && testCaseId) {
+      setPageContext({
+        view: 'testCaseDetails',
+        projectId: projectId,
+        projectName: testCase.project?.name ?? undefined,
+        selectedTestCaseId: testCase._id,
+      });
+    }
+  }, [testCase, projectId, testCaseId, setPageContext]);
 
   const updateStatusMutation = useMutation<TestCase, Error, TestCase['status']>({
     mutationFn: (status: TestCase['status']) => {

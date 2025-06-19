@@ -432,174 +432,37 @@ export interface NLUResponse {
 
 export async function getIntentAndEntitiesFromQuery(
   query: string,
-  conversationHistory?: OpenAI.Chat.ChatCompletionMessageParam[]
+  conversationHistory?: OpenAI.Chat.ChatCompletionMessageParam[],
+  pageContext?: Record<string, any>
 ): Promise<NLUResponse | null> {
     if (!openai) {
         console.error("[getIntentAndEntitiesFromQuery] OpenAI service not configured.");
         return null;
     }
 
-    // System prompt for intent extraction, designed for JSON mode
+    // Build human-readable context lines for the prompt
+    const ctxLines = pageContext && Object.keys(pageContext).length > 0
+      ? Object.entries(pageContext)
+          .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+          .map(([k, v]) => `• ${k}: ${v}`)
+          .join('\n')
+      : 'none';
+
+    // System prompt for intent extraction, JSON-only response
     const systemPromptIntentExtraction = `
-    You are an NLU (Natural Language Understanding) engine for Labnex AI, a Discord bot assistant for the Labnex platform. 
-    Your task is to analyze the user's query and determine their intent and any relevant entities. 
-    The Labnex platform involves features like Projects, Test Cases, Tasks, Notes, and Code Snippets. 
-    Users can link their Discord accounts to their Labnex accounts.
-    
+    You are an NLU (Natural Language Understanding) engine for Labnex AI, a Discord/web assistant for the Labnex platform.
+    Your task is to analyze the user's query and determine their intent and any relevant entities.
+
+    Current UI context (use this to fill missing entities before asking the user):
+    ${ctxLines}
+
     Respond ONLY with a JSON object matching the NLUResponse interface:
     { "intent": "string", "entities": { "key": "value" }, "confidence": number, "processed_query": "string", "original_query": "string", "answer_suggestion": "string (optional)" }
 
-    If the query is ambiguous or you cannot confidently determine a specific Labnex-related intent, classify it as "general_question".
-    If it's a general question the Labnex AI assistant (a separate LLM call) should answer, you can optionally provide an "answer_suggestion" if the answer is straightforward based on the query itself, otherwise omit it.
-    
-    Available intents and their typical entities:
-    [
-      {
-        "intent": "LINK_ACCOUNT",
-        "description": "User wants to link their Discord account to their Labnex account.",
-        "example_queries": ["link my account", "how do I connect to Labnex?", "authorize my user"],
-        "entities": {}
-      },
-      {
-        "intent": "CREATE_PROJECT",
-        "description": "User wants to create a new project. Often includes a name or topic.",
-        "example_queries": ["create a new project for e-commerce site", "start project called Mobile App", "new project about API testing"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The name or topic of the project." }
-        }
-      },
-      {
-        "intent": "LIST_PROJECTS",
-        "description": "User wants to see a list of their projects.",
-        "example_queries": ["list my projects", "show all projects", "what projects do I have?"],
-        "entities": {}
-      },
-      {
-        "intent": "GET_PROJECT_DETAILS",
-        "description": "User wants more information about a specific project.",
-        "example_queries": ["details for project Phoenix", "tell me about my E-commerce App", "what's the status of Project X?"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The name of the project they are asking about." }
-        }
-      },
-      {
-        "intent": "CREATE_TEST_CASE",
-        "description": "User wants to create a new test case, often specifying a project and title or topic.",
-        "example_queries": ["new test case for login in Phoenix project", "add test for user registration in E-commerce App", "create a test about payment processing"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The project to add the test case to.", "optional": true },
-          "test_case_title": { "type": "string", "description": "The title or topic of the test case." }
-        }
-      },
-      {
-        "intent": "CREATE_TASK",
-        "description": "User wants to create a new task, often specifying a project and title.",
-        "example_queries": ["create task: fix login bug for project Phoenix", "new task for E-commerce App: update payment gateway", "add a task to implement SSO"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The project for the task. If not specified, might refer to a recent project in conversation.", "optional": true },
-          "task_title": { "type": "string", "description": "The title or summary of the task." },
-          "priority": { "type": "string", "description": "(e.g., LOW, MEDIUM, HIGH)", "optional": true },
-          "description": { "type": "string", "description": "A more detailed description of the task.", "optional": true }
-        }
-      },
-      {
-        "intent": "GET_TASK_DETAILS",
-        "description": "User wants details about a specific task, often identified by a reference ID or title within a project context.",
-        "example_queries": ["what are the details for task #123?", "tell me more about the 'fix login bug' task in project Phoenix", "show task TSK-5"],
-        "entities": {
-          "task_reference": { "type": "string", "description": "The reference ID (e.g., #123, TSK-5) or title of the task." },
-          "project_name": { "type": "string", "description": "The project context for the task, if specified.", "optional": true }
-        }
-      },
-      {
-        "intent": "LIST_TASKS",
-        "description": "User wants to list tasks, often for a specific project or with filters like status or assignee.",
-        "example_queries": ["list tasks for project Phoenix", "show my tasks in E-commerce App", "what are the open tasks?", "tasks assigned to me"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The project whose tasks are to be listed.", "optional": true },
-          "status": { "type": "string", "description": "(e.g., TO_DO, IN_PROGRESS, DONE)", "optional": true },
-          "assignee": { "type": "string", "description": "(e.g., 'me', user ID, user name)", "optional": true }
-        }
-      },
-      {
-        "intent": "UPDATE_TASK_STATUS",
-        "description": "User wants to update the status of a task.",
-        "example_queries": ["update task #123 to done", "mark 'fix login bug' as in progress in project Phoenix", "change status of TSK-5 to completed"],
-        "entities": {
-          "task_reference": { "type": "string", "description": "The reference ID or title of the task." },
-          "new_status": { "type": "string", "description": "The new status (e.g., TO_DO, IN_PROGRESS, DONE)." },
-          "project_name": { "type": "string", "description": "The project context for the task, if specified.", "optional": true }
-        }
-      },
-      {
-        "intent": "ADD_NOTE",
-        "description": "User wants to add a new note, usually providing the content and optionally a project.",
-        "example_queries": ["add a note: remember to check API limits for project Phoenix", "new note for E-commerce App - UI feedback session", "note to self: research testing tools"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The project to associate the note with.", "optional": true },
-          "note_content": { "type": "string", "description": "The actual content of the note." }
-        }
-      },
-      {
-        "intent": "LIST_NOTES",
-        "description": "User wants to list their notes, possibly filtered by project.",
-        "example_queries": ["list my notes", "show notes for project Phoenix", "what notes do I have for E-commerce App?"],
-        "entities": {
-          "project_name": { "type": "string", "description": "The project whose notes are to be listed.", "optional": true }
-        }
-      },
-      {
-        "intent": "CREATE_SNIPPET",
-        "description": "User wants to create a new code snippet.",
-        "example_queries": ["save this code as 'login_helper'", "create snippet for python: def foo(): pass", "new js snippet named 'utils'"],
-        "entities": {
-          "snippet_name": { "type": "string", "description": "The name for the code snippet.", "optional": true },
-          "language": { "type": "string", "description": "The programming language of the snippet.", "optional": true },
-          "code_content": { "type": "string", "description": "The actual code content. May be extracted from a code block or subsequent message." }
-        }
-      },
-      {
-        "intent": "LIST_SNIPPETS",
-        "description": "User wants to list their saved code snippets.",
-        "example_queries": ["show my snippets", "list all code snippets", "what snippets do I have?"],
-        "entities": {
-          "language": { "type": "string", "description": "Filter snippets by programming language.", "optional": true }
-        }
-      },
-      {
-        "intent": "CHANGE_ROLE",
-        "description": "User wants to change their assigned role in Labnex (e.g., from Tester to Developer or vice-versa). This is a direct request to modify their user profile settings related to their role.",
-        "example_queries": [
-          "I want to change my role",
-          "Can I switch to be a developer?",
-          "Update my role to tester",
-          "Set me as a developer",
-          "I'm not a tester anymore, I'm a dev",
-          "Need to change my user role"
-        ],
-        "entities": {
-          "new_role": {
-            "type": "string",
-            "description": "The desired new role (e.g., 'tester', 'developer'). This might not always be present if the user is just expressing desire to change without specifying the new role yet.",
-            "optional": true
-          }
-        }
-      },
-      {
-        "intent": "GENERAL_QUESTION",
-        "description": "User is asking a general question, wants to chat, or the intent is not one of the specific Labnex actions above.",
-        "example_queries": ["hello", "how are you?", "what is Labnex?", "tell me a joke", "what can you do?"],
-        "entities": {}
-      }
-    ]
-    Consider the conversation history if provided. For example, if the user says "the first one" after the bot listed some projects, the NLU should try to resolve that to a specific project name if possible in the entities or processed_query.
-    If the user provides code in a markdown block, and the intent seems to be CREATE_SNIPPET, extract the code content.
-    Be robust. If a specific entity (e.g. project_name) is not found for an intent that usually has it, that's okay, the intent can still be valid.
-    The \"processed_query\" field can be the original query, or a version of it that's been slightly cleaned or contextualized (e.g., resolving \"it\" or \"that one\").
-    Confidence should be between 0.0 and 1.0.
-    Ensure the output is a single, valid JSON object. No extra text, explanations, or markdown.
+    If the query is ambiguous or you cannot confidently determine a specific Labnex-related intent, set intent to "general_question".
+    If something is missing but clearly required (e.g. project_code) you may still set the correct intent but leave the field empty.
     `;
-
+    
     const userMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
     if (conversationHistory) {
         userMessages.push(...conversationHistory);
@@ -623,7 +486,10 @@ export async function getIntentAndEntitiesFromQuery(
             if (!parsedResponse.original_query) {
                 parsedResponse.original_query = query;
             }
-            // Basic validation of the parsed structure
+            // Merge page context fallback for certain entities
+            const mergedEntities = mergeContextEntities(parsedResponse.entities, pageContext);
+            parsedResponse.entities = mergedEntities;
+
             if (parsedResponse.intent && typeof parsedResponse.entities === 'object') {
                 return parsedResponse;
             }
@@ -798,4 +664,14 @@ Provide the full JSON object containing the "tasks" array.`;
         console.error("[generateDevelopmentTasks] Failed to parse JSON response from OpenAI:", e, "\nResponse was:", jsonResponse);
         return "Error: AI generated invalid JSON for development tasks. Please try again.";
     }
+} 
+
+function mergeContextEntities(entities: Record<string, any>, ctx?: Record<string, any>): Record<string, any> {
+    if (!ctx) return entities;
+    const merged = { ...entities };
+    if (!merged.project_id && ctx.projectId) merged.project_id = ctx.projectId;
+    if (!merged.project_name && ctx.projectName) merged.project_name = ctx.projectName;
+    if (!merged.task_id && ctx.selectedTaskId) merged.task_id = ctx.selectedTaskId;
+    if (!merged.test_case_id && ctx.selectedTestCaseId) merged.test_case_id = ctx.selectedTestCaseId;
+    return merged;
 } 

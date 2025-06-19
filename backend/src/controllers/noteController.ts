@@ -34,7 +34,7 @@ export const getNotes = async (req: Request, res: Response) => {
 export const createNote = async (req: Request, res: Response) => {
     const userId = (req as any).user._id;
     const discordUserId = (req as any).user.discordUserId; // Assuming this might be on the user object or we fetch it
-    const { content, projectId } = req.body;
+    const { content, projectId, title: incomingTitle } = req.body;
 
     if (!content || content.trim() === '') {
         return res.status(400).json({ message: 'Note content cannot be empty.' });
@@ -69,9 +69,14 @@ export const createNote = async (req: Request, res: Response) => {
             projectForNote = project._id;
         }
 
+        const autoTitle = incomingTitle && typeof incomingTitle === 'string' && incomingTitle.trim().length > 0
+            ? incomingTitle.trim()
+            : content.trim().split(/\s+/).slice(0, 8).join(' ').substring(0, 50) || 'Untitled Note';
+
         const newNote = new Note({
             userId,
-            discordUserId: discordUserIdForNote, // Potentially from UserDiscordLink or a default/optional value
+            discordUserId: discordUserIdForNote,
+            title: autoTitle,
             content: content.trim(),
             project: projectForNote,
         });
@@ -221,10 +226,12 @@ export const createNoteWithAI = async (req: Request, res: Response) => {
         }
 
         // 4. Create and save the new note
+        const autoTitleAI = aiGeneratedContent.trim().split(/\s+/).slice(0, 8).join(' ').substring(0, 50) || 'AI Generated Note';
         const newNote = new Note({
             userId,
-            discordUserId: discordUserIdForNote, 
-            content: aiGeneratedContent, // Use AI generated content
+            discordUserId: discordUserIdForNote,
+            title: autoTitleAI,
+            content: aiGeneratedContent,
             project: projectForNote,
         });
 

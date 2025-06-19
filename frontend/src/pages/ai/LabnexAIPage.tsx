@@ -1,21 +1,34 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { MicrophoneIcon } from '@heroicons/react/24/solid';
 import AIResponseBox from '../../components/visual/AIResponseBox';
 import TypingDots from '../../components/visual/TypingDots';
 import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
 import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutocomplete';
 import SessionDropdown from '../../components/ai-chat/SessionDropdown';
 import VoiceControls from '../../components/ai-chat/VoiceControls';
+import { useNavigate } from 'react-router-dom';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage, isTyping, isScanning, hasMore, loadOlder } = useAIChat();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping, isScanning]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
+        navigate('/ai/voice');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,6 +63,13 @@ const LabnexAIPage: React.FC = () => {
           onClick={handleSummarize}
         >
           Summarize Activity
+        </button>
+        <button
+          onClick={() => navigate('/ai/voice')}
+          title="Switch to immersive voice chat"
+          className="ml-2 px-3 py-1.5 flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm"
+        >
+          <MicrophoneIcon className="h-5 w-5" /> Voice Mode
         </button>
       </div>
 

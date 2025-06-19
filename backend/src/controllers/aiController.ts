@@ -6,6 +6,7 @@ import { Role } from '../models/roleModel';
 import OpenAI from 'openai';
 import { JwtPayload } from '../middleware/auth';
 import { askChatGPT } from '../bots/labnexAI/chatgpt.service';
+import { getFlow, updateFlowAnswer, clearFlow, nextMissingField } from '../utils/pendingFlowManager';
 
 interface AuthRequest extends Request {
   user?: JwtPayload;
@@ -15,6 +16,8 @@ interface AuthRequest extends Request {
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// PendingFlow definitions are centralized in utils/pendingFlowManager
 
 export const generateTestCase = async (req: AuthRequest, res: Response) => {
   try {
@@ -712,6 +715,23 @@ export const chatWithAI = async (req: AuthRequest, res: Response) => {
     }
 
     const { message, context } = req.body as { message?: string; context?: any };
+
+    // ----- Pending Flow handling -----
+    const existingFlow = getFlow(currentUser.id);
+    if (existingFlow && message) {
+      if (existingFlow.askedField) {
+        updateFlowAnswer(currentUser.id, existingFlow.askedField, message.trim());
+      }
+      const missingField = nextMissingField(existingFlow);
+      if (!missingField) {
+        // TODO: Execute action. For now, clear and confirm.
+        clearFlow(currentUser.id);
+        return res.json({ success: true, data: { reply: `✅ ${existingFlow.intent.replace(/_/g,' ')} executed.` } });
+      } else {
+        existingFlow.askedField = missingField;
+        return res.json({ success: true, data: { reply: `Sure — what's the ${missingField.replace(/_/g,' ')}?` } });
+      }
+    }
 
     if (!message || message.trim().length === 0) {
       return res.status(400).json({ success: false, error: 'Message is required' });

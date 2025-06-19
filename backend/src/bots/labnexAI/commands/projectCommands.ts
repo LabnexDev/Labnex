@@ -179,13 +179,24 @@ async function callCreateProjectAPI(
         }
     } catch (error: any) {
         console.error(`[callCreateProjectAPI] Error creating project "${projectNameArgument}":`, error.response?.data || error.message);
+        const apiMsg: string | undefined = error.response?.data?.message;
+        if (apiMsg && /Project code must/i.test(apiMsg)) {
+            await replyFunction("⚠️ The project code must be 3-5 letters or numbers (no spaces). Please provide a new code, e.g. `PRJ01`.", true);
+            return; // let the conversation continue so user can answer
+        }
+
+        if (apiMsg && /already exists/i.test(apiMsg) && /project code/i.test(apiMsg)) {
+            await replyFunction("⚠️ That project code is already in use. Please choose a unique 3-5 character code.", true);
+            return;
+        }
+
         let errorMessage = `Sorry, I couldn't create project "${projectNameArgument}".`;
         if (error.response?.status === 403) {
              errorMessage = "It seems I don't have permission to create projects, or your account is not authorized for this action.";
-        } else if (error.response?.status === 404 && error.response?.data?.message?.includes('not linked')) {
+        } else if (error.response?.status === 404 && apiMsg?.includes('not linked')) {
             errorMessage = "Your Discord account is not linked to a Labnex account. Please use `!labnex link-account` or `/linkaccount` first.";
-        } else if (error.response?.data?.message) {
-            errorMessage = error.response.data.message;
+        } else if (apiMsg) {
+            errorMessage = apiMsg;
         } else if (error.message.includes('connect ECONNREFUSED')) {
             errorMessage = "I couldn't connect to the Labnex API. Please try again later.";
         }
