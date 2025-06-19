@@ -1,9 +1,14 @@
 import React from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
+import { useLocation } from 'react-router-dom';
 
 const AIChatBubble: React.FC = () => {
   const { open, isOpen } = useAIChat();
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/ai/voice')) return null;
+
   return (
     <button
       aria-label="Ask Labnex AI"
@@ -16,4 +21,4 @@ const AIChatBubble: React.FC = () => {
   );
 };
 
-export default AIChatBubble; 
+export default AIChatBubble;

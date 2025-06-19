@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import MicWave from '../../components/ai-chat/MicWave';
 import TypingDots from '../../components/visual/TypingDots';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
+import VoiceStatusPanel from '../../components/ai-chat/VoiceStatusPanel';
 
 interface VoiceMessage {
   id: string;
@@ -36,6 +37,7 @@ const AIVoiceMode: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const isSpeakingRef = useRef(false);
   const { speak: speakOpenAI } = useOpenAITTS();
+  const [statusMsg, setStatusMsg] = useState('Listening');
 
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
@@ -74,6 +76,7 @@ const AIVoiceMode: React.FC = () => {
         }
       }
       setTranscript(interim);
+      setStatusMsg('Transcribing…');
     };
 
     recog.onerror = console.error;
@@ -88,11 +91,13 @@ const AIVoiceMode: React.FC = () => {
     if (!recognitionRef.current) return;
     recognitionRef.current.start();
     setListening(true);
+    setStatusMsg('Listening');
   };
 
   const stopListening = () => {
     recognitionRef.current?.stop();
     setListening(false);
+    setStatusMsg('Paused');
   };
 
   // Welcome message once
@@ -102,6 +107,7 @@ const AIVoiceMode: React.FC = () => {
       stopListening();
       await speakOpenAI('Welcome to Labnex Voice Mode. How can I help you today?');
       setIsSpeaking(false);
+      setStatusMsg('Listening');
       startListening();
     };
     welcome();
@@ -113,10 +119,12 @@ const AIVoiceMode: React.FC = () => {
     const pid = pageContext.projectId;
     const speakAndNav = async (msg: string, path: string) => {
       toast(msg);
+      setStatusMsg(msg);
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(msg);
       setIsSpeaking(false);
+      setStatusMsg('Listening');
       navigate(path);
       startListening();
     };
@@ -167,25 +175,29 @@ const AIVoiceMode: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
 
     setLoadingReply(true);
+    setStatusMsg('Analyzing intent');
 
     try {
       const { reply } = await aiChatApi.sendMessage(text, pageContext);
       const botMsg: VoiceMessage = { id: `${Date.now()}-b`, role: 'assistant', text: reply };
       setMessages(prev => [...prev, botMsg]);
+      setStatusMsg('Responding');
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(reply);
       setIsSpeaking(false);
+      setStatusMsg('Listening');
       startListening();
     } catch (e:any) {
       console.error(e);
       const err = 'Sorry, I had trouble reaching the server.';
       setMessages(prev => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: err }]);
+      setStatusMsg('Error');
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(err);
       setIsSpeaking(false);
-      startListening();
+      setStatusMsg('Listening');
     } finally {
       setLoadingReply(false);
     }
@@ -229,6 +241,9 @@ const AIVoiceMode: React.FC = () => {
         )}
         <div ref={messagesEndRef} className="h-0 w-0"/>
       </div>
+
+      {/* Status Panel */}
+      <VoiceStatusPanel status={statusMsg} />
 
       {/* Mic status */}
       <div className="p-4 flex items-center justify-between border-t border-slate-700">
