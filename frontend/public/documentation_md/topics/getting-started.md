@@ -9,7 +9,10 @@ By the end of this guide, you'll be able to:
 - Create and execute test cases using AI
 - Use the powerful CLI for advanced testing workflows
 - Integrate Discord for team collaboration
+- Experience AI Voice Mode for hands-free interaction
+- Navigate with interactive onboarding tutorials
 - Monitor and analyze test results with performance insights
+- Leverage mobile optimizations for on-the-go testing
 
 ## 📋 Prerequisites
 
@@ -17,6 +20,7 @@ Before getting started, ensure you have:
 - A modern web browser (Chrome, Firefox, Safari, Edge)
 - Node.js 18+ (for CLI usage)
 - A Discord account (optional, for bot integration)
+- Microphone access (for AI Voice Mode)
 - Basic understanding of web testing concepts
 
 ## 🚀 Step 1: Account Setup
@@ -24,7 +28,7 @@ Before getting started, ensure you have:
 ### Create Your Account
 
 1. **Visit Labnex Platform**
-   - Go to [https://labnex.dev](https://labnex.dev)
+   - Go to [https://labnexdev.github.io/Labnex](https://labnexdev.github.io/Labnex)
    - Click **"Sign Up"** in the top right corner
 
 2. **Registration Details**
@@ -44,13 +48,45 @@ Before getting started, ensure you have:
    - Select your role (Developer, Tester, Manager, etc.)
    - Set notification preferences
 
-### First Login
+### First Login & Onboarding
 
 After verification, log in to access your dashboard where you'll see:
 - **Projects Overview**: Your projects and their status
 - **Recent Activity**: Latest test runs and updates
 - **Quick Actions**: Create projects, test cases, and more
 - **Team Activity**: Collaboration updates (if in a team)
+- **Interactive Tutorials**: Get guided tours of key features (AI Chat, Voice Mode)
+- **Welcome Tour**: First-time user experience with step-by-step guidance
+
+### Interactive Onboarding Tutorials
+
+Labnex offers guided tutorials for key features:
+
+**AI Chat Tutorial** (8 steps):
+- Chat input and formatting
+- Voice command integration
+- Session management
+- Quick actions toolbar
+- Keyboard shortcuts
+- AI capabilities overview
+- Context awareness
+- Best practices
+
+**AI Voice Mode Tutorial** (9 steps):
+- Voice orb introduction
+- Smart listening features
+- Mobile gesture controls
+- Audio visualization
+- Activity timeline
+- Voice command examples
+- Best practices
+- Troubleshooting tips
+
+**How to Access Tutorials**:
+- **Auto-launch**: First-time users see tutorials automatically
+- **Manual access**: Click "Help" or "?" buttons in respective interfaces
+- **Skip option**: Can be skipped and re-accessed later
+- **Progress tracking**: System remembers your tutorial completion status
 
 ## 🏗️ Step 2: Create Your First Project
 
@@ -144,11 +180,14 @@ Your project dashboard provides:
 # Install CLI first
 npm install -g @labnex/cli
 
+# First-time setup wizard
+labnex --help  # Triggers setup on first run
+
 # Generate test case
-labnex generate test "User can log in with valid email and password"
+labnex ai generate --description "User can log in with valid email and password"
 
 # Generate for specific project
-labnex generate test "Shopping cart checkout process" --project WEBAPP
+labnex ai generate --description "Shopping cart checkout process" --project WEBAPP
 ```
 
 ## 🏃‍♂️ Step 4: Execute Your First Test
@@ -197,8 +236,9 @@ labnex run --project WEBAPP --watch --detailed
 With `--detailed` flag, you'll see comprehensive real-time logging:
 
 ```bash
-🚀 Initializing test run...
-📝 Project: WEBAPP
+🚀 Labnex CLI v1.3.0
+────────────────────────────────────────
+📝 Project: WEBAPP (Web Application)
 🌍 Environment: staging
 ⚡ Parallel workers: 4
 🖱 AI Optimization: enabled
@@ -221,10 +261,64 @@ With `--detailed` flag, you'll see comprehensive real-time logging:
 ✅ PASSED User Login Validation (3,456ms)
 
 📊 Progress: 5/5 ████████████████████ 100%
-🎉 Test Run Completed!
+🎉 Test Run Completed Successfully!
 ```
 
-## 🔗 Step 5: Discord Integration
+## 🎤 Step 5: Experience AI Voice Mode
+
+### Accessing Voice Mode
+
+1. **From AI Chat**:
+   - Navigate to AI Chat page
+   - Click **"Voice Mode"** button
+   - Or click the microphone icon
+
+2. **Direct Access**:
+   - Go to `/ai/voice` in the application
+   - Bookmark for quick access
+
+### First-Time Voice Setup
+
+1. **Microphone Permissions**:
+   - Grant browser microphone access
+   - Test audio input quality
+   - Adjust sensitivity if needed
+
+2. **Interactive Tutorial**:
+   - 9-step guided tutorial
+   - Learn voice orb controls
+   - Practice basic commands
+   - Understand visual feedback
+
+3. **Try Basic Commands**:
+   ```
+   "Hello, what can you help me with?"
+   "What's my project status?"
+   "Show me recent test results"
+   "Create a test case for user authentication"
+   ```
+
+### Voice Mode Features
+
+**The Voice Orb**:
+- **Gray**: Ready to listen
+- **Green Pulsing**: Actively listening
+- **Purple Spinning**: AI processing
+- **Blue Animated**: AI responding
+
+**Smart Listening**:
+- Automatic voice detection
+- Background monitoring
+- Natural conversation flow
+- Adjustable sensitivity
+
+**Mobile Gestures**:
+- Single tap: Start/stop listening
+- Swipe up: Show activity timeline
+- Swipe down: Hide controls
+- Long press: Access settings
+
+## 🔗 Step 6: Discord Integration
 
 ### Setup Discord Bot
 
@@ -245,159 +339,214 @@ With `--detailed` flag, you'll see comprehensive real-time logging:
 
 ```bash
 # Basic commands
-@Labnex AI help
-@Labnex AI status
+/help
+/ping
+/linkaccount
 
 # Project management
-@Labnex AI create project "Mobile App Testing"
-@Labnex AI status of project WEBAPP
-
-# Test case creation
-@Labnex AI generate test case for "user profile editing"
-
-# Test execution
-@Labnex AI run tests for project WEBAPP
+/projects
+/createtask project:WEBAPP title:"Fix login bug" priority:High
 
 # Notes and snippets
-@Labnex AI create note "Fix login button styling" for project WEBAPP
+/addnote title:"Meeting Notes" body:"Discussed testing strategy"
+/addsnippet language:javascript title:"API Helper" code:"fetch('/api/data')"
+
+# Support system
+/ticket create
+/ticket close reason:"Issue resolved"
 ```
 
-## 📊 Step 6: Understanding Results
+## 📱 Step 7: Mobile Optimization
 
-### Test Run Dashboard
+### Mobile Features
 
-After execution, analyze results through:
+**Responsive Design**:
+- Optimized layouts for all screen sizes
+- Touch-friendly interface elements
+- Safe area support for notched devices
+- Swipe gestures for navigation
 
-**Overview Metrics:**
-- Total tests executed
-- Pass/fail ratio
-- Execution duration
-- Success rate percentage
+**Voice Mode on Mobile**:
+- Battery-efficient operation (30fps)
+- Touch gestures for voice control
+- Mobile-specific tutorials
+- Offline status indicators
 
-**Performance Analytics:**
-- Average page load times
-- Action execution speeds
-- Network request performance
-- Memory usage patterns
+**Performance Optimizations**:
+- Reduced animations for battery life
+- Optimized touch targets (44px minimum)
+- Faster loading with progressive enhancement
+- Background processing optimizations
 
-**Failure Analysis:**
-- AI-powered root cause analysis
-- Suggested fixes and improvements
-- Pattern recognition in failures
-- Performance bottleneck identification
+### Mobile Best Practices
 
-### Detailed Reports
+**Voice Interaction**:
+- Use headphones to avoid feedback
+- Speak clearly in quiet environments
+- Take advantage of gesture controls
+- Monitor battery usage
 
-Each test run provides:
-- **Step-by-step execution logs**
-- **Screenshots at key points**
-- **Performance metrics for each action**
-- **Network traffic analysis**
-- **Console error logs**
-- **AI-generated insights and recommendations**
+**Touch Navigation**:
+- Use swipe gestures efficiently
+- Leverage long-press actions
+- Utilize pull-to-refresh patterns
+- Access quick actions via buttons
 
-## 🎯 Best Practices
+## 🧠 Step 8: Advanced AI Features
 
-### Test Case Design
+### AI Chat Enhancements
 
-1. **Atomic Tests**: Each test should verify one specific functionality
-2. **Clear Naming**: Use descriptive, consistent naming conventions
-3. **Independent Tests**: Tests shouldn't depend on each other
-4. **Data Management**: Use test data that's independent and reusable
+**Session Management**:
+- Create topic-specific chat sessions
+- Maintain context across conversations
+- Share sessions with team members
+- Export conversation history
 
-### Execution Strategy
-
-1. **Environment Progression**: Test in staging before production
-2. **Parallel Execution**: Use multiple workers for faster execution
-3. **AI Optimization**: Enable AI for smarter test selection
-4. **Continuous Monitoring**: Set up automated test runs
-
-### Team Collaboration
-
-1. **Role-based Access**: Assign appropriate permissions
-2. **Code Review**: Implement peer review for test cases
-3. **Documentation**: Keep test cases well-documented
-4. **Communication**: Use Discord for real-time updates
-
-## 🚀 Advanced Features
-
-### CI/CD Integration
-
-```yaml
-# GitHub Actions example
-- name: Run Labnex Tests
-  run: |
-    npm install -g @labnex/cli
-    labnex auth login --token ${{ secrets.LABNEX_TOKEN }}
-    labnex run --project WEBAPP --ai-optimize --detailed
+**Advanced Commands**:
+```
+"Analyze my project's test coverage"
+"Suggest optimizations for failed tests"
+"Generate a comprehensive test suite for the checkout process"
+"Create a performance testing strategy"
 ```
 
-### Performance Monitoring
+**Context Awareness**:
+- Remembers your current project
+- References previous conversations
+- Adapts to your workflow patterns
+- Provides personalized recommendations
 
+### Enhanced CLI Features
+
+**New Commands**:
 ```bash
-# Monitor performance trends
-labnex analyze performance --project WEBAPP
+# Test linting and auto-fixing
+labnex lint-tests ./tests --fix
 
-# Get optimization suggestions
-labnex analyze optimization --project WEBAPP
+# Import test cases from files
+labnex create-test-case --project WEBAPP --file tests/login.txt
+
+# Shell completion setup
+labnex completion bash >> ~/.bashrc
+
+# Configuration management
+labnex config show
+labnex config set defaultProject WEBAPP
 ```
 
-### Custom Configuration
+**Improved Workflow**:
+- Welcome wizard for first-time setup
+- Project-specific configuration files
+- Enhanced error reporting
+- Interactive project selection
 
-Create `.labnexrc` in your project:
-```json
-{
-  "defaultProject": "WEBAPP",
-  "defaultEnvironment": "staging",
-  "parallelWorkers": 4,
-  "detailed": true,
-  "aiOptimization": true
-}
+## 🔧 Step 9: Troubleshooting & Support
+
+### Common Issues
+
+**Audio/Voice Mode**:
+```
+Issue: Microphone not working
+Solution: Check browser permissions, test hardware
+
+Issue: Poor voice recognition
+Solution: Speak clearly, reduce background noise
+
+Issue: AI not responding
+Solution: Check internet connection, try simpler commands
 ```
 
-## 📚 Next Steps
+**CLI Problems**:
+```
+Issue: Authentication failed
+Solution: Run `labnex auth login` to re-authenticate
 
-Now that you're set up with Labnex:
+Issue: Command not found
+Solution: Ensure global installation with `npm install -g @labnex/cli`
 
-1. **Explore Advanced Features**
-   - [Test Case Management](./test-case-management.md)
-   - [CLI Usage](./cli-usage.md)
-   - [Discord Bot Commands](./bot-commands.md)
+Issue: Project not found
+Solution: Verify project ID or use `labnex projects` to list available
+```
 
-2. **Learn AI Features**
-   - AI-powered test generation
-   - Automated failure analysis
-   - Performance optimization
+### Getting Help
 
-3. **Team Collaboration**
-   - [Project Management](./project-management.md)
-   - [Task Management](./task-management.md)
-   - Team workflows and permissions
+**In-App Support**:
+- Voice command: "Help me with this issue"
+- Chat command: "How do I troubleshoot voice mode?"
+- Discord: Use `/ticket create` for support
 
-4. **Integration & Automation**
-   - CI/CD pipeline integration
-   - Automated test scheduling
-   - Performance monitoring
+**Community Resources**:
+- Discord community server
+- GitHub issues and discussions
+- Documentation feedback system
+- Video tutorials and guides
 
-## 🆘 Getting Help
+### Best Practices
 
-### Community Support
-- **Discord Community**: Join our active community
-- **GitHub Discussions**: Ask questions and share ideas
-- **Documentation**: Comprehensive guides and references
+**Security**:
+- Use API keys for CLI automation
+- Enable two-factor authentication
+- Regularly review team permissions
+- Keep your browser and CLI updated
 
-### Technical Support
-- **Email**: support@labnex.dev
-- **Live Chat**: Available in the platform
-- **Knowledge Base**: Searchable help articles
+**Performance**:
+- Use detailed logging for debugging
+- Enable AI optimization for better results
+- Monitor resource usage on mobile
+- Clear browser cache periodically
 
-### Premium Support
-- **Priority Support**: Faster response times
-- **Dedicated Success Manager**: Personal assistance
-- **Custom Training**: Team onboarding sessions
+**Collaboration**:
+- Set up proper project roles
+- Use Discord for team communication
+- Share voice session insights
+- Document testing strategies
+
+## 🎯 Next Steps
+
+### Immediate Actions
+
+1. **Complete Setup**:
+   - Create your first project
+   - Run the AI Chat tutorial
+   - Try Voice Mode with basic commands
+   - Install and configure the CLI
+
+2. **Explore Features**:
+   - Generate test cases with AI
+   - Set up Discord integration
+   - Experiment with voice commands
+   - Configure mobile optimizations
+
+3. **Team Integration**:
+   - Invite team members to projects
+   - Set up proper permissions
+   - Configure notification preferences
+   - Establish testing workflows
+
+### Long-term Goals
+
+**Workflow Optimization**:
+- Develop consistent testing patterns
+- Integrate with CI/CD pipelines
+- Establish quality metrics
+- Create automated reporting
+
+**Advanced Usage**:
+- Master voice commands for efficiency
+- Build custom CLI workflows
+- Leverage AI insights for optimization
+- Scale testing across multiple projects
 
 ---
 
-**🎉 Congratulations!** You're now ready to harness the full power of AI-enhanced testing automation with Labnex. Start creating amazing test suites and let AI optimize your testing workflow!
+## 📚 Related Documentation
 
-**Ready to dive deeper?** Continue with [Test Case Management](./test-case-management.md) or explore our [CLI Usage Guide](./cli-usage.md). 
+- **[AI Voice Mode](./ai-voice-mode.md)** - Complete voice interaction guide
+- **[CLI Usage](./cli-usage.md)** - Advanced command-line features
+- **[Discord Bot Commands](./bot-commands.md)** - Complete Discord integration
+- **[API Reference](./api-reference.md)** - Developer API documentation
+- **[Project Management](./project-management.md)** - Advanced project features
+
+---
+
+**🚀 Ready to revolutionize your testing workflow?** Start with creating your first project and experience the power of AI-enhanced testing automation with voice interaction capabilities! 🎉 

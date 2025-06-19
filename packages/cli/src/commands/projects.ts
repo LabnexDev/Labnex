@@ -6,106 +6,43 @@ import Table from 'cli-table3';
 import { apiClient } from '../api/client';
 
 export const projectsCommand = new Command('projects')
-  .description('Manage your Labnex projects (list, create, view details).')
-  .alias('project')
+  .description('Manage projects (create, list, show details)')
   .addCommand(
     new Command('list')
-      .description('List all your available Labnex projects.')
-      .option('--format <format>', 'Output format (table, json)', 'table')
+      .description('List all projects you have access to.')
+      .option('-j, --json', 'Output as JSON')
       .action(async (options) => {
         try {
-          const spinner = ora('Fetching projects...').start();
-
           const response = await apiClient.getProjects();
           
-          if (response.success) {
-            spinner.succeed(`Found ${response.data.length} projects`);
-            
-            console.log(JSON.stringify(response.data, null, 2));
-
-          } else {
-            spinner.fail(chalk.red('Failed to fetch projects'));
-          }
-        } catch (error: any) {
-          console.error(chalk.red('Error:'), error.message);
-        }
-      })
-  )
-  .addCommand(
-    new Command('create')
-      .description('Create a new Labnex project with a name, code, and description.')
-      .option('-n, --name <name>', 'Project name')
-      .option('-c, --code <code>', 'Project code (3-5 chars)')
-      .option('-d, --description <description>', 'Project description')
-      .action(async (options) => {
-        try {
-          let { name, code, description } = options;
-
-          // Interactive prompts if options not provided
-          if (!name || !code) {
-            const prompts = [];
-            
-            if (!name) {
-              prompts.push({
-                type: 'input',
-                name: 'name',
-                message: 'Project name:',
-                validate: (input: string) => input.length > 0 || 'Name is required'
-              });
+          if (response.success && response.data) {
+            if (options.json) {
+              if (process.env.NODE_ENV === 'development') {
+                console.log(JSON.stringify(response.data, null, 2));
+              } else {
+                console.log(JSON.stringify(response.data));
+              }
+              return;
             }
             
-            if (!code) {
-              prompts.push({
-                type: 'input',
-                name: 'code',
-                message: 'Project code (3-5 chars):',
-                validate: (input: string) => {
-                  if (input.length < 3 || input.length > 5) {
-                    return 'Code must be 3-5 characters';
-                  }
-                  if (!/^[A-Z0-9]+$/i.test(input)) {
-                    return 'Code must be alphanumeric';
-                  }
-                  return true;
-                },
-                filter: (input: string) => input.toUpperCase()
-              });
+            if (response.data.length === 0) {
+              console.log(chalk.yellow('No projects found.'));
+              return;
             }
-
-            if (!description) {
-              prompts.push({
-                type: 'input',
-                name: 'description',
-                message: 'Description (optional):'
-              });
-            }
-
-            if (prompts.length > 0) {
-              const answers = await inquirer.prompt(prompts);
-              name = name || answers.name;
-              code = code || answers.code;
-              description = description || answers.description;
-            }
-          }
-
-          const spinner = ora('Creating project...').start();
-
-          try {
-            const response = await apiClient.createProject({
-              name,
-              projectCode: code.toUpperCase(),
-              description
+            
+            console.log(chalk.bold.cyan(`\n📁 Projects (${response.data.length})`));
+            console.log(chalk.gray('─'.repeat(60)));
+            
+            response.data.forEach((project: any) => {
+              console.log(`\n${chalk.cyan(project.name)} (${chalk.yellow(project.projectCode)})`);
+              console.log(chalk.gray(`  ID: ${project._id}`));
+              console.log(chalk.gray(`  Description: ${project.description || 'No description'}`));
+              console.log(chalk.gray(`  Status: ${project.isActive ? 'Active' : 'Inactive'}`));
+              console.log(chalk.gray(`  Test Cases: ${project.testCaseCount || 0}`));
+              console.log(chalk.gray(`  Created: ${new Date(project.createdAt).toLocaleDateString()}`));
             });
-            
-            if (response.success) {
-              spinner.succeed(chalk.green('Project created successfully'));
-              console.log(chalk.gray(`ID: ${response.data._id}`));
-              console.log(chalk.gray(`Code: ${response.data.projectCode}`));
-            } else {
-              spinner.fail(chalk.red('Failed to create project: ' + response.error));
-            }
-          } catch (error: any) {
-            spinner.fail(chalk.red('Creation failed: ' + error.message));
+          } else {
+            console.error(chalk.red(`Failed to fetch projects: ${response.error || 'Unknown error'}`));
           }
         } catch (error: any) {
           console.error(chalk.red('Error:'), error.message);
@@ -114,33 +51,186 @@ export const projectsCommand = new Command('projects')
   )
   .addCommand(
     new Command('show')
-      .description('Display detailed information about a specific Labnex project.')
-      .argument('<code>', 'Project code of the project to show')
-      .action(async (code) => {
+      .description('Show detailed information about a specific project.')
+      .argument('<projectId>', 'Project ID or project code')
+      .action(async (projectId) => {
         try {
-          const spinner = ora('Fetching project details...').start();
-
-          try {
-            // Get all projects and find by code
-            const response = await apiClient.getProjects();
-            const project = response.data.find(p => p.projectCode === code.toUpperCase());
-            
-            if (!project) {
-              spinner.fail(chalk.red(`Project not found: ${code}`));
-              return;
-            }
-
-            const detailResponse = await apiClient.getProject(project._id);
-            
-            if (detailResponse.success) {
-              spinner.succeed('Project details retrieved');
-              displayProjectDetails(detailResponse.data);
-            } else {
-              spinner.fail(chalk.red('Failed to get project details'));
-            }
-          } catch (error: any) {
-            spinner.fail(chalk.red('Failed to fetch project: ' + error.message));
+          // First try to get all projects to find by code
+          const projectsResponse = await apiClient.getProjects();
+          
+          if (!projectsResponse.success) {
+            console.error(chalk.red(`Failed to fetch projects: ${projectsResponse.error}`));
+            return;
           }
+          
+          let project = projectsResponse.data.find((p: any) => p._id === projectId || p.projectCode === projectId);
+          
+          if (!project) {
+            console.error(chalk.red(`Project not found: ${projectId}`));
+            return;
+          }
+          
+          await apiClient.displayProjectDetails(project);
+        } catch (error: any) {
+          console.error(chalk.red('Error:'), error.message);
+        }
+      })
+  )
+  .addCommand(
+    new Command('create')
+      .description('Create a new project.')
+      .option('-n, --name <name>', 'Project name')
+      .option('-c, --code <code>', 'Project code (unique identifier)')
+      .option('-d, --description <description>', 'Project description')
+      .action(async (options) => {
+        try {
+          let { name, code, description } = options;
+          
+          // Prompt for missing information
+          if (!name) {
+            const namePrompt = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'name',
+                message: 'Project name:',
+                validate: (input) => input.length > 0 || 'Name is required'
+              }
+            ]);
+            name = namePrompt.name;
+          }
+          
+          if (!code) {
+            const codePrompt = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'code',
+                message: 'Project code (e.g., MYAPP):',
+                validate: (input) => /^[A-Z0-9_-]+$/i.test(input) || 'Code must contain only letters, numbers, underscores, and hyphens'
+              }
+            ]);
+            code = codePrompt.code;
+          }
+          
+          if (!description) {
+            const descPrompt = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'description',
+                message: 'Project description (optional):',
+                default: ''
+              }
+            ]);
+            description = descPrompt.description;
+          }
+          
+          const response = await apiClient.createProject({
+            name,
+            projectCode: code,
+            description: description || undefined
+          });
+          
+          if (response.success) {
+            console.log(chalk.green(`✓ Project created successfully!`));
+            console.log(chalk.gray(`ID: ${response.data._id}`));
+            console.log(chalk.gray(`Code: ${response.data.projectCode}`));
+            
+            const { showDetails } = await inquirer.prompt([
+              {
+                type: 'confirm',
+                name: 'showDetails',
+                message: 'Show project details?',
+                default: true
+              }
+            ]);
+            
+            if (showDetails) {
+              await apiClient.displayProjectDetails(response.data);
+            }
+          } else {
+            console.error(chalk.red(`Failed to create project: ${response.error}`));
+          }
+        } catch (error: any) {
+          console.error(chalk.red('Error:'), error.message);
+        }
+      })
+  )
+  .addCommand(
+    new Command('info')
+      .alias('details')
+      .description('Show detailed information about a project and its resources.')
+      .argument('<projectId>', 'Project ID or project code')
+      .action(async (projectId) => {
+        try {
+          // Get project basic info
+          const projectsResponse = await apiClient.getProjects();
+          
+          if (!projectsResponse.success) {
+            console.error(chalk.red(`Failed to fetch projects: ${projectsResponse.error}`));
+            return;
+          }
+          
+          const project = projectsResponse.data.find((p: any) => p._id === projectId || p.projectCode === projectId);
+          
+          if (!project) {
+            console.error(chalk.red(`Project not found: ${projectId}`));
+            return;
+          }
+          
+          console.log(chalk.cyan(`\n📁 ${project.name} (${project.projectCode})`));
+          console.log(chalk.gray('─'.repeat(50)));
+          
+          // Basic project info
+          console.log(`${chalk.bold('Description:')} ${project.description || 'No description'}`);
+          console.log(`${chalk.bold('Status:')} ${project.isActive ? chalk.green('Active') : chalk.gray('Inactive')}`);
+          console.log(`${chalk.bold('Created:')} ${new Date(project.createdAt).toLocaleDateString()}`);
+          console.log(`${chalk.bold('Updated:')} ${new Date(project.updatedAt).toLocaleDateString()}`);
+          
+          // Resource counts
+          console.log(`\n${chalk.bold('Resources:')}`);
+          console.log(`  Test Cases: ${chalk.cyan(project.testCaseCount || 0)}`);
+          console.log(`  Tasks: ${chalk.cyan(project.taskCount || 0)}`);
+          console.log(`  Team Members: ${chalk.cyan(project.members?.length || 0)}`);
+          
+          // Get test cases
+          try {
+            const testCasesResponse = await apiClient.getTestCases(project._id);
+            if (testCasesResponse.success && testCasesResponse.data.length > 0) {
+              console.log(`\n${chalk.bold('Recent Test Cases:')}`);
+              testCasesResponse.data.slice(0, 5).forEach((testCase: any) => {
+                const statusColor = testCase.status === 'PASSED' ? chalk.green : 
+                                  testCase.status === 'FAILED' ? chalk.red : chalk.yellow;
+                console.log(`  • ${testCase.title} ${statusColor(`(${testCase.status})`)}`);
+              });
+              
+              if (testCasesResponse.data.length > 5) {
+                console.log(chalk.gray(`  ... and ${testCasesResponse.data.length - 5} more`));
+              }
+            }
+          } catch (error) {
+            // Silently continue if test cases can't be fetched
+            if (process.env.NODE_ENV === 'development') {
+              console.log(chalk.gray('Could not fetch test cases'));
+            }
+          }
+          
+          // Get recent test runs
+          try {
+            const testRunsResponse = await apiClient.getTestRuns(project._id);
+            if (testRunsResponse.success && testRunsResponse.data.length > 0) {
+              console.log(`\n${chalk.bold('Recent Test Runs:')}`);
+              testRunsResponse.data.slice(0, 3).forEach((run: any) => {
+                const statusColor = run.status === 'COMPLETED' ? chalk.green : 
+                                  run.status === 'FAILED' ? chalk.red : chalk.yellow;
+                console.log(`  • ${run._id} ${statusColor(`(${run.status})`)} - ${new Date(run.createdAt).toLocaleDateString()}`);
+              });
+            }
+          } catch (error) {
+            // Silently continue if test runs can't be fetched
+            if (process.env.NODE_ENV === 'development') {
+              console.log(chalk.gray('Could not fetch test runs'));
+            }
+          }
+          
         } catch (error: any) {
           console.error(chalk.red('Error:'), error.message);
         }

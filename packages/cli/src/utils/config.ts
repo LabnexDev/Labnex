@@ -9,6 +9,9 @@ export interface LabnexConfig {
   userId?: string;
   email?: string;
   verbose?: boolean;
+  defaultProject?: string;
+  setupCompleted?: boolean;
+  setupCompletedAt?: string;
 }
 
 const CONFIG_DIR = join(homedir(), '.labnex');
@@ -24,18 +27,20 @@ const DEFAULT_CONFIG: LabnexConfig = {
 
 export async function initConfig(): Promise<void> {
   try {
-    // Ensure config directory exists
     if (!existsSync(CONFIG_DIR)) {
       mkdirSync(CONFIG_DIR, { recursive: true });
     }
 
-    // Create default config if it doesn't exist
     if (!existsSync(CONFIG_FILE)) {
       await saveConfig(DEFAULT_CONFIG);
-      console.log(chalk.gray(`Initialized config at ${CONFIG_FILE}`));
+      if (process.env.NODE_ENV === 'development') {
+        console.log(chalk.gray(`Initialized config at ${CONFIG_FILE}`));
+      }
     }
-  } catch (error) {
-    console.error(chalk.red('Failed to initialize config:'), error);
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(chalk.red('Failed to initialize config:'), error);
+    }
   }
 }
 
@@ -50,18 +55,24 @@ export async function loadConfig(): Promise<LabnexConfig> {
     
     // Merge with defaults to ensure all properties exist
     return { ...DEFAULT_CONFIG, ...config };
-  } catch (error) {
-    console.error(chalk.yellow('Warning: Failed to load config, using defaults'));
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(chalk.yellow('Warning: Failed to load config, using defaults'));
+    }
     return DEFAULT_CONFIG;
   }
 }
 
-export async function saveConfig(config: LabnexConfig): Promise<void> {
+export async function saveConfig(config: Partial<LabnexConfig>): Promise<void> {
   try {
-    const configJson = JSON.stringify(config, null, 2);
+    const currentConfig = await loadConfig();
+    const newConfig = { ...currentConfig, ...config };
+    const configJson = JSON.stringify(newConfig, null, 2);
     writeFileSync(CONFIG_FILE, configJson, 'utf8');
-  } catch (error) {
-    console.error(chalk.red('Failed to save config:'), error);
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(chalk.red('Failed to save config:'), error);
+    }
     throw error;
   }
 }

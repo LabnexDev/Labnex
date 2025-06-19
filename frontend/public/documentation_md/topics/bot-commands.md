@@ -5,8 +5,12 @@ This page lists the common slash commands available for the Labnex Discord Bot. 
 ## General Commands
 
 -   **`/help`**
-    -   Displays a list of available commands and their descriptions.
+    -   Displays a comprehensive list of available commands with detailed descriptions, organized by category.
     -   Usage: `/help`
+
+-   **`/ping`**
+    -   Checks if the bot is online and responsive. Useful for testing bot connectivity.
+    -   Usage: `/ping`
 
 -   **`/linkaccount`**
     -   Initiates the process to link your Discord account with your Labnex account.
@@ -49,7 +53,6 @@ This page lists the common slash commands available for the Labnex Discord Bot. 
         *   `task_identifier`: The ID or unique reference of the task to update.
         *   `new_status`: The new status for the task (Choices: `To Do`, `In Progress`, `Blocked`, `In Review`, `Done`, `Cancelled`).
     -   Usage: `/updatetask status task_identifier:TASK-123 new_status:"In Progress"`
-    -   *(Note: Other update operations like changing assignee or priority via `/updatetask` may be added in the future.)*
 
 ## Notes & Snippets Commands
 
@@ -63,10 +66,10 @@ This page lists the common slash commands available for the Labnex Discord Bot. 
 -   **`/addsnippet`**
     -   Creates a new code snippet.
     -   **Required Options**:
-        *   `language`: Programming language of the snippet (e.g., `javascript`, `python`).
+        *   `language`: Programming language of the snippet (e.g., `javascript`, `python`, `css`).
         *   `title`: Title of the snippet.
         *   `code`: The actual code for the snippet.
-    -   Usage: `/addsnippet language:python title:"API Fetch Utility" code:"import requests..."`
+    -   Usage: `/addsnippet language:javascript title:"Basic Logger" code:"function logMessage(level, message) { console.log(\`[\${level.toUpperCase()}]: \${message}\`); }"`
 
 -   **`/notes`**
     -   Lists your recent notes.
@@ -76,10 +79,83 @@ This page lists the common slash commands available for the Labnex Discord Bot. 
     -   Lists your recent snippets.
     -   Usage: `/snippets`
 
+## Support Ticket System
+
+-   **`/ticket create`**
+    -   Creates a new support ticket channel for assistance.
+    -   Usage: `/ticket create`
+    -   This creates a private channel where you can get help from support staff.
+
+-   **`/ticket close`**
+    -   Closes the current ticket channel.
+    -   **Optional Options**:
+        *   `reason`: The reason for closing the ticket.
+    -   Usage: `/ticket close reason:"Issue resolved"`
+
+-   **`/ticket delete`**
+    -   **[STAFF ONLY]** Permanently deletes the current ticket channel.
+    -   Usage: `/ticket delete`
+    -   *Note: Only available to staff members with appropriate permissions.*
+
+-   **`/ticket escalate`**
+    -   Escalates a ticket to higher-level staff for additional assistance.
+    -   **Required Options**:
+        *   `reason`: Reason for escalating the ticket.
+    -   Usage: `/ticket escalate reason:"Complex technical issue requiring senior developer"`
+
+## Server Management Commands (Admin Only)
+
+*These commands are restricted to server administrators and require Administrator permissions.*
+
+-   **`/sendembed`**
+    -   Sends a custom embedded message to a specified channel.
+    -   **Required Options**:
+        *   `title`: The title of the embed message.
+        *   `description`: The main content (description) of the embed message.
+    -   **Optional Options**:
+        *   `channel`: The channel to send the embed to (defaults to current channel).
+        *   `color`: Hex color code for the embed (e.g., `#0099ff`).
+        *   `footer`: Footer text for the embed.
+    -   Usage: `/sendembed title:"Announcement" description:"Server maintenance tonight at 10 PM EST" color:#ff6b35`
+
+-   **`/sendrules`**
+    -   Sends the pre-formatted Labnex server rules embed with reaction button.
+    -   Usage: `/sendrules`
+
+-   **`/sendinfo`**
+    -   Sends the pre-formatted Labnex server information embed.
+    -   Usage: `/sendinfo`
+
+-   **`/sendwelcome`**
+    -   Sends the pre-formatted welcome embed for new members.
+    -   Usage: `/sendwelcome`
+
+-   **`/sendroleselect`**
+    -   Posts the role selection embed (Developer/Tester roles) with emoji reactions.
+    -   Usage: `/sendroleselect`
+    -   Members can react to automatically get assigned Developer or Tester roles.
+
+## Natural Language Commands
+
+In addition to slash commands, you can interact with the bot using natural language by mentioning it:
+
+-   **Project Management**: `@Labnex AI create project for [description]`
+-   **Task Information**: `@Labnex AI show task [ID]`
+-   **General Help**: `@Labnex AI what can you help me with?`
+-   **Status Inquiries**: `@Labnex AI what's my project status?`
+
 ## Important Notes
 
--   Command availability and behavior might depend on your permissions within Labnex and the bot's configuration on the server.
--   For command options that accept strings with spaces (like titles or descriptions), ensure you enclose the value in quotes if it contains spaces, or rely on Discord's handling of separate arguments for options.
--   The bot will usually provide feedback or error messages directly in the channel or via DM.
+-   **Permissions**: Command availability depends on your permissions within Labnex and the bot's configuration on the server.
+-   **Account Linking**: Most project and task-related commands require your Discord account to be linked with your Labnex account via `/linkaccount`.
+-   **Character Limits**: Discord has character limits for messages. For very long notes or complex code snippets, creating them through the web app might be more suitable.
+-   **Admin Commands**: Server management commands require Administrator permissions and are disabled in DMs.
+-   **Bot Feedback**: The bot will provide feedback or error messages directly in the channel or via DM for most commands.
 
-*This list reflects currently defined commands. Use `/help` for the most up-to-date command list available to you on your server.* 
+## Troubleshooting
+
+-   **Bot not responding?** Try `/ping` to check if the bot is online.
+-   **Commands not available?** Ensure the bot has proper permissions and your account is linked.
+-   **Ticket system issues?** Contact server administrators if ticket commands are not working.
+
+*This list reflects the current command set. Use `/help` for the most up-to-date command list available to you on your server.* 

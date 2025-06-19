@@ -16,27 +16,29 @@ export class LocalBrowserExecutor {
   private headlessMode = false;
   private aiOptimizationEnabled = false; // Added AI flag
   private baseUrlGlobal: string = ''; // New persistent baseUrl across steps
+  private logFilePath: string;
 
   constructor(options: { headless?: boolean; aiOptimizationEnabled?: boolean } = {}) {
     this.headlessMode = options.headless !== undefined ? options.headless : false;
     this.aiOptimizationEnabled = options.aiOptimizationEnabled || false;
     this.addLog(`AI Optimization Enabled: ${this.aiOptimizationEnabled}`);
+    this.logFilePath = path.join(process.cwd(), 'test_logs.txt');
   }
 
   private addLog: AddLogFunction = (message: string, data?: any) => {
     const logMessage = data ? `${message} ${JSON.stringify(data).substring(0, 100)}...` : message;
-    console.log(`[LBE] ${logMessage}`);
+    if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+      console.log(`[LBE] ${logMessage}`);
+    }
+
     this.logs.push(
       `[${new Date().toISOString().substring(0, 19).replace('T', ' ')}] ${logMessage}`
     );
-    const logFilePath = path.join(process.cwd(), 'test_logs.txt');
     try {
-      fs.appendFileSync(
-        logFilePath,
-        `[${new Date().toISOString().substring(0, 19).replace('T', ' ')}] ${logMessage}\n`
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
+      const logEntry = `${new Date().toISOString()} - ${logMessage}\n`;
+      fs.appendFileSync(this.logFilePath, logEntry);
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
         console.error(`[LBE] Failed to write to log file: ${error.message}`);
       }
     }
@@ -895,8 +897,10 @@ export class LocalBrowserExecutor {
           break;
 
         case 'type':
-          this.addLog(`[Type Action Debug] Selector being passed to handleType: ${parsedStep.target || 'N/A'}`);
-          this.addLog(`[Type Action Debug] Full parsedStep object: Action=${parsedStep.action}, Target=${parsedStep.target || 'N/A'}, Value=${parsedStep.value || 'N/A'}, OriginalStep=${parsedStep.originalStep || 'N/A'}`);
+          if (process.env.NODE_ENV === 'development') {
+            this.addLog(`[Type Action Debug] Selector being passed to handleType: ${parsedStep.target || 'N/A'}`);
+            this.addLog(`[Type Action Debug] Full parsedStep object: Action=${parsedStep.action}, Target=${parsedStep.target || 'N/A'}, Value=${parsedStep.value || 'N/A'}, OriginalStep=${parsedStep.originalStep || 'N/A'}`);
+          }
           await actionHandlers.handleType(
             this.page,
             this.currentFrame,

@@ -1,65 +1,129 @@
 import { Command } from 'commander';
-import fs from 'fs';
+import inquirer from 'inquirer';
 import chalk from 'chalk';
-import ora from 'ora';
 import { apiClient } from '../api/client';
-import { parseRawSteps } from '../utils/parseRawSteps';
 
-interface Options {
-  title: string;
-  description?: string;
-  expected?: string;
-  file?: string;
-  stdin?: boolean;
-}
-
-export const createTestCaseCommand = new Command('create-test-case')
-  .description('Create a new test case. Accepts raw step list via --file or --stdin.')
-  .argument('<projectCode>', 'Project code or ID')
-  .requiredOption('-t, --title <title>', 'Title of the test case')
-  .option('-d, --description <desc>', 'Description')
-  .option('-e, --expected <result>', 'Expected result / assertion')
-  .option('-f, --file <path>', 'Path to text file containing raw steps')
-  .option('--stdin', 'Read raw steps from STDIN')
-  .action(async (projectCode: string, opts: Options) => {
+export const createTestCaseCommand = new Command('create-test')
+  .alias('ct')
+  .description('Create a test case interactively.')
+  .option('-p, --project <code>', 'Project code to add test case to')
+  .option('-t, --title <title>', 'Test case title')
+  .option('-d, --description <description>', 'Test case description')
+  .option('--priority <priority>', 'Priority (LOW, MEDIUM, HIGH)', 'MEDIUM')
+  .action(async (options) => {
     try {
-      const spinner = ora('Reading steps…').start();
-      let raw = '';
+      let { project, title, description, priority } = options;
 
-      if (opts.file) {
-        raw = fs.readFileSync(opts.file, 'utf8');
-      } else if (opts.stdin) {
-        raw = await new Promise<string>((resolve) => {
-          let data = '';
-          process.stdin.setEncoding('utf8');
-          process.stdin.on('data', (chunk) => (data += chunk));
-          process.stdin.on('end', () => resolve(data));
-        });
-      } else {
-        spinner.fail('You must supply --file or --stdin with the raw step list');
-        process.exitCode = 1;
+      // Get project if not specified
+      if (!project) {
+        const projectsResponse = await apiClient.getProjects();
+        if (!projectsResponse.success || projectsResponse.data.length === 0) {
+          console.log(chalk.red('No projects available. Create a project first.'));
+          return;
+        }
+
+        const projectPrompt = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'project',
+            message: 'Select a project:',
+            choices: projectsResponse.data.map((p: any) => ({
+              name: `${p.name} (${p.projectCode})`,
+              value: p.projectCode
+            }))
+          }
+        ]);
+        project = projectPrompt.project;
+      }
+
+      // Get test case details
+      if (!title) {
+        const titlePrompt = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'title',
+            message: 'Test case title:',
+            validate: (input) => input.length > 0 || 'Title is required'
+          }
+        ]);
+        title = titlePrompt.title;
+      }
+
+      if (!description) {
+        const descPrompt = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'description',
+            message: 'Test case description:'
+          }
+        ]);
+        description = descPrompt.description;
+      }
+
+      // Collect test steps
+      const steps: string[] = [];
+      let addingSteps = true;
+
+      console.log(chalk.cyan('\nAdd test steps (enter empty step to finish):'));
+      
+      while (addingSteps) {
+        const stepPrompt = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'step',
+            message: `Step ${steps.length + 1}:`
+          }
+        ]);
+
+        if (stepPrompt.step.trim() === '') {
+          addingSteps = false;
+        } else {
+          steps.push(stepPrompt.step.trim());
+        }
+      }
+
+      if (steps.length === 0) {
+        console.log(chalk.red('At least one test step is required.'));
         return;
       }
 
-      const steps = parseRawSteps(raw);
-      spinner.text = `Parsed ${steps.length} steps`; spinner.succeed();
+      // Get expected result
+      const expectedPrompt = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'expectedResult',
+          message: 'Expected result:',
+          validate: (input) => input.length > 0 || 'Expected result is required'
+        }
+      ]);
 
-      const res = await apiClient.createTestCase(projectCode, {
-        title: opts.title,
-        description: opts.description ?? '',
-        expectedResult: opts.expected ?? '',
+      // Find project by code
+      const projectsResponse = await apiClient.getProjects();
+      const projectData = projectsResponse.data.find((p: any) => p.projectCode === project);
+      
+      if (!projectData) {
+        console.error(chalk.red(`Project not found: ${project}`));
+        return;
+      }
+
+      // Create test case
+      const testCase = {
+        title,
+        description,
         steps,
-        priority: 'MEDIUM',
-      });
+        expectedResult: expectedPrompt.expectedResult,
+        priority: priority.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH'
+      };
 
+      const res = await apiClient.createTestCase(projectData._id, testCase);
+      
       if (res.success) {
         console.log(chalk.green(`✓ Test case "${res.data.title}" created (id=${res.data._id})`));
       } else {
         console.error(chalk.red(`✗ Failed to create test case: ${res.error}`));
-        process.exitCode = 1;
       }
+
     } catch (err: any) {
       console.error(chalk.red(`✗ ${err.message || err}`));
-      process.exitCode = 1;
     }
   }); 

@@ -1,6 +1,5 @@
-export function addLog(message: string, data?: any) {
-  const logMessage = data ? `${message} ${JSON.stringify(data)}` : message;
-  if (process.env.LABNEX_VERBOSE === 'true') { 
-      console.log(`[TestStepParser] ${logMessage}`);
+export function addLog(logMessage: string): void {
+  if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+    console.log(`[TestStepParser] ${logMessage}`);
   }
 } 

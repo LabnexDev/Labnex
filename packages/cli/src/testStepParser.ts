@@ -63,17 +63,24 @@ export class TestStepParser {
     normalizedCurrentStep: string,
     originalStepInput: string
   ): ParsedTestStep | null {
-    addLog(
-      `[DEBUG_IFRAME_SWITCH] Entered _tryParseIframeSwitch. currentStep: "${currentStep}", normalized: "${normalizedCurrentStep}"`
-    );
+    const iframePattern = /(?:switch to|enter|focus on) iframe\s+(.+)/i;
 
-    const switchToIframePattern = /(?:switch to|enter|focus on) iframe\s+(.+)/i;
-    const iframeMatch = currentStep.match(switchToIframePattern);
-    addLog(`[DEBUG_IFRAME_SWITCH] iframeMatch result: ${JSON.stringify(iframeMatch)}`);
+    if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+      addLog(
+        `[DEBUG_IFRAME_SWITCH] Entered _tryParseIframeSwitch. currentStep: "${currentStep}", normalized: "${normalizedCurrentStep}"`
+      );
+    }
+
+    const iframeMatch = normalizedCurrentStep.match(iframePattern);
+    if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+      addLog(`[DEBUG_IFRAME_SWITCH] iframeMatch result: ${JSON.stringify(iframeMatch)}`);
+    }
 
     if (iframeMatch && iframeMatch[1]) {
       const rawArg = iframeMatch[1].trim();
-      addLog(`[DEBUG_IFRAME_SWITCH] rawArg from iframeMatch[1]: "${rawArg}"`);
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(`[DEBUG_IFRAME_SWITCH] rawArg from iframeMatch[1]: "${rawArg}"`);
+      }
 
       let finalIframeSelector: string | undefined;
       let hintParseResult = extractHintedSelector(rawArg);
@@ -208,20 +215,30 @@ export class TestStepParser {
     currentStep: string,
     originalStepInput: string
   ): ParsedTestStep | null {
-    addLog(`[DEBUG_DND] Entered _tryParseDragAndDropAction. currentStep: "${currentStep}"`);
     const dragAndDropPattern = /(?:drag|move)\s+(.+?)\s+to\s+(.+)/i;
-    const dndMatch           = currentStep.match(dragAndDropPattern);
-    addLog(`[DEBUG_DND] dndMatch result: ${JSON.stringify(dndMatch)}`);
 
-    if (dndMatch && dndMatch[1] && dndMatch[2]) {
-      const sourceRaw       = dndMatch[1].trim();
-      const destinationRaw  = dndMatch[2].trim();
-      addLog(`[DEBUG_DND] sourceRaw: "${sourceRaw}", destinationRaw: "${destinationRaw}"`);
+    if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+      addLog(`[DEBUG_DND] Entered _tryParseDragAndDropAction. currentStep: "${currentStep}"`);
+    }
 
-      // Source hint:
+    const dndMatch = currentStep.match(dragAndDropPattern);
+    if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+      addLog(`[DEBUG_DND] dndMatch result: ${JSON.stringify(dndMatch)}`);
+    }
+
+    if (dndMatch && dndMatch.length >= 3) {
+      const sourceRaw = dndMatch[1].trim();
+      const destinationRaw = dndMatch[2].trim();
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(`[DEBUG_DND] sourceRaw: "${sourceRaw}", destinationRaw: "${destinationRaw}"`);
+      }
+
       const sourceHintResult = extractHintedSelector(sourceRaw);
-      addLog(`[DEBUG_DND] sourceHintResult: ${JSON.stringify(sourceHintResult)}`);
-      const sourceSelector = sourceHintResult.selectorValue
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(`[DEBUG_DND] sourceHintResult: ${JSON.stringify(sourceHintResult)}`);
+      }
+
+      let sourceSelector = sourceHintResult.selectorValue
         ? finalizeSelector(
             str(sourceHintResult.type),
             str(sourceHintResult.selectorValue)
@@ -230,7 +247,9 @@ export class TestStepParser {
 
       // Destination hint:
       const destinationHintResult = extractHintedSelector(destinationRaw);
-      addLog(`[DEBUG_DND] destinationHintResult: ${JSON.stringify(destinationHintResult)}`);
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(`[DEBUG_DND] destinationHintResult: ${JSON.stringify(destinationHintResult)}`);
+      }
       const destinationSelector = destinationHintResult.selectorValue
         ? finalizeSelector(
             str(destinationHintResult.type),
@@ -238,19 +257,23 @@ export class TestStepParser {
           )
         : extractQuotedText(destinationRaw) ?? destinationRaw;
 
-      addLog(
-        `[DEBUG_DND] Final sourceSelector: "${sourceSelector}", Final destinationSelector: "${destinationSelector}"`
-      );
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(
+          `[DEBUG_DND] Final sourceSelector: "${sourceSelector}", Final destinationSelector: "${destinationSelector}"`
+        );
+      }
       return {
         action: 'dragAndDrop',
         target: sourceSelector,
         destinationTarget: destinationSelector,
         originalStep: originalStepInput
       };
+    } else {
+      if (process.env.NODE_ENV === 'development' || process.env.LABNEX_VERBOSE === 'true') {
+        addLog(`[DEBUG_DND] Pattern did not match or not enough groups.`);
+      }
+      return null;
     }
-
-    addLog(`[DEBUG_DND] Pattern did not match or not enough groups.`);
-    return null;
   }
 
   private static _tryParseAssertions(

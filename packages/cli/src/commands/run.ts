@@ -90,7 +90,7 @@ export const runCommand = new Command('run')
                     } else if (response.success && response.data.length === 0) {
                         spinner.fail(chalk.yellow('You do not have any projects.'));
                         console.log(chalk.cyan('You can create one using: labnex projects create'));
-                        return;
+                        process.exit(1);
                     } else {
                         spinner.fail(chalk.red(`Failed to fetch projects: ${response.message || 'Unknown error'}`));
                         return;
@@ -112,7 +112,7 @@ export const runCommand = new Command('run')
 
         } catch (error: any) {
             console.error(chalk.red('❌ Test execution failed:'), error.message);
-            if (process.env.LABNEX_VERBOSE === 'true') {
+            if (process.env.NODE_ENV === 'development') {
                 console.error(error.stack);
             }
             process.exit(1);
@@ -203,7 +203,6 @@ export async function runTests(options: any) {
         testCasesToRun = allTestCases.filter(tc => testIds.includes(tc._id));
         console.log(chalk.blue(`Running ${testCasesToRun.length} specific tests from AI optimization.`));
     }
-
 
     if (testCasesToRun.length === 0) {
         console.log(chalk.yellow('No test cases to run.'));

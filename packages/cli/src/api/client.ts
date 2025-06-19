@@ -138,6 +138,15 @@ export class LabnexApiClient {
     this.verboseLogging = true;
   }
 
+  /**
+   * Set API key for authentication
+   */
+  public setApiKey(apiKey: string): void {
+    this.token = apiKey;
+    // Also update the request interceptor to use this token
+    this.api.defaults.headers.common['Authorization'] = `Bearer ${apiKey}`;
+  }
+
   // Authentication
   async login(email: string, password: string): Promise<ApiResponse<{ user: unknown; token: string }>> {
     const response = await this.api.post('/auth/login', { email, password });
@@ -281,58 +290,53 @@ export class LabnexApiClient {
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
   }): Promise<ApiResponse<TestCase>> {
     try {
-      if (this.verboseLogging) {
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Creating test case for project ${projectId}`));
         console.log(chalk.gray(`[DEBUG] Test case data: ${JSON.stringify(testCase, null, 2)}`));
       }
+
       const response = await this.api.post(`/projects/${projectId}/test-cases`, testCase);
-      if (this.verboseLogging) {
+      
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Response status: ${response.status}`));
         console.log(chalk.gray(`[DEBUG] Response data: ${JSON.stringify(response.data, null, 2)}`));
       }
-      // Temporary workaround: Assume success if HTTP status is 200 or 201, regardless of response content
-      if (response.status === 200 || response.status === 201) {
-        console.log(chalk.yellow('[DEBUG] Assuming test case save success based on HTTP status ' + response.status + '. Test case likely saved on backend.'));
+
+      // If we get a 2xx status code, assume success
+      if (response.status >= 200 && response.status < 300) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(chalk.yellow('[DEBUG] Assuming test case save success based on HTTP status ' + response.status + '. Test case likely saved on backend.'));
+        }
         return {
           success: true,
-          data: response.data as TestCase || { _id: 'unknown', title: testCase.title, description: testCase.description || '', steps: testCase.steps, expectedResult: testCase.expectedResult, priority: testCase.priority, status: 'PENDING', projectId: projectId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+          data: response.data || { _id: 'unknown', title: testCase.title, description: testCase.description || '', steps: testCase.steps, expectedResult: testCase.expectedResult, priority: testCase.priority, status: 'PENDING', projectId: projectId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
         };
-      }
-      // Check if response data indicates success or contains an error
-      if (response.data && response.data.success === false) {
+      } else {
         return {
           success: false,
           data: null as unknown as TestCase,
-          error: response.data.error || response.data.message || 'API reported failure'
+          error: `Unexpected status code: ${response.status}`
         };
       }
-      if (!response.data || (response.data._id === undefined && response.data.id === undefined)) {
-        return {
-          success: false,
-          data: null as unknown as TestCase,
-          error: 'Invalid response format or missing test case ID'
-        };
-      }
-      return {
-        success: true,
-        data: response.data
-      };
-    } catch (error: unknown) {
-      if (this.verboseLogging) {
-        if (error instanceof Error) {
-          let errorMessage = error.message;
-          if ((error as any).response?.data) {
-            errorMessage += `\n${JSON.stringify((error as any).response.data)}`;
-          }
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        const errorMessage = error.response.data.message;
+        if (process.env.NODE_ENV === 'development') {
           console.log(chalk.red(`[DEBUG] Error creating test case: ${errorMessage}`));
-        } else {
-          console.log(chalk.red(`[DEBUG] Unknown error creating test case: ${error}`));
         }
+        return {
+          success: false,
+          data: null as unknown as TestCase,
+          error: errorMessage
+        };
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.log(chalk.red(`[DEBUG] Unknown error creating test case: ${error}`));
       }
       return {
         success: false,
         data: null as unknown as TestCase,
-        error: error instanceof Error ? error.message : 'Unknown error during test case creation'
+        error: error.message || 'Unknown error occurred'
       };
     }
   }
@@ -423,16 +427,30 @@ export class LabnexApiClient {
     selectedTests: string[];
     reasoning: string;
   }>> {
-    if (this.verboseLogging) {
-      console.log(chalk.gray(`[DEBUG] Optimizing test suite for project ${projectId}`));
-      console.log(chalk.gray(`[DEBUG] Payload: ${JSON.stringify({ codeChanges }, null, 2)}`));
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(chalk.gray(`[DEBUG] Optimizing test suite for project ${projectId}`));
+        console.log(chalk.gray(`[DEBUG] Payload: ${JSON.stringify({ codeChanges }, null, 2)}`));
+      }
+
+      const response = await this.api.post(`/ai/optimize-test-suite/${projectId}`, { codeChanges });
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(chalk.gray(`[DEBUG] Response status: ${response.status}`));
+        console.log(chalk.gray(`[DEBUG] Response data: ${JSON.stringify(response.data, null, 2)}`));
+      }
+
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        data: { selectedTests: [], reasoning: '' },
+        error: error.response?.data?.message || error.message || 'Failed to optimize test suite'
+      };
     }
-    const response = await this.api.post(`/ai/optimize-test-suite/${projectId}`, { codeChanges });
-    if (this.verboseLogging) {
-      console.log(chalk.gray(`[DEBUG] Response status: ${response.status}`));
-      console.log(chalk.gray(`[DEBUG] Response data: ${JSON.stringify(response.data, null, 2)}`));
-    }
-    return response.data;
   }
 
   // Failure Analysis
@@ -459,15 +477,18 @@ export class LabnexApiClient {
   // AI-assisted Test Step Execution
   async interpretTestStep(stepDescription: string): Promise<ApiResponse<string>> {
     try {
-      if (this.verboseLogging) {
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Interpreting step: "${stepDescription}"`));
       }
+
       const response = await this.api.post('/ai/interpret-step', {
-        description: stepDescription,
+        stepDescription
       });
-      if (this.verboseLogging) {
+
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Interpretation response: ${JSON.stringify(response.data)}`));
       }
+
       if (response.data.success) {
         return {
           success: true,
@@ -484,33 +505,36 @@ export class LabnexApiClient {
       return {
         success: false,
         data: '',
-        error: error.response?.data?.message || error.message || 'Unknown error'
+        error: error.response?.data?.message || error.message || 'Failed to interpret step'
       };
     }
   }
 
-  async suggestAlternative(step: string, pageContext = ''): Promise<ApiResponse<string>> { // Assuming AI returns a string
+  async suggestAlternative(step: string, pageContext = ''): Promise<ApiResponse<string>> {
     try {
-      if (this.verboseLogging) {
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Suggesting alternative for step: "${step}"`));
         console.log(chalk.gray(`[DEBUG] Page context length: ${pageContext.length}`));
       }
+
       const response = await this.api.post('/ai/suggest-alternative', {
         step,
         pageContext,
       });
-      if (this.verboseLogging) {
+
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.gray(`[DEBUG] Suggestion response: ${JSON.stringify(response.data)}`));
       }
+
       return response.data; // Assuming API returns ApiResponse<string> directly
     } catch (error: any) {
-      if (this.verboseLogging) {
+      if (process.env.NODE_ENV === 'development') {
         console.log(chalk.red(`[DEBUG] Error suggesting alternative: ${error.message}`));
       }
       return {
         success: false,
         data: '',
-        error: error.response?.data?.message || error.message || 'Unknown error',
+        error: error.response?.data?.message || error.message || 'Failed to suggest alternative'
       };
     }
   }
