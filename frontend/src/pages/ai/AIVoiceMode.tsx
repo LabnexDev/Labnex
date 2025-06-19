@@ -8,6 +8,8 @@ import MicWave from '../../components/ai-chat/MicWave';
 import TypingDots from '../../components/visual/TypingDots';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
 import VoiceStatusPanel from '../../components/ai-chat/VoiceStatusPanel';
+import VoiceStatusTimeline from '../../components/ai-chat/VoiceStatusTimeline';
+import type { TimelineEvent } from '../../components/ai-chat/VoiceStatusTimeline';
 
 interface VoiceMessage {
   id: string;
@@ -38,6 +40,7 @@ const AIVoiceMode: React.FC = () => {
   const isSpeakingRef = useRef(false);
   const { speak: speakOpenAI } = useOpenAITTS();
   const [statusMsg, setStatusMsg] = useState('Listening');
+  const [events, setEvents] = useState<TimelineEvent[]>([{ id: Date.now(), text: 'Listening' }]);
 
   useEffect(() => { isSpeakingRef.current = isSpeaking; }, [isSpeaking]);
 
@@ -76,7 +79,8 @@ const AIVoiceMode: React.FC = () => {
         }
       }
       setTranscript(interim);
-      setStatusMsg('Transcribing…');
+      setStatusMsg('Transcribing speech');
+      pushEvent('Transcribing speech');
     };
 
     recog.onerror = console.error;
@@ -92,12 +96,14 @@ const AIVoiceMode: React.FC = () => {
     recognitionRef.current.start();
     setListening(true);
     setStatusMsg('Listening');
+    pushEvent('Listening');
   };
 
   const stopListening = () => {
     recognitionRef.current?.stop();
     setListening(false);
     setStatusMsg('Paused');
+    pushEvent('Paused');
   };
 
   // Welcome message once
@@ -105,9 +111,10 @@ const AIVoiceMode: React.FC = () => {
     const welcome = async () => {
       setIsSpeaking(true);
       stopListening();
-      await speakOpenAI('Welcome to Labnex Voice Mode. How can I help you today?');
+      await speakOpenAI('Welcome to Labnex Voice Mode. You can speak freely or say exit to leave.');
       setIsSpeaking(false);
       setStatusMsg('Listening');
+      pushEvent('Listening');
       startListening();
     };
     welcome();
@@ -120,11 +127,13 @@ const AIVoiceMode: React.FC = () => {
     const speakAndNav = async (msg: string, path: string) => {
       toast(msg);
       setStatusMsg(msg);
+      pushEvent(msg);
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(msg);
       setIsSpeaking(false);
       setStatusMsg('Listening');
+      pushEvent('Listening');
       navigate(path);
       startListening();
     };
@@ -153,12 +162,14 @@ const AIVoiceMode: React.FC = () => {
       stopListening();
       setPaused(true);
       toast('Voice recognition paused');
+      pushEvent('Paused');
       return true;
     }
     if (lower.includes('resume listening')) {
       if (!listening) startListening();
       setPaused(false);
       toast('Voice recognition resumed');
+      pushEvent('Listening');
       return true;
     }
     return false;
@@ -176,28 +187,33 @@ const AIVoiceMode: React.FC = () => {
 
     setLoadingReply(true);
     setStatusMsg('Analyzing intent');
+    pushEvent('Analyzing intent');
 
     try {
       const { reply } = await aiChatApi.sendMessage(text, pageContext);
       const botMsg: VoiceMessage = { id: `${Date.now()}-b`, role: 'assistant', text: reply };
       setMessages(prev => [...prev, botMsg]);
       setStatusMsg('Responding');
+      pushEvent('Responding');
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(reply);
       setIsSpeaking(false);
       setStatusMsg('Listening');
+      pushEvent('Listening');
       startListening();
     } catch (e:any) {
       console.error(e);
       const err = 'Sorry, I had trouble reaching the server.';
       setMessages(prev => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: err }]);
       setStatusMsg('Error');
+      pushEvent('Error');
       setIsSpeaking(true);
       stopListening();
       await speakOpenAI(err);
       setIsSpeaking(false);
       setStatusMsg('Listening');
+      pushEvent('Listening');
     } finally {
       setLoadingReply(false);
     }
@@ -209,6 +225,10 @@ const AIVoiceMode: React.FC = () => {
     } else {
       startListening();
     }
+  };
+
+  const pushEvent = (text: string) => {
+    setEvents(prev => [...prev, { id: Date.now(), text }]);
   };
 
   return (
@@ -258,6 +278,9 @@ const AIVoiceMode: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Timeline Panel */}
+      <VoiceStatusTimeline events={events} />
     </div>
   );
 };
