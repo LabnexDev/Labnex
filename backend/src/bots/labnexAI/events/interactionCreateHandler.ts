@@ -240,6 +240,11 @@ import {
             break;
           }
   
+          case 'ping': {
+            await safeReply(interaction, { content: 'Ping pong from Docker!', ephemeral: true });
+            break;
+          }
+  
           default:
             await safeReply(interaction, { content: 'Command not recognized.', ephemeral: true });
         }
