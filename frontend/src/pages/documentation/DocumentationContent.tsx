@@ -63,7 +63,15 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
         </div>
       )}
       {!isLoading && !error && (
-        <article className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl prose-headings:text-blue-300 prose-headings:border-b prose-headings:border-slate-700 prose-headings:pb-2 prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-strong:text-blue-200 prose-code:bg-slate-700/50 prose-code:text-amber-300 prose-code:p-1 prose-code:rounded-md prose-blockquote:border-l-blue-400 prose-blockquote:text-gray-300 prose-ul:list-disc prose-ol:list-decimal prose-li:my-1 break-words dark:prose-invert">
+        <article className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl
+          prose-headings:text-blue-300 prose-headings:border-b prose-headings:border-slate-700 prose-headings:pb-2
+          prose-a:text-blue-400 hover:prose-a:text-blue-300
+          prose-strong:text-blue-200
+          prose-code:bg-slate-700/50 prose-code:text-amber-300 prose-code:p-1 prose-code:rounded-md
+          prose-blockquote:border-l-blue-400 prose-blockquote:text-gray-300
+          prose-ul:list-disc prose-ol:list-decimal prose-li:my-1
+          break-words dark:prose-invert
+          [&_pre]:overflow-x-auto [&_pre]:p-4 [&_table]:block [&_table]:overflow-x-auto [&_td]:whitespace-nowrap">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {markdownContent}
           </ReactMarkdown>
