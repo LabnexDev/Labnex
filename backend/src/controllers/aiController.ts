@@ -6,7 +6,7 @@ import { Role } from '../models/roleModel';
 import OpenAI from 'openai';
 import { JwtPayload } from '../middleware/auth';
 import { askChatGPT } from '../bots/labnexAI/chatgpt.service';
-import { getFlow, updateFlowAnswer, clearFlow, nextMissingField } from '../utils/pendingFlowManager';
+import { getFlow, startFlow, updateFlowAnswer, clearFlow, nextMissingField, toIntentKey, getRequiredFields, toFunctionName } from '../utils/pendingFlowManager';
 
 interface AuthRequest extends Request {
   user?: JwtPayload;
@@ -724,9 +724,14 @@ export const chatWithAI = async (req: AuthRequest, res: Response) => {
       }
       const missingField = nextMissingField(existingFlow);
       if (!missingField) {
-        // TODO: Execute action. For now, clear and confirm.
+        // Build action block to return to client for execution
+        const functionName = toFunctionName(existingFlow.intent);
+        const actionBlock = {
+          name: functionName,
+          params: existingFlow.entities,
+        };
         clearFlow(currentUser.id);
-        return res.json({ success: true, data: { reply: `✅ ${existingFlow.intent.replace(/_/g,' ')} executed.` } });
+        return res.json({ success: true, data: { reply: `Sure, I'll ${functionName} for you.`, action: actionBlock } });
       } else {
         existingFlow.askedField = missingField;
         return res.json({ success: true, data: { reply: `Sure — what's the ${missingField.replace(/_/g,' ')}?` } });
@@ -811,9 +816,41 @@ export const chatWithAI = async (req: AuthRequest, res: Response) => {
       actionBlock = { name, params: JSON.parse(args || '{}') };
     }
 
-    const replyContent = responseMsg.content || (actionBlock ? `Sure, I'll ${actionBlock.name} for you.` : '');
+    // If we have an action suggested, check for missing params and start pending flow if needed
+    if (actionBlock) {
+      const intentKey = toIntentKey(actionBlock.name);
+      // Merge pageContext values into params for auto-fill
+      const mergedParams: Record<string, any> = { ...(actionBlock.params || {}) };
+      if (!mergedParams.project_id && context?.projectId) mergedParams.project_id = context.projectId;
+      if (!mergedParams.test_case_id && context?.selectedTestCaseId) mergedParams.test_case_id = context.selectedTestCaseId;
+      if (!mergedParams.task_id && context?.selectedTaskId) mergedParams.task_id = context.selectedTaskId;
 
-    res.json({ success: true, data: { reply: replyContent, action: actionBlock } });
+      const requiredFields = getRequiredFields(intentKey);
+      const missingField = requiredFields.find((f) => !mergedParams[f]);
+
+      if (missingField) {
+        const flow = startFlow(currentUser.id, intentKey, mergedParams);
+        flow.askedField = missingField;
+        return res.json({
+          success: true,
+          data: {
+            reply: `Sure — what's the ${missingField.replace(/_/g, ' ')}?`,
+          },
+        });
+      }
+
+      // TODO: execute the action with mergedParams here (call controllers/services)
+      return res.json({
+        success: true,
+        data: {
+          reply: `✅ ${actionBlock.name.replace(/([A-Z])/g, ' $1').trim()} completed successfully.`,
+        },
+      });
+    }
+
+    const replyContent = responseMsg.content || '';
+
+    res.json({ success: true, data: { reply: replyContent } });
   } catch (error: any) {
     console.error('Error in chatWithAI:', error);
     res.status(500).json({ success: false, error: error.message || 'Internal Server Error' });

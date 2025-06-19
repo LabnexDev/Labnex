@@ -41,4 +41,17 @@ export function updateFlowAnswer(userId: string, field: string, value: any): voi
 export function nextMissingField(flow: PendingFlow): string | undefined {
   const needs = REQUIRED[flow.intent] || [];
   return needs.find((k) => !flow.entities[k]);
+}
+
+export function getRequiredFields(intent: string): string[] {
+  return REQUIRED[intent] || [];
+}
+
+export function toIntentKey(functionName: string): string {
+  return functionName.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase(); // createProject -> CREATE_PROJECT
+}
+
+export function toFunctionName(intentKey: string): string {
+  const parts = intentKey.toLowerCase().split('_');
+  return parts[0] + parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
 } 

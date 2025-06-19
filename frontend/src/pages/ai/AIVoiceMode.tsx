@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PaperAirplaneIcon, MicrophoneIcon, PauseIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { MicrophoneIcon, PauseIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { aiChatApi } from '../../api/aiChat';
 import { useNavigate } from 'react-router-dom';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { toast } from 'react-hot-toast';
+import MicWave from '../../components/ai-chat/MicWave';
+import TypingDots from '../../components/visual/TypingDots';
 
 interface VoiceMessage {
   id: string;
@@ -19,11 +21,30 @@ declare global {
   }
 }
 
-// Utility – wrap speech synthesis as a promise
-const speakTTS = (text: string) => {
+type Tone = 'whisper' | 'normal' | 'announcer';
+
+const speakTTS = (text: string, tone: Tone = 'normal') => {
   return new Promise<void>((resolve) => {
     const utter = new SpeechSynthesisUtterance(text);
     utter.voice = (speechSynthesis.getVoices().find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('shimmer')) as SpeechSynthesisVoice) || null;
+
+    // Adjust tone characteristics
+    switch (tone) {
+      case 'whisper':
+        utter.volume = 0.6;
+        utter.rate = 1.1;
+        utter.pitch = 1.2;
+        break;
+      case 'announcer':
+        utter.volume = 1;
+        utter.rate = 0.9;
+        utter.pitch = 0.9;
+        break;
+      default:
+        utter.volume = 1;
+        utter.rate = 1;
+        utter.pitch = 1;
+    }
     utter.onend = () => resolve();
     speechSynthesis.speak(utter);
   });
@@ -33,17 +54,25 @@ const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { pageContext, setPageContext } = useAIChat();
   const recognitionRef = useRef<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<VoiceMessage[]>([]);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [paused, setPaused] = useState(false);
+  const [voiceTone, setVoiceTone] = useState<Tone>('normal');
+  const [loadingReply, setLoadingReply] = useState(false);
 
   // Auto-set page context once (current route info)
   useEffect(() => {
     setPageContext({ ...pageContext, voiceMode: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, transcript, loadingReply]);
 
   // Initialise SpeechRecognition
   useEffect(() => {
@@ -94,7 +123,7 @@ const AIVoiceMode: React.FC = () => {
     const pid = pageContext.projectId;
     const speakAndNav = async (msg: string, path: string) => {
       toast(msg);
-      await speakTTS(msg);
+      await speakTTS(msg, voiceTone);
       navigate(path);
     };
 
@@ -143,16 +172,20 @@ const AIVoiceMode: React.FC = () => {
     const userMsg: VoiceMessage = { id: `${Date.now()}-u`, role: 'user', text };
     setMessages(prev => [...prev, userMsg]);
 
+    setLoadingReply(true);
+
     try {
       const { reply } = await aiChatApi.sendMessage(text, pageContext);
       const botMsg: VoiceMessage = { id: `${Date.now()}-b`, role: 'assistant', text: reply };
       setMessages(prev => [...prev, botMsg]);
-      await speakTTS(reply);
+      await speakTTS(reply, voiceTone);
     } catch (e:any) {
       console.error(e);
       const err = 'Sorry, I had trouble reaching the server.';
       setMessages(prev => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: err }]);
-      await speakTTS(err);
+      await speakTTS(err, voiceTone);
+    } finally {
+      setLoadingReply(false);
     }
   };
 
@@ -170,10 +203,21 @@ const AIVoiceMode: React.FC = () => {
       <div className="flex items-center justify-between p-4 border-b border-slate-700">
         <h2 className="text-lg font-semibold">AI Voice Call</h2>
         <div className="flex items-center gap-3">
-          <button onClick={toggleListening} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700">
+          {/* Tone selector */}
+          <select
+            value={voiceTone}
+            onChange={(e) => setVoiceTone(e.target.value as Tone)}
+            className="bg-slate-800 text-slate-200 text-sm rounded-lg px-2 py-1 focus:outline-none"
+            title="Voice tone"
+          >
+            <option value="whisper">Whisper</option>
+            <option value="normal">Normal</option>
+            <option value="announcer">Announcer</option>
+          </select>
+          <button onClick={toggleListening} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700" title={listening ? 'Pause' : 'Resume'}>
             {listening ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
           </button>
-          <button onClick={() => navigate(-1)} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700">
+          <button onClick={() => navigate(-1)} className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700" title="Exit voice mode">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -201,6 +245,13 @@ const AIVoiceMode: React.FC = () => {
             </div>
           </div>
         ))}
+        {loadingReply && (
+          <div className="self-start text-left">
+            <div className="inline-block bg-slate-800 text-slate-100 px-4 py-2 rounded-lg shadow-md max-w-prose">
+              <TypingDots />
+            </div>
+          </div>
+        )}
         {transcript && (
           <div className="self-end text-right opacity-70">
             <div className="inline-block border border-indigo-400 text-indigo-300 px-4 py-2 rounded-lg max-w-prose animate-pulse">
@@ -208,19 +259,22 @@ const AIVoiceMode: React.FC = () => {
             </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Mic status */}
-      <div className="p-4 flex items-center justify-center border-t border-slate-700">
+      <div className="p-4 flex items-center justify-between border-t border-slate-700">
         {listening ? (
-          <div className="flex items-center gap-2 text-green-400 animate-pulse">
-            <MicrophoneIcon className="h-6 w-6" /> Listening...
+          <div className="flex items-center gap-2 text-green-400">
+            <MicWave listening={true} />
+            <span>Listening…</span>
           </div>
         ) : (
           <div className="flex items-center gap-2 text-slate-400">
-            <MicrophoneIcon className="h-6 w-6" /> Paused
+            <MicrophoneIcon className="h-6 w-6" /> {paused ? 'Paused' : 'Not listening'}
           </div>
         )}
+        <span className="text-xs text-slate-500">Tone: {voiceTone}</span>
       </div>
     </div>
   );
