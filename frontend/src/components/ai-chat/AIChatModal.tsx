@@ -5,6 +5,7 @@ import AIResponseBox from '../visual/AIResponseBox';
 import { useNavigate } from 'react-router-dom';
 import TypingDots from '../visual/TypingDots';
 import AIScanningIndicator from '../visual/AIScanningIndicator';
+import VoiceControls from './VoiceControls';
 
 const AIChatModal: React.FC = () => {
   const { isOpen, close, messages, sendMessage, isTyping, isScanning } = useAIChat();
@@ -83,6 +84,7 @@ const AIChatModal: React.FC = () => {
             placeholder="Type your message..."
             className="flex-1 bg-slate-800 text-slate-100 placeholder-slate-400 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+          <VoiceControls />
           <button
             type="submit"
             aria-label="Send"

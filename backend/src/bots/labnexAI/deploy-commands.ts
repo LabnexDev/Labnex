@@ -177,7 +177,9 @@ const commands = [
         .setDescription('Posts the role selection embed (Developer / Tester) with emoji reactions.')
         .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator)
         .setDMPermission(false),
-
+    new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Checks that the bot is alive.'),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_BOT_TOKEN);

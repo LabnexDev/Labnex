@@ -44,7 +44,6 @@ const LabnexAIPage: React.FC = () => {
         <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 w-full">
           <h1 className="text-lg font-semibold whitespace-nowrap">Labnex AI Dashboard</h1>
           <SessionDropdown />
-          <VoiceControls />
         </div>
         <button
           className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
@@ -97,6 +96,7 @@ const LabnexAIPage: React.FC = () => {
         />
         {/* Autocomplete */}
         <SlashCommandAutocomplete query={inputValue} onSelect={(cmd) => setInputValue(`/${cmd} `)} />
+        <VoiceControls />
         <button
           type="submit"
           disabled={!inputValue.trim()}

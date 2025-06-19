@@ -267,6 +267,20 @@ import {
       // Call NLU service with conversation context
       const nluResponse = await getIntentAndEntitiesFromQuery(cleanQuery, conversationContext.history);
 
+      // If the NLU is uncertain, ask the user for clarification instead of guessing
+      if (nluResponse && typeof nluResponse.confidence === 'number' && nluResponse.confidence < 0.55) {
+        await messageReply(
+          `🤔 I'm not completely sure what you need.
+Here's what I understood:
+• Intent: **${nluResponse.intent || 'general'}**
+
+Could you please rephrase or give me a bit more detail?`);
+        localMessagesSent++;
+        // Store bot reply in context so the next turn has the history
+        updateConversationContext(discordUserId, 'assistant', "I'm not completely sure what you need – asked for clarification.");
+        return { updatedMessagesReceived: localMessagesReceived, updatedMessagesSent: localMessagesSent };
+      }
+
       if (nluResponse?.intent) {
         switch (nluResponse.intent) {
           case 'link_discord_account': {
