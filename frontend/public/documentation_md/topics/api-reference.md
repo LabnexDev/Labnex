@@ -89,7 +89,7 @@ wss://labnex-backend.onrender.com/api/projects/<projectId>/test-runs/<runId>/str
 ---
 ## 7. Rate Limits & Fair Use
 
-Each user/API-key is subject to fair-use rate limiting. Contact **support@labnex.dev** if you need a higher quota.
+Each user/API-key is subject to fair-use rate limiting. Contact **labnexcontact@gmail.com** if you need a higher quota.
 
 ---
 ## 8. Future Roadmap
@@ -99,4 +99,166 @@ Each user/API-key is subject to fair-use rate limiting. Contact **support@labnex
 * Stable versioned namespace (`/v1`, `/v2`, …)
 
 ---
-For questions, feature requests, or bug reports, please open a GitHub issue or email us at **support@labnex.dev**. 
+## 9. Detailed Endpoint Examples
+
+Below are canonical request/response pairs you can copy-paste into Postman or cURL scripts. Replace placeholder IDs/tokens with real values.
+
+### 9.1 Authentication
+
+**Login**
+
+Request:
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "Secret123!"
+}
+```
+
+Successful response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "64e4d7f9ecf4f0c7f1a1b234",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "avatar": null,
+      "systemRole": "MEMBER"
+    },
+    "token": "<jwt>"
+  }
+}
+```
+
+Error (401 Invalid credentials):
+```json
+{ "message": "Invalid credentials" }
+```
+
+### 9.2 Create a Project
+
+Request:
+```http
+POST /api/projects
+Authorization: Bearer <JWT_OR_API_KEY>
+Content-Type: application/json
+
+{
+  "name": "Website Redesign",
+  "description": "Q3 marketing push",
+  "projectCode": "WEB"
+}
+```
+
+Successful response (201):
+```json
+{
+  "_id": "6500aab1c0e49cfa88f4d321",
+  "name": "Website Redesign",
+  "description": "Q3 marketing push",
+  "projectCode": "WEB",
+  "owner": { "_id": "64e4d7f9ecf4f0c7f1a1b234", "name": "Alice", "email": "alice@example.com" },
+  "members": [
+    { "_id": "64e4d7f9ecf4f0c7f1a1b234", "name": "Alice", "email": "alice@example.com" }
+  ],
+  "isActive": true,
+  "testCaseCount": 0,
+  "createdAt": "2023-09-12T14:57:31.943Z",
+  "updatedAt": "2023-09-12T14:57:31.943Z",
+  "__v": 0
+}
+```
+
+Possible errors:
+* 400 – `Project code already exists.`
+* 400 – `Project code must be 3-5 alphanumeric characters.`
+* 401 – `User not authenticated` (missing/invalid token).
+
+### 9.3 List Projects (Paginated)
+
+Request:
+```http
+GET /api/projects?page=1&limit=20
+Authorization: Bearer <JWT_OR_API_KEY>
+```
+
+Response:
+```json
+{
+  "page": 1,
+  "limit": 20,
+  "total": 2,
+  "data": [
+    { "_id": "6500aab1c0e49cfa88f4d321", "name": "Website Redesign", ... },
+    { "_id": "6500aa99b9db74c43d9cfc88", "name": "Mobile App", ... }
+  ]
+}
+```
+
+### 9.4 Generate Test Case with AI
+
+```http
+POST /api/ai/generate-test-case
+Authorization: Bearer <JWT_OR_API_KEY>
+Content-Type: application/json
+
+{
+  "projectId": "6500aab1c0e49cfa88f4d321",
+  "feature": "User login",
+  "acceptanceCriteria": [
+    "User can log in with valid credentials",
+    "Incorrect password shows an error"
+  ]
+}
+```
+
+Response (200):
+```json
+{
+  "id": "tmp_123",
+  "steps": [
+    "Navigate to /login",
+    "Enter email 'user@example.com'",
+    "Enter password '********'",
+    "Click Login",
+    "Assert dashboard is visible"
+  ]
+}
+```
+
+---
+## 10. Error Code Matrix
+
+| Status | Meaning | Typical Causes |
+| ------ | --------| -------------- |
+| 400 | Bad Request | Validation failed, missing fields |
+| 401 | Unauthorized | No token or invalid token/API key |
+| 403 | Forbidden | Authenticated but lacking permissions |
+| 404 | Not Found | Resource ID does not exist or not visible to user |
+| 409 | Conflict | Duplicate resource (e.g., project code) |
+| 429 | Too Many Requests | Rate-limit exceeded |
+| 500 | Internal Server Error | Unhandled exception on server |
+
+---
+## 11. Pagination
+
+Where endpoints support pagination, they accept:
+* `page` (1-based) – which page to fetch.
+* `limit` – items per page (max 100).
+
+The response will include `page`, `limit`, `total`, and an array named `data`. If there are more pages, calculate `nextPage = page + 1` while `page * limit < total`.
+
+---
+## 12. Changelog for This Document
+
+| Date | Change |
+| ---- | ------ |
+| 2024-06-19 | Added detailed request/response samples, error matrix, pagination docs. |
+
+---
+For questions, feature requests, or bug reports, please open a GitHub issue or email us at **labnexcontact@gmail.com**. 
