@@ -143,6 +143,27 @@ client.once(Events.ClientReady, readyClient => {
     }, 7000); // Send stats every 7 seconds
 });
 
+// Graceful shutdown handling
+process.on('SIGINT', () => {
+    console.log('[labnexAI.bot.ts] Received SIGINT, shutting down gracefully...');
+    if (statsInterval) {
+        clearInterval(statsInterval);
+        statsInterval = null;
+    }
+    client.destroy();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('[labnexAI.bot.ts] Received SIGTERM, shutting down gracefully...');
+    if (statsInterval) {
+        clearInterval(statsInterval);
+        statsInterval = null;
+    }
+    client.destroy();
+    process.exit(0);
+});
+
 // Refactored command logic for account linking
 // MOVED TO commands/projectCommands.ts
 

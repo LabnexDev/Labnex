@@ -47,6 +47,7 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [pageNum, setPageNum] = useState(1);
   const limit = 30;
   const [hasMore, setHasMore] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const { speak } = useOpenAITTS();
 
   const location = useLocation();
@@ -60,7 +61,9 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return;
+    if (!content.trim() || isSending) return;
+
+    setIsSending(true);
 
     const userMessage: ChatMessage = {
       id: `${Date.now()}-u`,
@@ -70,98 +73,224 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Persist user message
-    if (!currentSessionId) return;
-    aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'user', text: content }).catch(console.error);
-
-    // Check for slash command
-    if (content.startsWith('/')) {
-      const parsed = parseCommand(content);
-      if (!parsed) {
-        const errorMsg: ChatMessage = {
-          id: `${Date.now()}-e`,
-          role: 'assistant',
-          content: '❌ Unknown or malformed command',
-          timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, errorMsg]);
-        // Persist assistant reply
-        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: errorMsg.content }).catch(console.error);
-        return;
+    if (currentSessionId) {
+      try {
+        await aiMessagesApi.saveMessage({ 
+          projectId: pageContext.projectId as string | undefined, 
+          sessionId: currentSessionId, 
+          role: 'user', 
+          text: content 
+        });
+      } catch (error) {
+        console.error('Failed to persist user message:', error);
       }
-      const resultText = await dispatchCommand(parsed, { ...pageContext, projectId: params.id || params.projectId });
-      const resultMessage: ChatMessage = {
-        id: `${Date.now()}-r`,
-        role: 'assistant',
-        content: resultText,
-        timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, resultMessage]);
-      // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: resultText }).catch(console.error);
-      speak(resultText);
-      return;
     }
 
-    // Build simple context based on location and params
-    const backendContext: AIChatBackendContext = {
-      page: location.pathname,
-      ...pageContext,
-      history: messages.slice(-15).map(m => ({ role: m.role, content: m.content })),
-      sessionId: currentSessionId!,
-    };
-    if (params.id) backendContext.projectId = params.id;
-    if (params.projectId) backendContext.projectId = params.projectId as string;
-
-    setIsScanning(true);
-    setIsTyping(false);
-
     try {
-      const { reply, action } = await aiChatApi.sendMessage(content, backendContext);
-      const assistantMessage: ChatMessage = {
-        id: `${Date.now()}-a`,
-        role: 'assistant',
-        content: reply,
-        timestamp: Date.now(),
+      if (content.startsWith('/')) {
+        const parsed = parseCommand(content);
+        if (!parsed) {
+          const errorMsg: ChatMessage = {
+            id: `${Date.now()}-e`,
+            role: 'assistant',
+            content: '❌ Unknown or malformed command',
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, errorMsg]);
+          
+          if (currentSessionId) {
+            try {
+              await aiMessagesApi.saveMessage({ 
+                projectId: pageContext.projectId as string | undefined, 
+                sessionId: currentSessionId, 
+                role: 'assistant', 
+                text: errorMsg.content 
+              });
+            } catch (error) {
+              console.error('Failed to persist error message:', error);
+            }
+          }
+          return;
+        }
+        
+        try {
+          const resultText = await dispatchCommand(parsed, { ...pageContext, projectId: params.id || params.projectId });
+          const resultMessage: ChatMessage = {
+            id: `${Date.now()}-r`,
+            role: 'assistant',
+            content: resultText,
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, resultMessage]);
+          
+          if (currentSessionId) {
+            try {
+              await aiMessagesApi.saveMessage({ 
+                projectId: pageContext.projectId as string | undefined, 
+                sessionId: currentSessionId, 
+                role: 'assistant', 
+                text: resultText 
+              });
+            } catch (error) {
+              console.error('Failed to persist command result:', error);
+            }
+          }
+          
+          speak(resultText);
+        } catch (commandError: any) {
+          const errorMsg: ChatMessage = {
+            id: `${Date.now()}-ce`,
+            role: 'assistant',
+            content: `❌ Command failed: ${commandError.message || 'Unknown error'}`,
+            timestamp: Date.now(),
+          };
+          setMessages(prev => [...prev, errorMsg]);
+          
+          if (currentSessionId) {
+            try {
+              await aiMessagesApi.saveMessage({ 
+                projectId: pageContext.projectId as string | undefined, 
+                sessionId: currentSessionId, 
+                role: 'assistant', 
+                text: errorMsg.content 
+              });
+            } catch (error) {
+              console.error('Failed to persist command error:', error);
+            }
+          }
+        }
+        return;
+      }
+
+      const backendContext: AIChatBackendContext = {
+        page: location.pathname,
+        ...pageContext,
+        history: messages.slice(-15).map(m => ({ role: m.role, content: m.content })),
+        sessionId: currentSessionId!,
       };
-      setMessages(prev => [...prev, assistantMessage]);
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: reply }).catch(console.error);
-      speak(reply);
-      // Switch from scanning to typing indicator for a brief moment
-      setIsScanning(false);
-      setIsTyping(true);
-      setTimeout(() => setIsTyping(false), 1200);
-      // If action block present, dispatch
-      if (action) {
-        const result = await dispatchAction(action, { ...pageContext, projectId: params.id || params.projectId });
-        const resultMessage: ChatMessage = {
-          id: `${Date.now()}-ra`,
+      if (params.id) backendContext.projectId = params.id;
+      if (params.projectId) backendContext.projectId = params.projectId as string;
+
+      setIsScanning(true);
+      setIsTyping(false);
+
+      try {
+        const { reply, action } = await aiChatApi.sendMessage(content, backendContext);
+        
+        if (!reply) {
+          throw new Error('No response received from AI service');
+        }
+        
+        const assistantMessage: ChatMessage = {
+          id: `${Date.now()}-a`,
           role: 'assistant',
-          content: result,
+          content: reply,
           timestamp: Date.now(),
         };
-        setMessages(prev => [...prev, resultMessage]);
-        aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: result }).catch(console.error);
-        speak(result);
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        if (currentSessionId) {
+          try {
+            await aiMessagesApi.saveMessage({ 
+              projectId: pageContext.projectId as string | undefined, 
+              sessionId: currentSessionId, 
+              role: 'assistant', 
+              text: reply 
+            });
+          } catch (error) {
+            console.error('Failed to persist AI response:', error);
+          }
+        }
+        
+        speak(reply);
+        
+        setIsScanning(false);
+        setIsTyping(true);
+        setTimeout(() => setIsTyping(false), 1200);
+        
+        if (action) {
+          try {
+            const result = await dispatchAction(action, { ...pageContext, projectId: params.id || params.projectId });
+            const resultMessage: ChatMessage = {
+              id: `${Date.now()}-ra`,
+              role: 'assistant',
+              content: result,
+              timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, resultMessage]);
+            
+            if (currentSessionId) {
+              try {
+                await aiMessagesApi.saveMessage({ 
+                  projectId: pageContext.projectId as string | undefined, 
+                  sessionId: currentSessionId, 
+                  role: 'assistant', 
+                  text: result 
+                });
+              } catch (error) {
+                console.error('Failed to persist action result:', error);
+              }
+            }
+            
+            speak(result);
+          } catch (actionError: any) {
+            console.error('Action dispatch failed:', actionError);
+            const actionErrorMessage: ChatMessage = {
+              id: `${Date.now()}-ae`,
+              role: 'assistant',
+              content: `⚠️ Action failed: ${actionError.message || 'Unknown error'}`,
+              timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, actionErrorMessage]);
+          }
+        }
+      } catch (apiError: any) {
+        console.error('AI Chat API error:', apiError);
+        
+        let errorContent = 'I apologize, but I encountered an issue. Please try again.';
+        
+        if (apiError.code === 'ECONNABORTED' || apiError.message?.includes('timeout')) {
+          errorContent = 'Request timed out. The AI service may be busy. Please try again.';
+        } else if (apiError.response?.status === 429) {
+          errorContent = 'Too many requests. Please wait a moment before trying again.';
+        } else if (apiError.response?.status === 503) {
+          errorContent = 'AI service temporarily unavailable. Please try again shortly.';
+        } else if (apiError.response?.status >= 500) {
+          errorContent = 'Internal server error. Please try again or contact support if the issue persists.';
+        } else if (!navigator.onLine) {
+          errorContent = 'No internet connection. Please check your network and try again.';
+        }
+        
+        const errorMessage: ChatMessage = {
+          id: `${Date.now()}-e`,
+          role: 'assistant',
+          content: errorContent,
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        
+        if (currentSessionId) {
+          try {
+            await aiMessagesApi.saveMessage({ 
+              projectId: pageContext.projectId as string | undefined, 
+              sessionId: currentSessionId, 
+              role: 'assistant', 
+              text: errorContent 
+            });
+          } catch (error) {
+            console.error('Failed to persist error message:', error);
+          }
+        }
+        
+        throw new Error(errorContent);
       }
-    } catch (error: any) {
-      const errorMessage: ChatMessage = {
-        id: `${Date.now()}-e`,
-        role: 'assistant',
-        content: error?.message || 'Something went wrong.',
-        timestamp: Date.now(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      // Persist assistant reply
-      aiMessagesApi.saveMessage({ projectId: pageContext.projectId as string | undefined, sessionId: currentSessionId!, role: 'assistant', text: errorMessage.content }).catch(console.error);
-      setIsScanning(false);
-      setIsTyping(false);
     } finally {
       setIsScanning(false);
+      setIsTyping(false);
+      setIsSending(false);
     }
   };
 
-  // Load initial messages on mount or when project changes
   useEffect(() => {
     const loadHistory = async () => {
       if (!currentSessionId) return;
@@ -181,10 +310,8 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     };
     loadHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSessionId]);
 
-  // Load sessions list
   useEffect(() => {
     const loadSessions = async () => {
       try {
@@ -193,7 +320,6 @@ export const AIChatProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (list.length) {
           setCurrentSessionId(list[0]._id);
         } else {
-          // create first session
           const newSession = await aiSessionsApi.createSession(pageContext.projectId as string | undefined);
           setSessions([{ id: newSession._id, title: newSession.title }]);
           setCurrentSessionId(newSession._id);

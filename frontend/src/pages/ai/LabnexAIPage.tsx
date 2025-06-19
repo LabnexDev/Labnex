@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useAIChat } from '../../contexts/AIChatContext';
 import { PaperAirplaneIcon, Bars3Icon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import { MicrophoneIcon, ChatBubbleLeftRightIcon, CommandLineIcon } from '@heroicons/react/24/solid';
@@ -8,16 +8,31 @@ import AIScanningIndicator from '../../components/visual/AIScanningIndicator';
 import SlashCommandAutocomplete from '../../components/ai-chat/SlashCommandAutocomplete';
 import SessionDropdown from '../../components/ai-chat/SessionDropdown';
 import VoiceControls from '../../components/ai-chat/VoiceControls';
+import AIChatTutorial from '../../components/onboarding/AIChatTutorial';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const LabnexAIPage: React.FC = () => {
   const { messages, sendMessage, isTyping, isScanning, hasMore, loadOlder } = useAIChat();
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const navigate = useNavigate();
+
+  // Check if user has seen the tutorial
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('labnex_ai_chat_tutorial_completed');
+    if (!hasSeenTutorial) {
+      // Show tutorial after a delay to let the page load
+      const timer = setTimeout(() => setShowTutorial(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -36,43 +51,85 @@ const LabnexAIPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [navigate, showMobileMenu]);
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+  // Debounced auto-resize textarea
+  const debouncedResize = useCallback(() => {
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
     }
-  }, [inputValue]);
+    
+    resizeTimeoutRef.current = setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+      }
+    }, 50); // 50ms debounce
+  }, []);
+
+  useEffect(() => {
+    debouncedResize();
+  }, [inputValue, debouncedResize]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Handle slash commands
   useEffect(() => {
     setShowAutocomplete(inputValue.startsWith('/') && inputValue.length > 1);
   }, [inputValue]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    sendMessage(inputValue.trim());
-    setInputValue('');
-    setShowAutocomplete(false);
+    
+    try {
+      setHasError(false);
+      await sendMessage(inputValue.trim());
+      setInputValue('');
+      setShowAutocomplete(false);
+    } catch (error: any) {
+      setHasError(true);
+      toast.error(error.message || 'Failed to send message. Please try again.');
+      console.error('Send message error:', error);
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (!inputValue.trim()) return;
-      sendMessage(inputValue.trim());
-      setInputValue('');
-      setShowAutocomplete(false);
+      
+      try {
+        setHasError(false);
+        await sendMessage(inputValue.trim());
+        setInputValue('');
+        setShowAutocomplete(false);
+      } catch (error: any) {
+        setHasError(true);
+        toast.error(error.message || 'Failed to send message. Please try again.');
+        console.error('Send message error:', error);
+      }
     }
     if (e.key === 'Escape') {
       setShowAutocomplete(false);
     }
   };
 
-  const handleSummarize = () => {
-    sendMessage('Summarize the current project activity and provide key insights.');
-    setShowMobileMenu(false);
+  const handleSummarize = async () => {
+    try {
+      setHasError(false);
+      await sendMessage('Summarize the current project activity and provide key insights.');
+      setShowMobileMenu(false);
+    } catch (error: any) {
+      setHasError(true);
+      toast.error('Failed to generate summary. Please try again.');
+      console.error('Summarize error:', error);
+    }
   };
 
   const handleVoiceMode = () => {
@@ -87,9 +144,16 @@ const LabnexAIPage: React.FC = () => {
     { label: '🐛 Debug Help', command: 'Help me debug the current issue I\'m facing.' },
   ];
 
-  const handleQuickCommand = (command: string) => {
-    sendMessage(command);
-    setShowMobileMenu(false);
+  const handleQuickCommand = async (command: string) => {
+    try {
+      setHasError(false);
+      await sendMessage(command);
+      setShowMobileMenu(false);
+    } catch (error: any) {
+      setHasError(true);
+      toast.error('Failed to execute command. Please try again.');
+      console.error('Quick command error:', error);
+    }
   };
 
   return (
@@ -120,6 +184,13 @@ const LabnexAIPage: React.FC = () => {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">
           <button
+            onClick={() => setShowTutorial(true)}
+            className="px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 text-slate-300 text-sm font-medium transition-all duration-200 hover:scale-[1.02] border border-slate-600/30"
+            title="Show tutorial"
+          >
+            ?
+          </button>
+          <button
             className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-600 hover:to-purple-600 text-white text-sm font-medium transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-purple-500/20 border border-purple-500/30"
             onClick={handleSummarize}
           >
@@ -148,23 +219,23 @@ const LabnexAIPage: React.FC = () => {
         </button>
       </header>
 
-      {/* Mobile Menu Backdrop */}
+      {/* Mobile Menu Backdrop with Higher Z-Index */}
       {showMobileMenu && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/20 z-10 top-[73px]"
+          className="md:hidden fixed inset-0 bg-black/30 z-[100] backdrop-blur-sm"
           onClick={() => setShowMobileMenu(false)}
         />
       )}
 
-      {/* Enhanced Mobile Menu */}
+      {/* Enhanced Mobile Menu with Fixed Z-Index */}
       {showMobileMenu && (
-        <div className="md:hidden fixed top-[73px] left-0 right-0 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-md border-b border-slate-700/50 z-20 px-4 py-4 space-y-4 shadow-xl animate-in slide-in-from-top-5 duration-200">
+        <div className="md:hidden fixed top-[73px] left-0 right-0 bg-gradient-to-r from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-md border-b border-slate-700/50 z-[110] px-4 py-4 space-y-4 shadow-2xl animate-in slide-in-from-top-5 duration-200 max-h-[calc(100vh-73px)] overflow-y-auto">
           <SessionDropdown />
           
           {/* Primary Actions */}
           <div className="grid grid-cols-2 gap-3">
             <button
-              className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-600 hover:to-purple-600 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-purple-500/20 border border-purple-500/30"
+              className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-600 hover:to-purple-600 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-purple-500/20 border border-purple-500/30 min-h-[44px] flex items-center justify-center"
               onClick={handleSummarize}
             >
               <SparklesIcon className="h-4 w-4 inline mr-2" />
@@ -172,7 +243,7 @@ const LabnexAIPage: React.FC = () => {
             </button>
             <button
               onClick={handleVoiceMode}
-              className="px-4 py-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600/80 to-teal-600/80 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 border border-emerald-500/30"
+              className="px-4 py-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600/80 to-teal-600/80 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-emerald-500/20 border border-emerald-500/30 min-h-[44px]"
             >
               <MicrophoneIcon className="h-4 w-4" />
               Voice Mode
@@ -187,7 +258,7 @@ const LabnexAIPage: React.FC = () => {
                 <button
                   key={idx}
                   onClick={() => handleQuickCommand(cmd.command)}
-                  className="px-3 py-2 text-sm text-left rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 transition-colors border border-slate-600/30"
+                  className="px-3 py-3 text-sm text-left rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 transition-colors border border-slate-600/30 min-h-[44px] flex items-center"
                 >
                   {cmd.label}
                 </button>
@@ -196,6 +267,43 @@ const LabnexAIPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Enhanced CSS for mobile animations */}
+      <style>{`
+        @keyframes slide-in-from-top-5 {
+          from {
+            transform: translateY(-20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .animate-in {
+          animation-fill-mode: both;
+        }
+
+        .slide-in-from-top-5 {
+          animation-name: slide-in-from-top-5;
+        }
+
+        .duration-200 {
+          animation-duration: 200ms;
+        }
+
+        /* Mobile touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+          button:hover {
+            background-color: inherit !important;
+          }
+          
+          button:active {
+            transform: scale(0.95) !important;
+          }
+        }
+      `}</style>
 
       {/* Messages Area with Enhanced Styling */}
       <div className="flex-1 overflow-y-auto overscroll-behavior-y-contain relative">
@@ -291,12 +399,15 @@ const LabnexAIPage: React.FC = () => {
               {/* Voice Controls */}
               <VoiceControls />
               
-              {/* Enhanced Send Button */}
+              {/* Enhanced Send Button with Error State */}
               <button
                 type="submit"
-                disabled={!inputValue.trim()}
-                className="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 disabled:hover:scale-100 hover:scale-105 shadow-lg shadow-purple-500/20 border border-purple-500/30 min-w-[48px] min-h-[48px] flex items-center justify-center"
-                title="Send message (Enter)"
+                disabled={!inputValue.trim() || isTyping || isScanning}
+                className={`p-3 ${hasError 
+                  ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800' 
+                  : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                } disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 disabled:hover:scale-100 hover:scale-105 shadow-lg shadow-purple-500/20 border border-purple-500/30 min-w-[48px] min-h-[48px] flex items-center justify-center`}
+                title={hasError ? "Retry sending message" : "Send message (Enter)"}
               >
                 <PaperAirplaneIcon className="h-5 w-5" />
               </button>
@@ -349,6 +460,14 @@ const LabnexAIPage: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* Tutorial Component */}
+      {showTutorial && (
+        <AIChatTutorial
+          onComplete={() => setShowTutorial(false)}
+          onSkip={() => setShowTutorial(false)}
+        />
+      )}
     </div>
   );
 };

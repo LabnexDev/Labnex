@@ -8,6 +8,7 @@ import VoiceStatusTimeline, { type TimelineEvent, type TimelineEventState } from
 import AudioWaveform from '../../components/ai-chat/AudioWaveform';
 import AIPreviewPanel from '../../components/ai-chat/AIPreviewPanel';
 import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
+import AIVoiceTutorial from '../../components/onboarding/AIVoiceTutorial';
 import { aiChatApi } from '../../api/aiChat';
 
 declare global {
@@ -17,7 +18,7 @@ declare global {
   }
 }
 
-type AIStatus = 'idle' | 'listening' | 'analyzing' | 'speaking' | 'paused';
+type AIStatus = 'idle' | 'listening' | 'analyzing' | 'speaking' | 'paused' | 'waiting';
 
 const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +27,13 @@ const AIVoiceMode: React.FC = () => {
   const audioStreamRef = useRef<MediaStream | null>(null);
   const initializedRef = useRef(false);
   const welcomeSpokenRef = useRef(false);
+  const vadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const vadDataArrayRef = useRef<Uint8Array | null>(null);
+  const lastVoiceActivityRef = useRef<number>(0);
+  const isManuallyPausedRef = useRef(false);
 
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<AIStatus>('idle');
@@ -34,12 +42,158 @@ const AIVoiceMode: React.FC = () => {
   const [currentAction, setCurrentAction] = useState('Initializing...');
   const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [aiSpeechIntensity, setAiSpeechIntensity] = useState(0);
+  const [voiceActivityLevel, setVoiceActivityLevel] = useState(0);
+  const [isSmartListening, setIsSmartListening] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Check if user has seen the voice tutorial
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('labnex_ai_voice_tutorial_completed');
+    if (!hasSeenTutorial) {
+      // Show tutorial after a delay to let the page load
+      const timer = setTimeout(() => setShowTutorial(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const { speak: speakOpenAI, isSpeaking } = useOpenAITTS();
 
   const pushEvent = useCallback((label: string, state: TimelineEventState) => {
     setEvents(prev => [{ id: Date.now(), label, state }, ...prev]);
   }, []);
+
+  // Voice Activity Detection (VAD) system
+  const detectVoiceActivity = useCallback(() => {
+    if (!analyserRef.current || !vadDataArrayRef.current || isSpeaking || status === 'speaking' || status === 'analyzing') {
+      return false;
+    }
+
+    analyserRef.current.getByteFrequencyData(vadDataArrayRef.current);
+
+    // Calculate average volume across frequency bins
+    const sum = vadDataArrayRef.current.reduce((a, b) => a + b, 0);
+    const average = sum / vadDataArrayRef.current.length;
+    const normalizedLevel = average / 255;
+    
+    setVoiceActivityLevel(normalizedLevel);
+
+    // Dynamic threshold based on ambient noise
+    const voiceThreshold = 0.03; // Minimum threshold for voice detection
+    
+    return normalizedLevel > voiceThreshold;
+  }, [isSpeaking, status]);
+
+  // Smart listening management
+  const startSmartListening = useCallback(() => {
+    if (!isSmartListening || isSpeaking || status === 'speaking' || status === 'analyzing' || isManuallyPausedRef.current) {
+      return;
+    }
+
+    if (recognitionRef.current && status !== 'listening') {
+      try {
+        recognitionRef.current.start();
+        setStatus('listening');
+        setCurrentAction('Smart listening activated - speak naturally');
+        pushEvent('Smart Listening Active', 'listening');
+              } catch (e: any) {
+          if (e.name !== 'InvalidStateError') {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Start recognition error:', e);
+            }
+            // Handle specific recognition errors
+            if (e.name === 'NotAllowedError') {
+              setCurrentAction('Microphone access denied');
+              pushEvent('Microphone Access Denied', 'error');
+            }
+          }
+        }
+    }
+  }, [isSmartListening, isSpeaking, status, pushEvent]);
+
+  const stopSmartListening = useCallback(() => {
+    if (recognitionRef.current && status === 'listening') {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Stop recognition error:', e);
+        }
+      }
+      setStatus('waiting');
+      setCurrentAction('Waiting for voice activity...');
+    }
+  }, [status]);
+
+  // Enhanced Voice Activity Detection loop
+  const vadLoop = useCallback(() => {
+    if (!isSmartListening || !audioStreamRef.current) return;
+
+    const hasVoiceActivity = detectVoiceActivity();
+    const now = Date.now();
+
+    if (hasVoiceActivity) {
+      lastVoiceActivityRef.current = now;
+      
+      // Start listening if we detect voice and we're not already listening/processing
+      if (status === 'waiting' || status === 'idle') {
+        startSmartListening();
+      }
+      
+      // Clear any pending silence timeout
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+        silenceTimeoutRef.current = null;
+      }
+    } else if (status === 'listening') {
+      // If we're listening but no voice activity for a while, go to waiting mode
+      const silenceDuration = now - lastVoiceActivityRef.current;
+      
+      if (silenceDuration > 2000 && !silenceTimeoutRef.current) { // 2 seconds of silence
+        silenceTimeoutRef.current = setTimeout(() => {
+          if (status === 'listening' && !isSpeaking) {
+            stopSmartListening();
+            setCurrentAction('No voice detected - waiting...');
+            pushEvent('Silence Detected', 'idle');
+          }
+          silenceTimeoutRef.current = null;
+        }, 1000); // Additional 1 second buffer
+      }
+    }
+
+    // Schedule next VAD check
+    if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+    vadTimeoutRef.current = setTimeout(vadLoop, 100); // Check every 100ms
+  }, [isSmartListening, detectVoiceActivity, status, startSmartListening, stopSmartListening, isSpeaking, pushEvent]);
+
+  // Initialize Voice Activity Detection
+  const initializeVAD = useCallback(async () => {
+    if (!audioStreamRef.current || audioContextRef.current) return;
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      audioContextRef.current = new AudioContextClass();
+
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+
+      const source = audioContextRef.current.createMediaStreamSource(audioStreamRef.current);
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+      analyserRef.current.smoothingTimeConstant = 0.3; // More responsive for VAD
+      
+      source.connect(analyserRef.current);
+      vadDataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
+
+      // Start VAD loop
+      vadLoop();
+      
+      pushEvent('Voice Detection Ready', 'listening');
+    } catch (error) {
+      console.error('Error setting up VAD:', error);
+      setIsSmartListening(false);
+    }
+  }, [vadLoop, pushEvent]);
 
   // AI Speech Intensity Effect for waveform visualization
   useEffect(() => {
@@ -62,33 +216,91 @@ const AIVoiceMode: React.FC = () => {
     return () => clearInterval(intensityInterval);
   }, [isSpeaking]);
 
+  // Enhanced stop listening with smart mode awareness
   const stopListening = useCallback(() => {
+    isManuallyPausedRef.current = true;
+    
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
-    if (status !== 'paused') {
-        setStatus('paused');
-        setCurrentAction('Voice recognition paused');
-        pushEvent('Paused', 'idle');
+    
+    // Clear VAD timeouts
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
     }
-  }, [status, pushEvent]);
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    
+    setStatus('paused');
+    setCurrentAction('Voice recognition manually paused');
+    pushEvent('Manually Paused', 'idle');
+  }, [pushEvent]);
 
+  // Enhanced start listening with smart mode
   const startListening = useCallback(() => {
-    if (recognitionRef.current && status !== 'listening') {
-      recognitionRef.current.start();
-      setStatus('listening');
-      setCurrentAction('Listening for your voice...');
-      pushEvent('Listening...', 'listening');
+    isManuallyPausedRef.current = false;
+    
+    if (isSmartListening) {
+      setStatus('waiting');
+      setCurrentAction('Smart listening enabled - speak naturally');
+      pushEvent('Smart Mode Enabled', 'listening');
+      vadLoop(); // Restart VAD loop
+    } else {
+      // Manual mode - start immediately
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
+        setStatus('listening');
+        setCurrentAction('Listening for your voice...');
+        pushEvent('Manual Listening...', 'listening');
+      }
     }
-  }, [status, pushEvent]);
+  }, [isSmartListening, vadLoop, pushEvent]);
 
   const speakAndThen = useCallback(async (text: string, onEnd?: () => void) => {
-    stopListening();
+    // Stop all listening activity when AI starts speaking
+    if (recognitionRef.current && status === 'listening') {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.log('Error stopping recognition before speaking:', e);
+      }
+    }
+    
+    // Clear VAD timeouts to prevent interference
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    
     setStatus('speaking');
     setCurrentAction('AI responding...');
-    pushEvent('Responding', 'executing');
-    await speakOpenAI(text, onEnd);
-  }, [stopListening, pushEvent, speakOpenAI]);
+    pushEvent('AI Speaking', 'executing');
+    
+    await speakOpenAI(text, () => {
+      // After AI finishes speaking, resume smart listening
+      if (!isManuallyPausedRef.current) {
+        setTimeout(() => {
+          if (isSmartListening) {
+            setStatus('waiting');
+            setCurrentAction('Waiting for your voice...');
+            pushEvent('Ready for Input', 'listening');
+            vadLoop(); // Resume VAD after AI speech
+          } else {
+            startListening(); // Manual mode - start immediately
+          }
+        }, 500); // Brief pause after AI speech
+      }
+      
+      if (onEnd) onEnd();
+    });
+  }, [status, pushEvent, speakOpenAI, isSmartListening, vadLoop, startListening]);
 
   const handleFinalTranscript = useCallback(async (text: string) => {
     if (!text.trim() || isSpeaking || status === 'analyzing') return;
@@ -114,6 +326,22 @@ const AIVoiceMode: React.FC = () => {
       startListening();
       return;
     }
+
+    if (lower.includes('smart mode') || lower.includes('automatic listening')) {
+      setIsSmartListening(true);
+      setCurrentAction('Smart listening mode enabled');
+      pushEvent('Smart Mode Enabled', 'listening');
+      startListening();
+      return;
+    }
+
+    if (lower.includes('manual mode') || lower.includes('tap to talk')) {
+      setIsSmartListening(false);
+      setCurrentAction('Manual listening mode enabled');
+      pushEvent('Manual Mode Enabled', 'idle');
+      stopListening();
+      return;
+    }
     
     setStatus('analyzing');
     setCurrentAction('Analyzing your request...');
@@ -125,12 +353,6 @@ const AIVoiceMode: React.FC = () => {
         setCurrentAction('Generating response...');
         speakAndThen(reply, () => {
             setCurrentAction('Ready for next command');
-            setStatus('idle');
-            setTimeout(() => {
-              if (recognitionRef.current && status !== 'paused') {
-                startListening();
-              }
-            }, 100);
         });
       } else {
         setCurrentAction('No response received');
@@ -141,13 +363,65 @@ const AIVoiceMode: React.FC = () => {
       console.error(e);
       const errorMsg = 'I apologize, but I encountered a connection issue. Please try again.';
       setCurrentAction('Connection error occurred');
-      setStatus('idle');
       speakAndThen(errorMsg, () => {
         setCurrentAction('Ready - please try again');
-        setTimeout(() => startListening(), 1000);
       });
     }
   }, [isSpeaking, status, pushEvent, speakAndThen, stopListening, startListening, navigate, pageContext]);
+
+
+
+  // Comprehensive cleanup function
+  const cleanup = useCallback(() => {
+    // Clear all timeouts
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+
+    // Stop and cleanup speech recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onstart = null;
+      } catch (e) {
+        console.log('Recognition cleanup error:', e);
+      }
+      recognitionRef.current = null;
+    }
+
+    // Cleanup audio context and stream
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch (e) {
+        console.log('Audio context cleanup error:', e);
+      }
+      audioContextRef.current = null;
+    }
+
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      audioStreamRef.current = null;
+    }
+
+    // Reset analyzer references
+    analyserRef.current = null;
+    vadDataArrayRef.current = null;
+
+    setAudioStream(null);
+  }, []);
+
+
 
   // Main initialization effect - only run once
   useEffect(() => {
@@ -159,7 +433,13 @@ const AIVoiceMode: React.FC = () => {
     const init = async () => {
         try {
             setCurrentAction('Requesting microphone access...');
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              }
+            });
             audioStreamRef.current = stream;
             setAudioStream(stream);
             setCurrentAction('Microphone access granted');
@@ -213,29 +493,44 @@ const AIVoiceMode: React.FC = () => {
         };
 
         recog.onend = () => {
-            // Only restart if we're supposed to be listening and not analyzing/speaking
-            if (status === 'listening' && !isSpeaking) {
-                setTimeout(() => {
-                  if (recognitionRef.current && status === 'listening' && !isSpeaking) {
-                    try {
-                      recognitionRef.current.start();
-                    } catch (e) {
-                      console.log('Restart recognition failed:', e);
-                    }
+            // Handle recognition end based on current mode
+            if (isSmartListening && !isSpeaking && !isManuallyPausedRef.current) {
+              // In smart mode, let VAD handle restart
+              if (status === 'listening') {
+                setStatus('waiting');
+                setCurrentAction('Waiting for voice activity...');
+              }
+            } else if (!isSmartListening && status === 'listening' && !isSpeaking && !isManuallyPausedRef.current) {
+              // In manual mode, restart immediately
+              setTimeout(() => {
+                if (recognitionRef.current && status === 'listening' && !isSpeaking) {
+                  try {
+                    recognitionRef.current.start();
+                  } catch (e) {
+                    console.log('Restart recognition failed:', e);
                   }
-                }, 100);
+                }
+              }, 100);
             }
         };
         
         recognitionRef.current = recog;
 
+        // Initialize Voice Activity Detection
+        await initializeVAD();
+
         // Only speak welcome message once
         if (!welcomeSpokenRef.current) {
           welcomeSpokenRef.current = true;
           setTimeout(() => {
-            speakAndThen('Welcome to AI Voice Call. How can I help you today?', () => {
-                setCurrentAction('Ready for your commands');
-                startListening();
+            speakAndThen('Welcome to AI Voice Call with smart listening. I can hear you automatically when you speak. How can I help you today?', () => {
+                setCurrentAction('Smart listening ready - just speak naturally');
+                if (isSmartListening) {
+                  setStatus('waiting');
+                  vadLoop();
+                } else {
+                  startListening();
+                }
             });
           }, 500);
         }
@@ -244,12 +539,25 @@ const AIVoiceMode: React.FC = () => {
     init();
 
     return () => {
+        // Cleanup all timeouts
+        if (vadTimeoutRef.current) {
+          clearTimeout(vadTimeoutRef.current);
+        }
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+        }
+        
         if (recognitionRef.current) {
             recognitionRef.current.onresult = null;
             recognitionRef.current.onerror = null;
             recognitionRef.current.onend = null;
             recognitionRef.current.stop();
         }
+        
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close();
+        }
+        
         audioStreamRef.current?.getTracks().forEach(track => track.stop());
     };
   }, []); // Only run once on mount
@@ -279,19 +587,47 @@ const AIVoiceMode: React.FC = () => {
   }, [isSpeaking, status, handleFinalTranscript]);
 
   const togglePause = () => {
-    if (status === 'listening') {
+    if (status === 'listening' || status === 'waiting') {
       stopListening();
     } else if (status === 'paused' || status === 'idle') {
       startListening();
     }
   };
 
+  const toggleSmartMode = () => {
+    setIsSmartListening(!isSmartListening);
+    if (!isSmartListening) {
+      // Switching to smart mode
+      setCurrentAction('Smart listening enabled');
+      pushEvent('Smart Mode Enabled', 'listening');
+      if (status === 'paused') {
+        startListening();
+      } else {
+        vadLoop();
+      }
+    } else {
+      // Switching to manual mode
+      setCurrentAction('Manual mode enabled - tap to talk');
+      pushEvent('Manual Mode Enabled', 'idle');
+      if (vadTimeoutRef.current) {
+        clearTimeout(vadTimeoutRef.current);
+        vadTimeoutRef.current = null;
+      }
+      stopListening();
+    }
+  };
+
   // Enhanced orb handling for mobile
   const handleOrbTap = () => {
-    if (status === 'paused' || status === 'idle') {
-      startListening();
-    } else if (status === 'listening') {
-      stopListening();
+    if (isSmartListening) {
+      toggleSmartMode(); // Toggle between smart and manual mode
+    } else {
+      // Manual mode - toggle listening
+      if (status === 'paused' || status === 'idle') {
+        startListening();
+      } else if (status === 'listening') {
+        stopListening();
+      }
     }
   };
 
@@ -301,6 +637,8 @@ const AIVoiceMode: React.FC = () => {
     switch(status) {
         case 'listening': 
           return `${baseClasses} animate-pulse scale-105 sm:scale-110 shadow-purple-400/50 ring-4 ring-purple-400/30`;
+        case 'waiting':
+          return `${baseClasses} scale-100 sm:scale-105 shadow-green-400/50 ring-2 ring-green-400/30 animate-bounce`;
         case 'analyzing': 
           return `${baseClasses} animate-spin-slow scale-100 sm:scale-105 shadow-indigo-400/50`;
         case 'speaking': 
@@ -316,6 +654,7 @@ const AIVoiceMode: React.FC = () => {
   const getMicStatusText = () => {
     switch(status) {
         case 'listening': return 'Listening';
+        case 'waiting': return isSmartListening ? 'Smart Listening Ready' : 'Waiting';
         case 'analyzing': return 'Analyzing';
         case 'speaking': return 'AI Speaking';
         case 'paused': return 'Paused';
@@ -336,21 +675,84 @@ const AIVoiceMode: React.FC = () => {
         filter: 'drop-shadow(0 0 15px rgba(168, 85, 247, 0.6))',
       } as React.CSSProperties;
     }
+    if (status === 'waiting') {
+      return {
+        filter: 'drop-shadow(0 0 10px rgba(34, 197, 94, 0.6))',
+      } as React.CSSProperties;
+    }
     return {};
   };
+
+  // Enhanced error recovery for microphone permissions
+  const handleMicrophoneError = useCallback(async (error: any) => {
+    console.error('Microphone error:', error);
+    
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      setCurrentAction('Microphone access denied - please allow microphone access');
+      pushEvent('Permission Denied', 'error');
+      setStatus('paused');
+      
+      // Show user how to re-enable permissions
+      toast.error('Please allow microphone access in your browser settings and refresh the page');
+    } else if (error.name === 'NotFoundError') {
+      setCurrentAction('No microphone found - please connect a microphone');
+      pushEvent('No Microphone', 'error');
+      setStatus('paused');
+    } else if (error.name === 'NotReadableError') {
+      setCurrentAction('Microphone in use by another app - please close other apps using microphone');
+      pushEvent('Microphone Busy', 'error');
+      setStatus('paused');
+      
+      // Show user they can try refreshing
+      toast.error('Microphone is busy. Please close other apps using the microphone and refresh the page.');
+    } else {
+      setCurrentAction('Audio system error occurred');
+      pushEvent('Audio Error', 'error');
+      setStatus('paused');
+      
+      // Show user they can try refreshing
+      toast.error('Audio system error. Please refresh the page to restart.');
+    }
+  }, [pushEvent]);
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 flex flex-col font-sans overflow-hidden">
       {/* Enhanced Mobile Header */}
       <header className="flex items-center justify-between p-3 sm:p-4 bg-black/20 backdrop-blur-md z-20 border-b border-slate-700/30 safe-area-top">
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-          <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 bg-emerald-400 rounded-full animate-pulse flex-shrink-0"></div>
+          <div className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full animate-pulse flex-shrink-0 ${
+            isSmartListening ? 'bg-emerald-400' : 'bg-yellow-400'
+          }`}></div>
           <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent truncate">
-            AI Voice Call
+            AI Voice Call {isSmartListening ? '(Smart)' : '(Manual)'}
           </h1>
         </div>
         
         <div className="flex items-center gap-2 sm:gap-4">
+          {/* Help Button */}
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="p-2 sm:p-3 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-200 backdrop-blur-sm border border-slate-600/30 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="Show voice mode tutorial"
+          >
+            <span className="text-xs font-bold text-slate-300">?</span>
+          </button>
+
+          {/* Smart Mode Toggle */}
+          <button
+            onClick={toggleSmartMode}
+            className={`p-2 sm:p-3 rounded-full transition-all duration-200 backdrop-blur-sm border min-w-[44px] min-h-[44px] flex items-center justify-center ${
+              isSmartListening 
+                ? 'bg-emerald-600/50 border-emerald-500/30 text-emerald-300' 
+                : 'bg-yellow-600/50 border-yellow-500/30 text-yellow-300'
+            }`}
+            title={isSmartListening ? 'Smart Mode: Auto-detects voice' : 'Manual Mode: Tap to talk'}
+          >
+            <span className="text-xs font-bold">
+              {isSmartListening ? 'AUTO' : 'TAP'}
+            </span>
+          </button>
+
           {/* Mobile Info Button */}
           <button
             onClick={() => setShowMobilePanel(!showMobilePanel)}
@@ -364,9 +766,9 @@ const AIVoiceMode: React.FC = () => {
           <button 
             onClick={togglePause} 
             className="p-2 sm:p-3 rounded-full bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-200 backdrop-blur-sm border border-slate-600/30 min-w-[44px] min-h-[44px] flex items-center justify-center" 
-            title={status === 'listening' ? 'Pause' : 'Resume'}
+            title={status === 'listening' || status === 'waiting' ? 'Pause' : 'Resume'}
           >
-            {status === 'listening' ? <PauseIcon className="h-4 w-4 sm:h-5 sm:w-5" /> : <PlayIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+            {(status === 'listening' || status === 'waiting') ? <PauseIcon className="h-4 w-4 sm:h-5 sm:w-5" /> : <PlayIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
           </button>
           
           {/* Exit Button */}
@@ -389,6 +791,22 @@ const AIVoiceMode: React.FC = () => {
               <AIPreviewPanel currentAction={currentAction} status={status} />
             </div>
             <div>
+              <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Voice Activity Level</h3>
+              <div className="bg-slate-800/50 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-100"
+                      style={{ width: `${Math.min(voiceActivityLevel * 100 * 10, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-400">
+                    {(voiceActivityLevel * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div>
               <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Recent Activity</h3>
               <VoiceStatusTimeline events={events.slice(0, 4)} compact={true} />
             </div>
@@ -404,6 +822,22 @@ const AIVoiceMode: React.FC = () => {
             <div className="mb-4">
               <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Activity Timeline</h3>
               <VoiceStatusTimeline events={events} />
+            </div>
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wide">Voice Activity</h3>
+              <div className="bg-slate-800/50 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-100"
+                      style={{ width: `${Math.min(voiceActivityLevel * 100 * 10, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400">
+                  {isSmartListening ? 'Smart listening active' : 'Manual mode'} • Level: {(voiceActivityLevel * 100).toFixed(1)}%
+                </p>
+              </div>
             </div>
           </div>
 
@@ -423,13 +857,14 @@ const AIVoiceMode: React.FC = () => {
                 <div className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
                   <AudioWaveform 
                     audioStream={audioStream} 
-                    isActive={status === 'listening' || status === 'speaking' || status === 'idle'}
+                    isActive={status === 'listening' || status === 'speaking' || status === 'waiting' || status === 'idle'}
                     mode={
                       status === 'listening' ? 'input' :
                       status === 'speaking' ? 'output' :
+                      status === 'waiting' ? 'input' :
                       'idle'
                     }
-                    intensity={status === 'speaking' ? aiSpeechIntensity : 0}
+                    intensity={status === 'speaking' ? aiSpeechIntensity : (status === 'waiting' ? voiceActivityLevel * 2 : 0)}
                   />
                 </div>
               </div>
@@ -440,15 +875,27 @@ const AIVoiceMode: React.FC = () => {
                   className={getOrbClass()}
                   style={getOrbGlowStyle()}
                   onClick={handleOrbTap}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleOrbTap();
-                    }
-                  }}
-                  aria-label={status === 'listening' ? 'Tap to pause listening' : 'Tap to start listening'}
+                          role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleOrbTap();
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            if (status === 'listening') {
+              stopListening();
+            }
+          }
+        }}
+        aria-label={
+                    isSmartListening 
+                      ? 'Tap to switch to manual mode' 
+                      : status === 'listening' 
+                        ? 'Tap to pause listening' 
+                        : 'Tap to start listening'
+                  }
                 >
                   {/* Inner gradient overlay */}
                   <div className="absolute inset-4 bg-gradient-to-br from-white/20 to-white/5 rounded-full pointer-events-none"></div>
@@ -457,7 +904,8 @@ const AIVoiceMode: React.FC = () => {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <MicrophoneIcon 
                       className={`h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 text-white/90 transition-all duration-500 pointer-events-none ${
-                        status === 'listening' ? 'scale-110 text-white' : ''
+                        status === 'listening' ? 'scale-110 text-white' : 
+                        status === 'waiting' ? 'scale-105 text-green-300' : ''
                       } ${status === 'speaking' ? 'scale-105 animate-pulse' : ''}`} 
                     />
                   </div>
@@ -485,14 +933,16 @@ const AIVoiceMode: React.FC = () => {
             <div className="text-center space-y-3 px-4">
               <p className="text-sm sm:text-base text-slate-400">
                 {status === 'listening' ? '🎤 Listening for your voice...' : 
+                 status === 'waiting' ? '👂 Smart listening ready - just speak naturally' :
                  status === 'speaking' ? '🔊 AI is responding...' : 
                  status === 'analyzing' ? '🧠 Processing your request...' :
                  status === 'paused' ? '⏸️ Voice recognition paused' :
-                 '💬 Tap the orb to start voice conversation'}
+                 isSmartListening ? '🤖 Smart listening enabled - speak anytime' : '💬 Tap the orb to start voice conversation'}
               </p>
               <div className="flex flex-wrap justify-center gap-2 text-xs sm:text-sm text-slate-500">
                 <span className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 px-3 py-1 rounded-full border border-slate-600/20">Say "exit" to leave</span>
                 <span className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 px-3 py-1 rounded-full border border-slate-600/20">Say "pause" to stop</span>
+                <span className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 px-3 py-1 rounded-full border border-slate-600/20">Say "smart mode" to toggle</span>
                 <span className="bg-gradient-to-r from-slate-800/40 to-slate-700/40 px-3 py-1 rounded-full border border-slate-600/20">Long press to exit</span>
               </div>
             </div>
@@ -510,7 +960,8 @@ const AIVoiceMode: React.FC = () => {
       <footer className="p-3 sm:p-4 bg-black/20 backdrop-blur-md border-t border-slate-700/30 safe-area-bottom">
         <div className="flex items-center justify-center gap-3">
           <span className={`h-3 w-3 rounded-full transition-all duration-300 ${
-            status === 'listening' ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 
+            status === 'listening' ? 'bg-purple-400 animate-pulse shadow-lg shadow-purple-400/50' : 
+            status === 'waiting' ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' :
             status === 'speaking' ? 'bg-purple-400 animate-pulse shadow-lg shadow-purple-400/50' :
             status === 'analyzing' ? 'bg-blue-400 animate-spin' :
             'bg-yellow-400'
@@ -520,6 +971,7 @@ const AIVoiceMode: React.FC = () => {
           {/* Status emoji for mobile */}
           <span className="text-sm">
             {status === 'listening' && '🎤'}
+            {status === 'waiting' && '👂'}
             {status === 'speaking' && '🔊'}
             {status === 'analyzing' && '🧠'}
             {status === 'paused' && '⏸️'}
@@ -603,6 +1055,14 @@ const AIVoiceMode: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* Tutorial Component */}
+      {showTutorial && (
+        <AIVoiceTutorial
+          onComplete={() => setShowTutorial(false)}
+          onSkip={() => setShowTutorial(false)}
+        />
+      )}
     </div>
   );
 };

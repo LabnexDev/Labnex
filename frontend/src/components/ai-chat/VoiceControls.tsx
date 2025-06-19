@@ -25,7 +25,7 @@ const VoiceControls: React.FC = () => {
 
   return (
     <div className="flex items-center gap-2">
-      {/* Single mic button - Enhanced for mobile */}
+      {/* Single mic button - Enhanced for mobile with NO ROTATION */}
       <button
         onClick={handleMicClick}
         disabled={isTyping}
@@ -34,24 +34,28 @@ const VoiceControls: React.FC = () => {
           !voiceInput ? 'Enable voice input & speak' : 
           listening ? 'Stop recording' : 'Speak'
         }
-        className={`p-2 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 ${
+        className={`p-2 rounded-xl transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-slate-900 ${
           isTyping
             ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed opacity-50'
             : listening 
-              ? 'bg-red-600/90 animate-pulse shadow-lg shadow-red-500/50 text-white' 
+              ? 'bg-red-600/90 shadow-lg shadow-red-500/50 text-white animate-pulse' 
               : voiceInput 
                 ? 'bg-slate-700/80 text-green-400 hover:bg-slate-600/80 border border-green-500/30' 
                 : 'text-slate-400 hover:bg-slate-700/60 bg-slate-800/50 border border-slate-600/30'
         }`}
+        aria-pressed={listening}
+        aria-describedby="voice-status"
       >
-        <MicrophoneIcon className={`h-5 w-5 ${isTyping ? '' : 'transition-transform duration-200'}`} />
+        <MicrophoneIcon className="h-5 w-5" />
       </button>
 
       {/* Toggle voice output - Better mobile support */}
       <button
         onClick={() => setVoiceOutput(!voiceOutput)}
         title={voiceOutput ? 'Disable voice output' : 'Enable voice output'}
-        className="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-700/60 bg-slate-800/50 transition-all duration-200 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 border border-slate-600/30"
+        className="hidden sm:inline-flex p-2 rounded-xl hover:bg-slate-700/60 bg-slate-800/50 transition-all duration-200 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 border border-slate-600/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-slate-900"
+        aria-pressed={voiceOutput}
+        aria-label={voiceOutput ? 'Disable voice output' : 'Enable voice output'}
       >
         {voiceOutput ? (
           <SpeakerWaveIcon className="h-5 w-5 text-green-400" />
@@ -59,6 +63,13 @@ const VoiceControls: React.FC = () => {
           <SpeakerXMarkIcon className="h-5 w-5 text-slate-400" />
         )}
       </button>
+      
+      {/* Screen reader status indicator */}
+      <div id="voice-status" className="sr-only" aria-live="polite">
+        {listening ? 'Voice input active, listening for speech' : 
+         voiceInput ? 'Voice input enabled, click microphone to start' : 
+         'Voice input disabled'}
+      </div>
     </div>
   );
 };

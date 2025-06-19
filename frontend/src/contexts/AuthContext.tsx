@@ -53,8 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    console.log('[AuthContext] Initializing - Document readyState:', document.readyState);
-    console.log('[AuthContext] Initializing - Token from localStorage:', token ? `Exists (length: ${token.length})` : 'null');
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AuthContext] Initializing - Document readyState:', document.readyState);
+      console.log('[AuthContext] Initializing - Token from localStorage:', token ? `Exists (length: ${token.length})` : 'null');
+    }
     
     if (token) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -66,11 +69,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      console.log('[AuthContext] Storage event detected:', 
-        JSON.stringify({ key: e.key, oldValue: e.oldValue, newValue: e.newValue }, null, 2)
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[AuthContext] Storage event detected:', 
+          JSON.stringify({ key: e.key, oldValue: e.oldValue, newValue: e.newValue }, null, 2)
+        );
+      }
+      
       if (e.key === 'token' && e.newValue === null && state.isAuthenticated) {
-        console.warn('[AuthContext] Token was removed from localStorage by an external event while authenticated. Logging out.');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[AuthContext] Token was removed from localStorage by an external event while authenticated. Logging out.');
+        }
+        
         setState(prev => ({
           ...prev,
           user: null,
@@ -87,7 +96,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      console.log('Fetching user data...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Fetching user data...');
+      }
+      
       const response = await axiosInstance.get<{ 
         success: boolean; 
         data: { 
@@ -96,7 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }>('/auth/me');
       const token = localStorage.getItem('token');
       
-      console.log('User data fetched successfully:', response.data.data.user);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User data fetched successfully:', response.data.data.user);
+      }
+      
       setState(prev => ({
         ...prev,
         user: response.data.data.user,
@@ -106,7 +121,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error: null,
       }));
     } catch (error) {
-      console.error('Failed to fetch user data:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to fetch user data:', error);
+      }
+      
       localStorage.removeItem('token');
       delete axiosInstance.defaults.headers.common['Authorization'];
       setState(prev => ({

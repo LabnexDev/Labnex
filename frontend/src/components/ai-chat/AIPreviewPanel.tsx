@@ -3,7 +3,7 @@ import { CogIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/re
 
 interface AIPreviewPanelProps {
   currentAction: string;
-  status: 'idle' | 'listening' | 'analyzing' | 'speaking' | 'paused' | 'error';
+  status: 'idle' | 'listening' | 'analyzing' | 'speaking' | 'paused' | 'error' | 'waiting';
 }
 
 const AIPreviewPanel: React.FC<AIPreviewPanelProps> = ({ currentAction, status }) => {
@@ -14,6 +14,8 @@ const AIPreviewPanel: React.FC<AIPreviewPanelProps> = ({ currentAction, status }
         return <CogIcon className="h-4 w-4 animate-spin text-purple-400" />;
       case 'listening':
         return <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />;
+      case 'waiting':
+        return <div className="h-2 w-2 bg-yellow-400 rounded-full animate-pulse" />;
       case 'error':
         return <ExclamationTriangleIcon className="h-4 w-4 text-red-400" />;
       default:
@@ -28,6 +30,8 @@ const AIPreviewPanel: React.FC<AIPreviewPanelProps> = ({ currentAction, status }
         return 'text-purple-300';
       case 'listening':
         return 'text-green-300';
+      case 'waiting':
+        return 'text-yellow-300';
       case 'error':
         return 'text-red-300';
       default:
@@ -86,6 +90,19 @@ const AIPreviewPanel: React.FC<AIPreviewPanelProps> = ({ currentAction, status }
               <div className="flex items-center gap-1 ml-2">
                 <span className="animate-pulse">▸</span>
                 Speech recognition ready
+              </div>
+            </div>
+          )}
+          
+          {status === 'waiting' && (
+            <div className="text-xs text-slate-500 font-mono">
+              <div className="flex items-center gap-1">
+                <span className="animate-pulse">▸</span>
+                Smart listening enabled
+              </div>
+              <div className="flex items-center gap-1 ml-2">
+                <span className="animate-pulse">▸</span>
+                Waiting for voice activity
               </div>
             </div>
           )}

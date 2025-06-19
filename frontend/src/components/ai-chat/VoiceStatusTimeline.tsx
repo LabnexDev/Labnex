@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircleIcon, CogIcon, CubeTransparentIcon, EllipsisHorizontalCircleIcon, MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 
-export type TimelineEventState = 'listening' | 'transcribing' | 'analyzing' | 'executing' | 'done' | 'idle' | 'error';
+export type TimelineEventState = 'listening' | 'transcribing' | 'analyzing' | 'executing' | 'done' | 'idle' | 'error' | 'waiting';
 
 export interface TimelineEvent {
   id: number;
@@ -22,6 +22,7 @@ const stateIcons: Record<TimelineEventState, React.FC<{ className: string }>> = 
   done: CheckCircleIcon,
   idle: CubeTransparentIcon,
   error: CheckCircleIcon,
+  waiting: EllipsisHorizontalCircleIcon,
 };
 
 const stateColors: Record<TimelineEventState, string> = {
@@ -32,6 +33,7 @@ const stateColors: Record<TimelineEventState, string> = {
   done: 'bg-emerald-500/50 text-emerald-300 border-emerald-400/30',
   idle: 'bg-slate-600/50 text-slate-400 border-slate-500/30',
   error: 'bg-red-500/50 text-red-300 border-red-400/30',
+  waiting: 'bg-yellow-500/50 text-yellow-300 border-yellow-400/30',
 };
 
 const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events, compact = false }) => {
@@ -91,7 +93,12 @@ const VoiceStatusTimeline: React.FC<VoiceStatusTimelineProps> = ({ events, compa
 
   // Desktop vertical layout
   return (
-    <div className="h-full max-h-[400px] overflow-y-auto rounded-xl bg-slate-800/30 p-4 sm:p-5 backdrop-blur-md border border-slate-600/20 shadow-lg">
+    <div 
+      className="h-full max-h-[400px] overflow-y-auto rounded-xl bg-slate-800/30 p-4 sm:p-5 backdrop-blur-md border border-slate-600/20 shadow-lg"
+      role="log"
+      aria-label="Voice interaction timeline"
+      aria-live="polite"
+    >
       <div className="space-y-3 sm:space-y-4">
         {displayEvents.map((event, index) => {
           const Icon = stateIcons[event.state] || EllipsisHorizontalCircleIcon;
