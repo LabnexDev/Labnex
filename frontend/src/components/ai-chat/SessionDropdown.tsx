@@ -49,7 +49,7 @@ const SessionDropdown: React.FC = () => {
         <ChevronDownIcon className="h-4 w-4" />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-64 bg-slate-800 border border-slate-700 rounded shadow-lg">
+        <div className="absolute z-[120] mt-1 w-64 bg-slate-800 border border-slate-700 rounded shadow-lg">
           <button onClick={createNewSession} className="flex items-center w-full px-3 py-2 hover:bg-slate-700 text-left text-sm gap-2">
             <PlusCircleIcon className="h-4 w-4" /> New Session
           </button>

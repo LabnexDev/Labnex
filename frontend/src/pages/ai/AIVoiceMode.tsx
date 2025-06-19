@@ -62,25 +62,70 @@ const AIVoiceMode: React.FC = () => {
     setEvents(prev => [{ id: Date.now(), label, state }, ...prev]);
   }, []);
 
+  // Add comprehensive cleanup and reset function (defined after vadLoop)
+  const resetVoiceSystem = useCallback(() => {
+    // Clear all timeouts
+    if (vadTimeoutRef.current) {
+      clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = null;
+    }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+
+    // Reset manual pause state
+    isManuallyPausedRef.current = false;
+
+    // Reset voice activity tracking
+    lastVoiceActivityRef.current = Date.now();
+    setVoiceActivityLevel(0);
+
+    // Reset status to waiting if smart listening is enabled
+    if (isSmartListening && audioStreamRef.current) {
+      setStatus('waiting');
+      setCurrentAction('Voice system reset - waiting for activity');
+      pushEvent('Voice System Reset', 'idle');
+    } else {
+      setStatus('idle');
+      setCurrentAction('Voice system reset - tap to start');
+      pushEvent('Voice System Reset', 'idle');
+    }
+  }, [isSmartListening, pushEvent]);
+
   // Voice Activity Detection (VAD) system
   const detectVoiceActivity = useCallback(() => {
     if (!analyserRef.current || !vadDataArrayRef.current || isSpeaking || status === 'speaking' || status === 'analyzing') {
       return false;
     }
 
-    analyserRef.current.getByteFrequencyData(vadDataArrayRef.current);
+    try {
+      analyserRef.current.getByteFrequencyData(vadDataArrayRef.current);
 
-    // Calculate average volume across frequency bins
-    const sum = vadDataArrayRef.current.reduce((a, b) => a + b, 0);
-    const average = sum / vadDataArrayRef.current.length;
-    const normalizedLevel = average / 255;
-    
-    setVoiceActivityLevel(normalizedLevel);
+      // Calculate average volume across frequency bins with noise filtering
+      const frequencyData = Array.from(vadDataArrayRef.current);
+      
+      // Focus on human voice frequency range (85-255 Hz mapped to array indices)
+      const voiceRange = frequencyData.slice(Math.floor(frequencyData.length * 0.1), Math.floor(frequencyData.length * 0.6));
+      const voiceSum = voiceRange.reduce((a, b) => a + b, 0);
+      const voiceAverage = voiceSum / voiceRange.length;
+      
+      // Calculate overall average for comparison
+      const totalSum = frequencyData.reduce((a, b) => a + b, 0);
+      const totalAverage = totalSum / frequencyData.length;
+      
+      const normalizedLevel = Math.max(voiceAverage, totalAverage) / 255;
+      setVoiceActivityLevel(normalizedLevel);
 
-    // Dynamic threshold based on ambient noise
-    const voiceThreshold = 0.03; // Minimum threshold for voice detection
-    
-    return normalizedLevel > voiceThreshold;
+      // Adaptive threshold with noise floor detection
+      const baseThreshold = 0.05; // Increased from 0.03 for better noise rejection
+      const voiceThreshold = Math.max(baseThreshold, totalAverage / 255 * 2); // Dynamic noise floor
+      
+      return normalizedLevel > voiceThreshold && voiceAverage > totalAverage * 1.2; // Voice must be significantly louder than background
+    } catch (error) {
+      console.warn('VAD detection error:', error);
+      return false;
+    }
   }, [isSpeaking, status]);
 
   // Smart listening management
@@ -124,76 +169,112 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [status]);
 
-  // Enhanced Voice Activity Detection loop
+  // Enhanced Voice Activity Detection loop with state management
   const vadLoop = useCallback(() => {
-    if (!isSmartListening || !audioStreamRef.current) return;
-
-    const hasVoiceActivity = detectVoiceActivity();
-    const now = Date.now();
-
-    if (hasVoiceActivity) {
-      lastVoiceActivityRef.current = now;
-      
-      // Start listening if we detect voice and we're not already listening/processing
-      if (status === 'waiting' || status === 'idle') {
-        startSmartListening();
-      }
-      
-      // Clear any pending silence timeout
-      if (silenceTimeoutRef.current) {
-        clearTimeout(silenceTimeoutRef.current);
-        silenceTimeoutRef.current = null;
-      }
-    } else if (status === 'listening') {
-      // If we're listening but no voice activity for a while, go to waiting mode
-      const silenceDuration = now - lastVoiceActivityRef.current;
-      
-      if (silenceDuration > 2000 && !silenceTimeoutRef.current) { // 2 seconds of silence
-        silenceTimeoutRef.current = setTimeout(() => {
-          if (status === 'listening' && !isSpeaking) {
-            stopSmartListening();
-            setCurrentAction('No voice detected - waiting...');
-            pushEvent('Silence Detected', 'idle');
-          }
-          silenceTimeoutRef.current = null;
-        }, 1000); // Additional 1 second buffer
-      }
+    if (!isSmartListening || !audioStreamRef.current || isManuallyPausedRef.current) {
+      return;
     }
 
-    // Schedule next VAD check
-    if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
-    vadTimeoutRef.current = setTimeout(vadLoop, 100); // Check every 100ms
+    try {
+      const hasVoiceActivity = detectVoiceActivity();
+      const now = Date.now();
+
+      if (hasVoiceActivity) {
+        lastVoiceActivityRef.current = now;
+        
+        // Start listening if we detect voice and we're not already listening/processing
+        if ((status === 'waiting' || status === 'idle') && !isSpeaking) {
+          startSmartListening();
+        }
+        
+        // Clear any pending silence timeout
+        if (silenceTimeoutRef.current) {
+          clearTimeout(silenceTimeoutRef.current);
+          silenceTimeoutRef.current = null;
+        }
+      } else if (status === 'listening' && !isSpeaking) {
+        // If we're listening but no voice activity for a while, go to waiting mode
+        const silenceDuration = now - lastVoiceActivityRef.current;
+        
+        if (silenceDuration > 3000 && !silenceTimeoutRef.current) { // Increased to 3 seconds for better stability
+          silenceTimeoutRef.current = setTimeout(() => {
+            // Double-check conditions before stopping
+            if (status === 'listening' && !isSpeaking && isSmartListening && !isManuallyPausedRef.current) {
+              stopSmartListening();
+              setCurrentAction('No voice detected - waiting...');
+              pushEvent('Silence Detected', 'idle');
+            }
+            silenceTimeoutRef.current = null;
+          }, 1500); // Additional 1.5 second buffer
+        }
+      }
+
+      // Schedule next VAD check with error recovery
+      if (isSmartListening && !isManuallyPausedRef.current) {
+        if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+        vadTimeoutRef.current = setTimeout(vadLoop, 150); // Slightly slower for better performance
+      }
+    } catch (error) {
+      console.error('VAD loop error:', error);
+      // Retry after longer delay on error
+      if (vadTimeoutRef.current) clearTimeout(vadTimeoutRef.current);
+      vadTimeoutRef.current = setTimeout(vadLoop, 1000);
+    }
   }, [isSmartListening, detectVoiceActivity, status, startSmartListening, stopSmartListening, isSpeaking, pushEvent]);
 
-  // Initialize Voice Activity Detection
+  // Initialize Voice Activity Detection with proper error handling
   const initializeVAD = useCallback(async () => {
     if (!audioStreamRef.current || audioContextRef.current) return;
 
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      audioContextRef.current = new AudioContextClass();
+      if (!AudioContextClass) {
+        throw new Error('Web Audio API not supported');
+      }
 
+      audioContextRef.current = new AudioContextClass({
+        sampleRate: 44100, // Standard sample rate for better voice detection
+        latencyHint: 'interactive' // Lower latency for real-time detection
+      });
+
+      // Ensure audio context is running
       if (audioContextRef.current.state === 'suspended') {
         await audioContextRef.current.resume();
       }
 
       const source = audioContextRef.current.createMediaStreamSource(audioStreamRef.current);
       analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.smoothingTimeConstant = 0.3; // More responsive for VAD
+      
+      // Optimized settings for voice activity detection
+      analyserRef.current.fftSize = 512; // Higher resolution for better frequency analysis
+      analyserRef.current.smoothingTimeConstant = 0.2; // More responsive for VAD
+      analyserRef.current.minDecibels = -90;
+      analyserRef.current.maxDecibels = -10;
       
       source.connect(analyserRef.current);
       vadDataArrayRef.current = new Uint8Array(analyserRef.current.frequencyBinCount);
 
-      // Start VAD loop
-      vadLoop();
+      // Initialize voice activity detection
+      lastVoiceActivityRef.current = Date.now();
+      
+      // Start VAD loop only if smart listening is enabled
+      if (isSmartListening) {
+        vadLoop();
+      }
       
       pushEvent('Voice Detection Ready', 'listening');
+      setCurrentAction('Voice activity detection initialized');
+      
     } catch (error) {
       console.error('Error setting up VAD:', error);
       setIsSmartListening(false);
+      setCurrentAction('Voice detection failed - manual mode only');
+      pushEvent('VAD Setup Failed', 'error');
+      
+      // Fallback to manual mode
+      toast.error('Smart listening unavailable. Using manual mode.');
     }
-  }, [vadLoop, pushEvent]);
+  }, [vadLoop, pushEvent, isSmartListening]);
 
   // AI Speech Intensity Effect for waveform visualization
   useEffect(() => {
@@ -311,6 +392,7 @@ const AIVoiceMode: React.FC = () => {
     
     const lower = text.toLowerCase().trim();
 
+    // Handle voice mode control commands first
     if (lower === 'exit' || lower === 'close voice' || lower === 'goodbye') {
       setCurrentAction('Ending voice session...');
       speakAndThen('Goodbye! Thanks for using AI Voice Call.', () => navigate(-1));
@@ -331,7 +413,10 @@ const AIVoiceMode: React.FC = () => {
       setIsSmartListening(true);
       setCurrentAction('Smart listening mode enabled');
       pushEvent('Smart Mode Enabled', 'listening');
-      startListening();
+      speakAndThen('Smart listening mode enabled', () => {
+        setCurrentAction('Smart listening active');
+        vadLoop();
+      });
       return;
     }
 
@@ -339,8 +424,16 @@ const AIVoiceMode: React.FC = () => {
       setIsSmartListening(false);
       setCurrentAction('Manual listening mode enabled');
       pushEvent('Manual Mode Enabled', 'idle');
-      stopListening();
+      speakAndThen('Manual mode enabled. Tap the orb to speak.', () => {
+        setCurrentAction('Manual mode - tap to talk');
+        stopListening();
+      });
       return;
+    }
+
+    // Handle structured voice commands with NLU patterns
+    if (await processVoiceCommand(text)) {
+      return; // Command was handled
     }
     
     setStatus('analyzing');
@@ -369,7 +462,298 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [isSpeaking, status, pushEvent, speakAndThen, stopListening, startListening, navigate, pageContext]);
 
+  // Enhanced voice command processor with NLU patterns
+  const processVoiceCommand = useCallback(async (text: string): Promise<boolean> => {
+    const lower = text.toLowerCase().trim();
+    
+    try {
+      // Project commands
+      if (lower.includes('create project') || lower.includes('new project') || lower.includes('make project')) {
+        setStatus('analyzing');
+        setCurrentAction('Creating new project...');
+        pushEvent('Creating Project', 'analyzing');
+        
+        // Extract project name from voice command
+        const projectMatch = text.match(/(?:create|new|make)\s+(?:a\s+)?project\s+(?:called\s+|named\s+)?['"]?([^'"]+?)['"]?(?:\s+|$)/i);
+        const projectName = projectMatch ? projectMatch[1].trim() : null;
+        
+        if (projectName) {
+          const { reply } = await aiChatApi.sendMessage(`Create a new project called "${projectName}"`, pageContext);
+          speakAndThen(reply || 'Project creation started', () => {
+            setCurrentAction('Ready for next command');
+          });
+        } else {
+          speakAndThen('What would you like to name your project?', () => {
+            setCurrentAction('Waiting for project name...');
+          });
+        }
+        return true;
+      }
 
+      // Task commands
+      if (lower.includes('create task') || lower.includes('new task') || lower.includes('add task')) {
+        setStatus('analyzing');
+        setCurrentAction('Creating new task...');
+        pushEvent('Creating Task', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'Task creation started', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Note commands
+      if (lower.includes('create note') || lower.includes('new note') || lower.includes('add note') ||
+          lower.includes('make note') || lower.includes('take note')) {
+        setStatus('analyzing');
+        setCurrentAction('Creating note...');
+        pushEvent('Creating Note', 'analyzing');
+        
+        // Extract note content
+        const noteMatch = text.match(/(?:create|new|add|make|take)\s+(?:a\s+)?note\s+(?:about\s+|saying\s+)?['"]?(.+?)['"]?$/i);
+        const noteContent = noteMatch ? noteMatch[1].trim() : text;
+        
+        const { reply } = await aiChatApi.sendMessage(`Create a note: ${noteContent}`, pageContext);
+        speakAndThen(reply || 'Note created successfully', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // List commands
+      if (lower.includes('list projects') || lower.includes('show projects') || lower.includes('my projects')) {
+        setStatus('analyzing');
+        setCurrentAction('Fetching your projects...');
+        pushEvent('Listing Projects', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage('List my projects', pageContext);
+        speakAndThen(reply || 'Here are your projects', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      if (lower.includes('list tasks') || lower.includes('show tasks') || lower.includes('my tasks')) {
+        setStatus('analyzing');
+        setCurrentAction('Fetching your tasks...');
+        pushEvent('Listing Tasks', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage('List my tasks', pageContext);
+        speakAndThen(reply || 'Here are your tasks', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      if (lower.includes('list notes') || lower.includes('show notes') || lower.includes('my notes')) {
+        setStatus('analyzing');
+        setCurrentAction('Fetching your notes...');
+        pushEvent('Listing Notes', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage('List my notes', pageContext);
+        speakAndThen(reply || 'Here are your notes', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      if (lower.includes('list snippets') || lower.includes('show snippets') || lower.includes('my snippets')) {
+        setStatus('analyzing');
+        setCurrentAction('Fetching your code snippets...');
+        pushEvent('Listing Snippets', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage('List my code snippets', pageContext);
+        speakAndThen(reply || 'Here are your code snippets', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Snippet commands
+      if (lower.includes('create snippet') || lower.includes('new snippet') || lower.includes('add snippet')) {
+        setStatus('analyzing');
+        setCurrentAction('Creating code snippet...');
+        pushEvent('Creating Snippet', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'Code snippet creation started', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Status update commands
+      if (lower.includes('mark task') || lower.includes('update task') || lower.includes('task status')) {
+        setStatus('analyzing');
+        setCurrentAction('Updating task status...');
+        pushEvent('Updating Task', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'Task status updated', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Test case commands
+      if (lower.includes('create test') || lower.includes('new test') || lower.includes('add test') ||
+          lower.includes('test case')) {
+        setStatus('analyzing');
+        setCurrentAction('Creating test case...');
+        pushEvent('Creating Test Case', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'Test case creation started', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Project details command
+      if (lower.includes('show project') || lower.includes('project details') || lower.includes('project info')) {
+        setStatus('analyzing');
+        setCurrentAction('Fetching project details...');
+        pushEvent('Getting Project Details', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'Here are the project details', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Code assistance commands
+      if (lower.includes('help with code') || lower.includes('fix code') || lower.includes('review code') ||
+          lower.includes('code help')) {
+        setStatus('analyzing');
+        setCurrentAction('Analyzing code...');
+        pushEvent('Code Assistance', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'I can help with code. Please provide the code you need help with.', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // General assistance patterns
+      if (lower.includes('how do i') || lower.includes('how to') || lower.includes('can you help')) {
+        setStatus('analyzing');
+        setCurrentAction('Providing assistance...');
+        pushEvent('General Help', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage(text, pageContext);
+        speakAndThen(reply || 'I\'d be happy to help you with that.', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Help and information commands
+      if (lower.includes('help') || lower.includes('what can you do') || lower.includes('commands')) {
+        setStatus('analyzing');
+        setCurrentAction('Getting help information...');
+        pushEvent('Help Request', 'analyzing');
+        
+        const helpText = `I can help you with voice commands. You can say:
+          - Create project called "project name"
+          - Create task for "task description"  
+          - Create note about "your note"
+          - List my projects, tasks, notes, or snippets
+          - Create code snippet
+          - Summarize my work
+          - Switch to smart mode or manual mode
+          - Pause or resume listening
+          - Exit or goodbye to end the session`;
+        
+        speakAndThen(helpText, () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Summarize command
+      if (lower.includes('summarize') || lower.includes('summary') || lower.includes('overview')) {
+        setStatus('analyzing');
+        setCurrentAction('Generating summary...');
+        pushEvent('Creating Summary', 'analyzing');
+        
+        const { reply } = await aiChatApi.sendMessage('Summarize my current project activity and provide key insights', pageContext);
+        speakAndThen(reply || 'Here is your summary', () => {
+          setCurrentAction('Ready for next command');
+        });
+        return true;
+      }
+
+      // Navigation commands
+      if (lower.includes('open chat') || lower.includes('go to chat') || lower.includes('switch to chat')) {
+        setCurrentAction('Opening chat mode...');
+        speakAndThen('Switching to chat mode', () => {
+          navigate('/ai');
+        });
+        return true;
+      }
+
+      if (lower.includes('open dashboard') || lower.includes('go to dashboard')) {
+        setCurrentAction('Opening dashboard...');
+        speakAndThen('Opening dashboard', () => {
+          navigate('/dashboard');
+        });
+        return true;
+      }
+
+      return false; // Command not recognized
+    } catch (error) {
+      console.error('Voice command processing error:', error);
+      speakAndThen('Sorry, I had trouble processing that command. Please try again.', () => {
+        setCurrentAction('Ready for next command');
+      });
+      return true; // Consider it handled to prevent further processing
+    }
+  }, [aiChatApi, pageContext, navigate, speakAndThen, pushEvent, vadLoop, stopListening, setStatus, setCurrentAction]);
+
+  // Add voice feedback for better user experience
+  const provideVoiceFeedback = useCallback((action: string) => {
+    const feedbackMessages = {
+      'listening': 'I\'m listening...',
+      'analyzing': 'Let me process that...',
+      'creating': 'Creating that for you...',
+      'fetching': 'Getting that information...',
+      'error': 'Something went wrong, please try again.',
+      'success': 'Done!',
+      'waiting': 'Waiting for your voice...'
+    };
+    
+    const message = feedbackMessages[action as keyof typeof feedbackMessages] || 'Processing...';
+    return message;
+  }, []);
+
+  // Enhanced voice response with better context
+  const handleVoiceResponse = useCallback(async (response: string, action: string) => {
+    if (response && response.trim()) {
+      // Provide contextual feedback based on the action
+      const contextualResponse = `${provideVoiceFeedback(action)} ${response}`;
+      
+      speakAndThen(contextualResponse, () => {
+        setCurrentAction('Ready for next command');
+        pushEvent('Command Completed', 'done');
+        
+        // Auto-resume listening in smart mode
+        if (isSmartListening && status !== 'listening') {
+          setTimeout(() => {
+            if (!isSpeaking) {
+              vadLoop();
+            }
+          }, 500);
+        }
+      });
+    } else {
+      speakAndThen('I didn\'t get a proper response. Please try again.', () => {
+        setCurrentAction('Ready for next command');
+      });
+    }
+  }, [provideVoiceFeedback, speakAndThen, setCurrentAction, pushEvent, isSmartListening, status, isSpeaking, vadLoop]);
 
   // Comprehensive cleanup function
   const cleanup = useCallback(() => {
@@ -421,8 +805,6 @@ const AIVoiceMode: React.FC = () => {
     setAudioStream(null);
   }, []);
 
-
-
   // Main initialization effect - only run once
   useEffect(() => {
     if (initializedRef.current) return;
@@ -438,15 +820,34 @@ const AIVoiceMode: React.FC = () => {
                 echoCancellation: true,
                 noiseSuppression: true,
                 autoGainControl: true,
+                sampleRate: 44100,
+                channelCount: 1
               }
             });
             audioStreamRef.current = stream;
             setAudioStream(stream);
             setCurrentAction('Microphone access granted');
-        } catch (err) {
+            pushEvent('Microphone Access Granted', 'idle');
+        } catch (err: any) {
             console.error('Error accessing microphone:', err);
-            setCurrentAction('Microphone access denied');
-            toast.error('Microphone access denied. Please enable it in your browser settings.');
+            
+            // Handle different error types with specific messaging
+            if (err.name === 'NotAllowedError') {
+                setCurrentAction('Microphone access denied');
+                toast.error('Microphone access denied. Please enable microphone permissions and refresh.');
+                pushEvent('Microphone Access Denied', 'error');
+            } else if (err.name === 'NotFoundError') {
+                setCurrentAction('No microphone found');
+                toast.error('No microphone found. Please connect a microphone and refresh.');
+                pushEvent('No Microphone Found', 'error');
+            } else {
+                setCurrentAction('Microphone access failed');
+                toast.error('Unable to access microphone. Please check your audio settings.');
+                pushEvent('Microphone Access Failed', 'error');
+            }
+            
+            // Disable smart listening on microphone failure
+            setIsSmartListening(false);
             navigate(-1);
             return;
         }
@@ -493,24 +894,38 @@ const AIVoiceMode: React.FC = () => {
         };
 
         recog.onend = () => {
-            // Handle recognition end based on current mode
-            if (isSmartListening && !isSpeaking && !isManuallyPausedRef.current) {
-              // In smart mode, let VAD handle restart
+            // Handle recognition end based on current mode with better state management
+            if (isSpeaking || status === 'analyzing' || isManuallyPausedRef.current) {
+              return; // Don't restart if AI is processing or manually paused
+            }
+
+            if (isSmartListening) {
+              // In smart mode, transition to waiting and let VAD handle restart
               if (status === 'listening') {
                 setStatus('waiting');
                 setCurrentAction('Waiting for voice activity...');
+                // Ensure VAD loop is running
+                if (!vadTimeoutRef.current) {
+                  vadLoop();
+                }
               }
-            } else if (!isSmartListening && status === 'listening' && !isSpeaking && !isManuallyPausedRef.current) {
-              // In manual mode, restart immediately
+            } else if (!isSmartListening && status === 'listening') {
+              // In manual mode, restart immediately with proper error handling
               setTimeout(() => {
-                if (recognitionRef.current && status === 'listening' && !isSpeaking) {
+                if (recognitionRef.current && status === 'listening' && !isSpeaking && !isManuallyPausedRef.current) {
                   try {
                     recognitionRef.current.start();
-                  } catch (e) {
-                    console.log('Restart recognition failed:', e);
+                  } catch (e: any) {
+                    if (e.name === 'InvalidStateError') {
+                      console.log('Recognition already running, ignoring restart');
+                    } else {
+                      console.error('Restart recognition failed:', e);
+                      setCurrentAction('Recognition restart failed');
+                      pushEvent('Recognition Restart Failed', 'error');
+                    }
                   }
                 }
-              }, 100);
+              }, 200); // Slightly longer delay for better stability
             }
         };
         
@@ -640,7 +1055,7 @@ const AIVoiceMode: React.FC = () => {
         case 'waiting':
           return `${baseClasses} scale-100 sm:scale-105 shadow-green-400/50 ring-2 ring-green-400/30 animate-bounce`;
         case 'analyzing': 
-          return `${baseClasses} animate-spin-slow scale-100 sm:scale-105 shadow-indigo-400/50`;
+          return `${baseClasses} scale-100 sm:scale-105 shadow-indigo-400/50`;
         case 'speaking': 
           return `${baseClasses} scale-105 sm:scale-110 shadow-purple-500/60`;
         case 'paused':

@@ -38,10 +38,14 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
       // Limit DPR on mobile for better performance
       const limitedDpr = isMobile ? Math.min(dpr, 2) : dpr;
       
+      // Reset canvas size and clear any previous scaling
       canvas.width = rect.width * limitedDpr;
       canvas.height = rect.height * limitedDpr;
       canvas.style.width = rect.width + 'px';
       canvas.style.height = rect.height + 'px';
+      
+      // Apply scaling once and reset transform to prevent drift
+      canvasCtx.setTransform(1, 0, 0, 1, 0, 0);
       canvasCtx.scale(limitedDpr, limitedDpr);
     };
 
@@ -109,13 +113,15 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
         newWaveData.push(dataArrayRef.current[index] / 255);
       }
 
-      // Clear canvas
-      const rect = canvas.getBoundingClientRect();
-      canvasCtx.clearRect(0, 0, rect.width, rect.height);
+      // Clear canvas using internal dimensions
+      const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 2) : (window.devicePixelRatio || 1);
+      const canvasWidth = canvas.width / dpr;
+      const canvasHeight = canvas.height / dpr;
+      canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
 
       // Draw input waveform (circular with reactive colors)
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      const centerX = canvasWidth / 2;
+      const centerY = canvasHeight / 2;
       const baseRadius = Math.min(centerX, centerY) * (isMobile ? 0.4 : 0.5);
 
       // Create dynamic gradient based on audio level with mobile optimization
@@ -169,11 +175,13 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
     const drawOutputWaveform = () => {
       if (!isActive) return;
 
-      const rect = canvas.getBoundingClientRect();
-      canvasCtx.clearRect(0, 0, rect.width, rect.height);
+      const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 2) : (window.devicePixelRatio || 1);
+      const canvasWidth = canvas.width / dpr;
+      const canvasHeight = canvas.height / dpr;
+      canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      const centerX = canvasWidth / 2;
+      const centerY = canvasHeight / 2;
       const baseRadius = Math.min(centerX, centerY) * (isMobile ? 0.35 : 0.4);
 
       // Create purple/indigo gradient for AI output
@@ -221,11 +229,13 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
     };
 
     const drawIdleWaveform = () => {
-      const rect = canvas.getBoundingClientRect();
-      canvasCtx.clearRect(0, 0, rect.width, rect.height);
+      const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 2) : (window.devicePixelRatio || 1);
+      const canvasWidth = canvas.width / dpr;
+      const canvasHeight = canvas.height / dpr;
+      canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
+      const centerX = canvasWidth / 2;
+      const centerY = canvasHeight / 2;
       const baseRadius = Math.min(centerX, centerY) * (isMobile ? 0.25 : 0.3);
 
       // Subtle ambient animation
@@ -307,7 +317,11 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
         }`}
         style={{ 
           filter: `blur(${mode === 'input' && audioLevel > 0.05 ? 0 : mode === 'idle' ? 0.5 : 0}px)`,
-          transform: `scale(${mode === 'output' && intensity > 0.3 ? 1.02 : 1}) translateZ(0)`,
+          transform: `scale(${mode === 'output' && intensity > 0.3 ? 1.02 : 1})`,
+          transformOrigin: 'center center',
+          position: 'absolute',
+          top: '0',
+          left: '0',
           willChange: 'transform',
         }}
       />

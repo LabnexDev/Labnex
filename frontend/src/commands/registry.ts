@@ -8,11 +8,21 @@ export interface CommandDefinition {
 
 export const commandRegistry: CommandDefinition[] = [
   {
+    name: 'projects',
+    description: 'List your Labnex projects',
+    args: [],
+  },
+  {
     name: 'create-project',
     alias: 'createProject',
     description: 'Create a new project',
     args: ['name'],
     flags: ['--desc', '--code'],
+  },
+  {
+    name: 'tasks',
+    description: 'List tasks for a project',
+    args: ['project'],
   },
   {
     name: 'new-task',
@@ -22,16 +32,41 @@ export const commandRegistry: CommandDefinition[] = [
     flags: ['--due', '--assignee', '--priority'],
   },
   {
+    name: 'notes',
+    description: 'List your recent notes',
+    args: [],
+  },
+  {
     name: 'note',
     alias: 'createNote',
-    description: 'Add a personal note (optional link to project)',
+    description: 'Add a personal note',
     args: ['content'],
     flags: [],
+  },
+  {
+    name: 'snippets',
+    description: 'List your recent code snippets',
+    args: [],
+  },
+  {
+    name: 'add-snippet',
+    description: 'Create a new code snippet',
+    args: ['language', 'title', 'code'],
   },
   {
     name: 'summarize',
     alias: 'summarize',
     description: 'Summarize current activity',
+    args: [],
+  },
+  {
+    name: 'help',
+    description: 'Show available commands and help',
+    args: [],
+  },
+  {
+    name: 'voice',
+    description: 'Switch to voice mode',
     args: [],
   },
 ];
