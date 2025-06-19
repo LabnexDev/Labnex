@@ -63,7 +63,7 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
         </div>
       )}
       {!isLoading && !error && (
-        <article className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl
+        <article className="prose max-w-full prose-sm sm:prose-base lg:prose-lg xl:prose-xl
           prose-headings:text-blue-300 prose-headings:border-b prose-headings:border-slate-700 prose-headings:pb-2
           prose-a:text-blue-400 hover:prose-a:text-blue-300
           prose-strong:text-blue-200
