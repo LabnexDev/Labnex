@@ -13,6 +13,7 @@ import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
 import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceContext';
 import './AIVoiceMode.css';
 import { useAuth } from '../../contexts/AuthContext';
+import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
@@ -51,6 +52,7 @@ const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { speak: baseSpeakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
   const { user } = useAuth();
+  const { voiceOutput, setVoiceOutput } = useVoiceSettings();
 
   const speakOpenAI = useCallback(async (text: string) => {
     lastSpokenRef.current = text;
@@ -78,6 +80,11 @@ const AIVoiceMode: React.FC = () => {
   useEffect(() => {
     setIsSpeaking(isTTSSpeaking);
   }, [isTTSSpeaking]);
+
+  // Ensure TTS output is enabled while in Voice Mode
+  useEffect(() => {
+    if (!voiceOutput) setVoiceOutput(true);
+  }, []);
 
   // (Self-feedback prevention effect will be added later, after voice control functions are available)
    
