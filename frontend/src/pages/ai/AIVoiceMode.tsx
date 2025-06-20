@@ -181,8 +181,23 @@ const AIVoiceMode: React.FC = () => {
   };
 
   // Voice command processing (was previously below useVoiceInput)
-  const handleVoiceResult = useCallback(async (transcript: string) => {
+  const CONF_MIN = 0.65;
+  const handleVoiceResult = useCallback(async (transcript: string, confidence: number = 1) => {
     if (!transcript.trim()) return;
+
+    // Drop low-confidence recognitions
+    if (confidence < CONF_MIN) return;
+
+    // If bot is currently speaking and audio output is loud, likely echo
+    if (status === 'speaking' && voiceActivityLevel > 0.15) {
+      return;
+    }
+
+    const lower = transcript.trim().toLowerCase();
+    if (lower === 'stop' || lower === 'cancel') {
+      window.speechSynthesis.cancel();
+      return;
+    }
 
     // Echo-prevention: if the assistant is/was speaking very recently and the
     // recognised text is almost the same as what it was saying, ignore it.

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 export type VoiceState = 'idle' | 'listening' | 'processing' | 'error';
 
 export interface VoiceInputOptions {
-  onResult: (text: string) => void;
+  onResult: (text: string, confidence?: number) => void;
   onError?: (error: string) => void;
   onStateChange?: (state: VoiceState) => void;
   enabled: boolean;
@@ -43,6 +43,7 @@ export function useVoiceInput({
   const isManuallyStoppedRef = useRef(false);
   const retryCountRef = useRef(0);
   const maxRetries = 3;
+  const isRunningRef = useRef<boolean>(false);
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -106,19 +107,15 @@ export function useVoiceInput({
       updateState('listening');
       setError(null);
       retryCountRef.current = 0;
+      isRunningRef.current = true;
     };
 
     recognition.onresult = (event: any) => {
       updateState('processing');
-      
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
-      }
 
-      const cleaned = finalTranscript.trim();
+      const result = event.results[event.results.length - 1];
+      const cleaned = result[0].transcript.trim();
+      const confidence = result[0].confidence ?? 1;
 
       // Wake-word logic
       if (cleaned) {
@@ -132,7 +129,7 @@ export function useVoiceInput({
           setWakeWordDetected(true);
         }
 
-        onResult(cleaned);
+        onResult(cleaned, confidence);
         setWakeWordDetected(false);
       }
 
@@ -188,6 +185,7 @@ export function useVoiceInput({
     };
 
     recognition.onend = () => {
+      isRunningRef.current = false;
       // If we're supposed to be listening continuously and haven't been manually stopped
       if (continuous && autoRestart && !isManuallyStoppedRef.current && enabled && state === 'listening') {
         // Set a timeout to restart
@@ -209,8 +207,12 @@ export function useVoiceInput({
 
     return () => {
       clearTimeouts();
-      if (recognition) {
-        recognition.stop();
+      if (recognition && isRunningRef.current) {
+        try {
+          recognition.stop();
+        } catch (err) {
+          console.warn('Error stopping recognition:', err);
+        }
       }
     };
   }, [continuous, language, autoRestart, enabled, onResult, handleError, updateState, clearTimeouts, state, detectWakeWord, wakeWords]);
@@ -222,6 +224,11 @@ export function useVoiceInput({
       return;
     }
 
+    if (isRunningRef.current) {
+      updateState('listening');
+      return;
+    }
+
     isManuallyStoppedRef.current = false;
     clearTimeouts();
     setError(null);
@@ -230,7 +237,6 @@ export function useVoiceInput({
       recognitionRef.current.start();
     } catch (err: any) {
       if (err.name === 'InvalidStateError') {
-        // Already running, this is fine
         updateState('listening');
       } else {
         handleError(`Failed to start speech recognition: ${err.message}`);
@@ -243,7 +249,7 @@ export function useVoiceInput({
     isManuallyStoppedRef.current = true;
     clearTimeouts();
 
-    if (recognitionRef.current) {
+    if (recognitionRef.current && isRunningRef.current) {
       try {
         recognitionRef.current.stop();
       } catch (err) {
