@@ -28,7 +28,7 @@ const AIVoiceMode: React.FC = () => {
   const { speak: baseSpeakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
   const { user } = useAuth();
   const { voiceOutput, setVoiceOutput, similarityThreshold: baseSim, amplitudeThreshold: baseAmp } = useVoiceSettings();
-  const { audioStream, permissionError, startMicrophone, stopMicrophone } = useMicrophone();
+  const { audioStream, permissionError, startMicrophone, stopMicrophone, voiceActivity } = useMicrophone();
 
   const { similarityThreshold, amplitudeThreshold, feed } = useVoiceAutoTuning(baseSim, baseAmp);
 
@@ -102,6 +102,10 @@ const AIVoiceMode: React.FC = () => {
   
   useEffect(() => { statusRef.current = status; }, [status]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+
+  useEffect(() => {
+    setVoiceActivityLevel(voiceActivity);
+  }, [voiceActivity]);
 
   type ListeningMode = 'push' | 'handsfree';
   const [listeningMode, setListeningMode] = useState<ListeningMode>('push');
