@@ -1,23 +1,19 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { PauseIcon, PlayIcon, XMarkIcon, MicrophoneIcon, Bars3Icon, ExclamationTriangleIcon, CommandLineIcon } from '@heroicons/react/24/solid';
+import { MicrophoneIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
 import { useVoiceInput, type VoiceState } from '../../hooks/useVoiceInput';
 import { parseMultiCommand, type ParsedIntent } from '../../utils/parseNLUCommand';
 import { executeCommandQueue, formatCommandResult, type CommandResult } from '../../utils/slashCommandHandler';
-import VoiceStatusTimeline, { type TimelineEvent, type TimelineEventState } from '../../components/ai-chat/VoiceStatusTimeline';
-import AudioWaveform from '../../components/ai-chat/AudioWaveform';
-import AIPreviewPanel from '../../components/ai-chat/AIPreviewPanel';
-import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
-import AIVoiceTutorial from '../../components/onboarding/AIVoiceTutorial';
 import { aiChatApi } from '../../api/aiChat';
-import MemoryPanel from '../../components/ai-chat/MemoryPanel';
-import { getSuggestion, suggestionsCount } from '../../utils/rotateSuggestions';
+import { type TimelineEvent, type TimelineEventState } from '../../components/ai-chat/VoiceStatusTimeline';
+import AudioWaveform from '../../components/ai-chat/AudioWaveform';
+import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
 import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceContext';
 
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
 declare global {
   interface Window {
     webkitSpeechRecognition: any;
@@ -60,12 +56,10 @@ const AIVoiceMode: React.FC = () => {
 
   // State management
   const [status, setStatus] = useState<AIStatus>('idle');
-  const [currentAction, setCurrentAction] = useState<string>('Starting voice mode...');
-  const [isSmartListening, setIsSmartListening] = useState(true);
+  const [, setCurrentAction] = useState<string>('Starting voice mode...');
+  const [isSmartListening] = useState(true);
   const [voiceActivityLevel, setVoiceActivityLevel] = useState(0);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [showMobilePanel, setShowMobilePanel] = useState(false);
   const [isDebugMode] = useState(localStorage.getItem('devMode') === 'true');
   
   // Browser / permission support states (used in legacy UI blocks)
@@ -91,7 +85,7 @@ const AIVoiceMode: React.FC = () => {
     commandHistory: []
   });
   
-  const [detectedCommands, setDetectedCommands] = useState<VoiceCommand[]>([]);
+  const [, setDetectedCommands] = useState<VoiceCommand[]>([]);
   const [currentProjectId] = useState<string | undefined>(undefined); // Would come from context
 
   // Refs for audio processing and welcome state
@@ -108,21 +102,27 @@ const AIVoiceMode: React.FC = () => {
   const initializedRef = useRef<boolean>(false);
   const welcomeSpokenRef = useRef<boolean>(false);
 
-  // New states for suggestion rotation
-  const [_suggestionIndex, setSuggestionIndex] = useState(0);
-  const [currentSuggestion, setCurrentSuggestion] = useState(getSuggestion(0));
+  // Simplified user-facing control model
+  type ListeningMode = 'push' | 'handsfree';
+  const [listeningMode, setListeningMode] = useState<ListeningMode>('push');
+  const [isMuted, setIsMuted] = useState(false);
 
-  // Event handler - defined first to avoid hoisting issues
+  // ------------------------------------------------------------------
+  // Event utilities and voice callback handlers (moved before useVoiceInput to avoid
+  // "variable used before declaration" TypeScript errors)
+  // ------------------------------------------------------------------
+
+  // Timeline / debug event helper
   const pushEvent = useCallback((label: string, state: TimelineEventState) => {
     setEvents(prev => [{ id: Date.now(), label, state, timestamp: new Date().toLocaleTimeString() }, ...prev.slice(0, 19)]);
   }, []);
 
-  // Voice command processing
+  // Voice command processing (was previously below useVoiceInput)
   const handleVoiceResult = useCallback(async (transcript: string) => {
     if (!transcript.trim()) return;
 
     setCurrentAction(`Processing: "${transcript}"`);
-         pushEvent(`Voice Input: ${transcript}`, 'transcribing');
+    pushEvent(`Voice Input: ${transcript}`, 'transcribing');
 
     // Parse potentially multi-step commands
     const parsedIntents = parseMultiCommand(transcript);
@@ -130,9 +130,7 @@ const AIVoiceMode: React.FC = () => {
     // Check for interruption flag
     const { wasInterrupted } = getMemory();
     if (wasInterrupted) {
-      toast('⏭️ Previous task discarded.', {
-        icon: '🤚',
-      });
+      toast('⏭️ Previous task discarded.', { icon: '🤚' });
       clearInterrupted();
     }
 
@@ -140,26 +138,43 @@ const AIVoiceMode: React.FC = () => {
       console.log('🎤 Parsed Commands:', parsedIntents);
     }
 
-    // Execute in sequence
-    const results = await executeCommandQueue(parsedIntents, {
-      navigate,
-      currentProjectId,
-      isDebugMode
-    });
+    // Fallback chat: if every parsed intent is 'unknown', treat transcript as open-ended chat
+    const allUnknown = parsedIntents.every(p => p.intent === 'unknown');
 
-    const lastResult = results[results.length - 1];
+    if (allUnknown) {
+      setStatus('analyzing');
+      pushEvent('Chatting with AI…', 'analyzing');
+      try {
+        const chatRes = await aiChatApi.sendMessage(transcript, { page: window.location.pathname });
+        toast(chatRes.reply, { icon: '🤖' });
+        pushEvent('💬 AI replied', 'done');
+        if (isSmartListening) {
+          await speakOpenAI(chatRes.reply);
+        }
+        setCurrentAction('Ready for next command');
+      } catch (err) {
+        console.error('Chat fallback failed', err);
+        toast.error('Failed to get AI response');
+        pushEvent('Chat error', 'error');
+        setCurrentAction('Ready (chat error)');
+      }
+      return;
+    }
+
+    // Execute in sequence if we have actual commands
+    const results = await executeCommandQueue(parsedIntents, { navigate, currentProjectId, isDebugMode });
 
     // Update debug info with all results
     setDebugInfo(prev => ({
       lastCommand: parsedIntents[parsedIntents.length - 1],
-      lastResult: lastResult,
+      lastResult: results[results.length - 1],
       commandHistory: [
         ...parsedIntents.map((cmd, idx) => ({ command: cmd, result: results[idx], timestamp: new Date() })),
         ...prev.commandHistory
       ].slice(0, 10)
     }));
 
-    // Feedback for each result
+    // Voice feedback for each result
     for (let i = 0; i < results.length; i++) {
       const result = results[i];
       const cmd = parsedIntents[i];
@@ -182,12 +197,14 @@ const AIVoiceMode: React.FC = () => {
     setCurrentAction('Ready for next command');
   }, [navigate, currentProjectId, isDebugMode, isSmartListening, speakOpenAI, pushEvent]);
 
+  // Error handler
   const handleVoiceError = useCallback((error: string) => {
     console.warn('Voice input error:', error);
     pushEvent(`Voice Error: ${error}`, 'error');
     setCurrentAction(`Voice Error: ${error}`);
   }, [pushEvent]);
 
+  // State-change handler
   const handleVoiceStateChange = useCallback((newState: VoiceState) => {
     setStatus(newState);
     
@@ -200,35 +217,63 @@ const AIVoiceMode: React.FC = () => {
     
     setCurrentAction(stateMessages[newState]);
     
-         const eventStates: Record<VoiceState, TimelineEventState> = {
-       idle: 'idle',
-       listening: 'listening', 
-       processing: 'analyzing',
-       error: 'error'
-     };
+    const eventStates: Record<VoiceState, TimelineEventState> = {
+      idle: 'idle',
+      listening: 'listening', 
+      processing: 'analyzing',
+      error: 'error'
+    };
     
     pushEvent(`Voice ${newState}`, eventStates[newState]);
   }, [pushEvent]);
 
-  // Production-ready voice input hook
+  // ------------------------------------------------------------------
+  // Voice Input Hook (initialized AFTER core handlers are declared)
+  // ------------------------------------------------------------------
+
   const {
-    state: voiceState,
+    state: _voiceState,
     isListening,
-    error: voiceError,
+    error: _voiceError,
+    start: startVoice,
+    stop: stopVoice,
     toggle: toggleVoiceInput,
     isSupported: isVoiceSupported
   } = useVoiceInput({
     onResult: handleVoiceResult,
     onError: handleVoiceError,
     onStateChange: handleVoiceStateChange,
-    enabled: isSmartListening,
-    continuous: activeListening.continuousMode,
-    autoRestart: activeListening.enabled,
-    silenceTimeout: activeListening.silenceThreshold,
+    enabled: listeningMode === 'handsfree' ? !isMuted : isSmartListening,
+    continuous: true,
+    autoRestart: listeningMode === 'handsfree',
+    silenceTimeout: 2000,
     language: 'en-US',
-    detectWakeWord: activeListening.enabled,
+    detectWakeWord: listeningMode === 'handsfree',
     wakeWords: activeListening.wakeWords
   });
+
+  // Switch between modes
+  const handleModeToggle = useCallback((enabled: boolean) => {
+    setListeningMode(enabled ? 'handsfree' : 'push');
+    setIsMuted(false);
+    if (enabled) {
+      startVoice();
+    } else {
+      stopVoice();
+    }
+  }, [startVoice, stopVoice]);
+
+  // Mute / un-mute while in hands-free
+  const toggleMute = useCallback(() => {
+    if (listeningMode !== 'handsfree') return;
+    if (isMuted) {
+      setIsMuted(false);
+      startVoice();
+    } else {
+      setIsMuted(true);
+      stopVoice();
+    }
+  }, [listeningMode, isMuted, startVoice, stopVoice]);
 
   // Voice Command Parser
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1076,16 +1121,6 @@ const AIVoiceMode: React.FC = () => {
     }
   };
 
-  const getStatusIcon = () => {
-    if (status === 'error') {
-      return <ExclamationTriangleIcon className="w-8 h-8" />;
-    }
-    if (status === 'listening' || status === 'waiting' || status === 'monitoring') {
-      return <PauseIcon className="w-8 h-8" />;
-    }
-    return <PlayIcon className="w-8 h-8" />;
-  };
-
   // Browser not supported UI
   if (!isSupported) {
     return (
@@ -1133,122 +1168,21 @@ const AIVoiceMode: React.FC = () => {
     );
   }
 
-  // suggestion rotation effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSuggestionIndex(prev => {
-        const next = (prev + 1) % suggestionsCount();
-        setCurrentSuggestion(getSuggestion(next));
-        return next;
-      });
-    }, 6000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // ------------------------------------------------------------
+  // Minimal UI
+  // ------------------------------------------------------------
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 flex flex-col font-sans overflow-hidden">
-      {/* Enhanced Header with Active Listening Controls */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700/50 backdrop-blur-sm bg-slate-800/30">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition-colors"
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-          <h1 className="text-xl font-semibold">AI Voice Mode</h1>
-          {activeListening.enabled && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-600/20 rounded-full border border-green-500/30">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-green-300 text-sm font-medium">Active Listening</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={toggleActiveListening}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-              activeListening.enabled 
-                ? 'bg-green-600/20 text-green-300 hover:bg-green-600/30' 
-                : 'bg-blue-600/20 text-blue-300 hover:bg-blue-600/30'
-            }`}
-            title={activeListening.enabled ? 'Disable active listening' : 'Enable active listening'}
-          >
-            {activeListening.enabled ? 'Active ON' : 'Active OFF'}
-          </button>
-          <button
-            onClick={() => setShowTutorial(true)}
-            className="px-3 py-1 text-sm bg-blue-600/20 text-blue-300 rounded-lg hover:bg-blue-600/30 transition-colors"
-          >
-            Help
-          </button>
-          <button
-            onClick={() => setShowMobilePanel(!showMobilePanel)}
-            className="md:hidden p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition-colors"
-          >
-            <Bars3Icon className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Command Detection Display */}
-      {detectedCommands.length > 0 && (
-        <div className="bg-slate-800/50 border-b border-slate-700/50 p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <CommandLineIcon className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-purple-300">Last Detected Commands:</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {detectedCommands.slice(0, 3).map((cmd, index) => (
-              <div key={index} className="flex items-center gap-2 px-2 py-1 bg-slate-700/50 rounded text-xs">
-                <span className={cmd.isSlashCommand ? 'text-blue-300' : 'text-green-300'}>
-                  {cmd.isSlashCommand ? '/' : 'NLU'}
-                </span>
-                <span className="text-slate-200">{cmd.command}</span>
-                <span className="text-slate-400">({Math.round(cmd.confidence * 100)}%)</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Enhanced Status Display */}
-      <div className="flex-1 flex">
-        <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-          <div className="text-center mb-8">
-            <div className={`text-6xl font-bold mb-2 ${getStatusColor()}`}>
-              {status.toUpperCase()}
-            </div>
-            <div className="text-slate-400 text-lg">{currentAction}</div>
-            {activeListening.enabled && status === 'monitoring' && (
-              <div className="text-slate-500 text-sm mt-2">
-                Wake words: {activeListening.wakeWords.join(', ')}
-              </div>
-            )}
-            
-            {/* New Voice System Status */}
-            <div className="mt-4 p-3 bg-slate-800/30 rounded-lg border border-slate-600/20">
-              <div className="text-sm text-slate-300 mb-2">🚀 New Voice System Status:</div>
-              <div className="flex items-center gap-4 text-xs">
-                <span className={`px-2 py-1 rounded ${voiceState === 'listening' ? 'bg-green-600/20 text-green-300' : 'bg-slate-600/20 text-slate-400'}`}>
-                  State: {voiceState}
-                </span>
-                <span className={`px-2 py-1 rounded ${isVoiceSupported ? 'bg-blue-600/20 text-blue-300' : 'bg-red-600/20 text-red-300'}`}>
-                  {isVoiceSupported ? '✅ Supported' : '❌ Not Supported'}
-                </span>
-                {voiceError && (
-                  <span className="px-2 py-1 rounded bg-red-600/20 text-red-300">
-                    Error: {voiceError}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Voice Activity Visualization */}
-          <div className="mb-8">
-            <AudioWaveform 
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center font-sans text-slate-100">
+      <MobileVoiceGestures
+        onDoubleTap={togglePause}
+        onSwipeDown={resetVoiceSystem}
+        onLongPress={toggleActiveListening}
+      >
+        <div className="flex flex-col items-center space-y-10 px-6 w-full max-w-md">
+          {/* Waveform & Status */}
+          <div className="flex flex-col items-center space-y-4 w-full">
+            <div className={`text-4xl font-bold ${getStatusColor()}`}>{status.toUpperCase()}</div>
+            <AudioWaveform
               audioStream={audioStream}
               isActive={status === 'listening' || status === 'monitoring'}
               mode={status === 'speaking' ? 'output' : status === 'listening' || status === 'monitoring' ? 'input' : 'idle'}
@@ -1256,144 +1190,40 @@ const AIVoiceMode: React.FC = () => {
             />
           </div>
 
-          {/* Enhanced Control Buttons */}
-          <div className="flex items-center space-x-4">
-            {/* Demo: New Voice System */}
-            <button
-              onClick={toggleVoiceInput}
-              disabled={!isVoiceSupported}
-              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 transform ${
-                isListening
-                  ? 'bg-red-600 hover:bg-red-700 text-white scale-105'
-                  : 'bg-green-600 hover:bg-green-700 text-white hover:scale-105'
-              } disabled:bg-gray-500 disabled:cursor-not-allowed disabled:scale-100 shadow-lg`}
-            >
-              {!isVoiceSupported ? '❌ Voice Not Supported' : isListening ? '🛑 Stop New Voice System' : '🎤 Start New Voice System'}
-            </button>
-            
-            <button
-              onClick={togglePause}
-              className={`p-4 rounded-full transition-colors shadow-lg ${
-                status === 'analyzing' || status === 'speaking' 
-                  ? 'bg-slate-600 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-              disabled={status === 'analyzing' || status === 'speaking'}
-              title={
-                status === 'listening' || status === 'waiting' || status === 'monitoring'
-                  ? 'Stop listening' 
-                  : 'Start listening'
-              }
-            >
-              {getStatusIcon()}
-            </button>
-
-            <button
-              onClick={resetVoiceSystem}
-              className="p-3 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors"
-              title="Reset voice system"
-            >
-              <MicrophoneIcon className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Enhanced Settings */}
-          <div className="mt-6 space-y-4">
-            <div className="flex items-center space-x-3">
-              <span className="text-slate-400">Smart Listening</span>
-              <button
-                onClick={() => setIsSmartListening(!isSmartListening)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isSmartListening ? 'bg-blue-600' : 'bg-slate-600'
-                }`}
-                title={isSmartListening ? 'Disable smart listening' : 'Enable smart listening'}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isSmartListening ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-            
-            {activeListening.enabled && (
-              <div className="flex items-center space-x-3">
-                <span className="text-slate-400">Sensitivity</span>
-                <input
-                  type="range"
-                  min="0.05"
-                  max="0.3"
-                  step="0.05"
-                  value={activeListening.sensitivity}
-                  onChange={(e) => setActiveListening(prev => ({ ...prev, sensitivity: parseFloat(e.target.value) }))}
-                  className="flex-1 h-2 bg-slate-600 rounded-lg appearance-none cursor-pointer"
-                />
-                <span className="text-slate-400 text-sm">{Math.round(activeListening.sensitivity * 100)}%</span>
-              </div>
+          {/* Mic Button */}
+          <button
+            onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
+            disabled={!isVoiceSupported}
+            aria-label={listeningMode === 'push' ? (isListening ? 'Stop listening' : 'Start listening') : (isMuted ? 'Unmute' : 'Mute')}
+            className={`relative p-8 rounded-full shadow-lg focus:outline-none transition-all duration-200 select-none
+              ${!isVoiceSupported ? 'bg-gray-500 cursor-not-allowed' : listeningMode === 'push'
+                ? isListening ? 'bg-red-600 animate-pulse' : 'bg-green-600 hover:bg-green-700'
+                : isMuted ? 'bg-slate-700 opacity-50' : 'bg-cyan-600 animate-pulse'}`}
+          >
+            <MicrophoneIcon className="w-10 h-10 text-white" />
+            {listeningMode === 'handsfree' && !isMuted && (
+              <span className="absolute -right-3 -bottom-3 text-cyan-300 text-2xl select-none">∞</span>
             )}
+          </button>
+
+          {/* Hands-free toggle */}
+          <div className="flex items-center gap-3">
+            <span className="text-slate-400 text-sm select-none">∞ Always listen</span>
+            <button
+              onClick={() => handleModeToggle(listeningMode === 'push')}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                listeningMode === 'handsfree' ? 'bg-cyan-600' : 'bg-slate-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  listeningMode === 'handsfree' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
-
-        {/* Enhanced Side Panel */}
-        <div className={`w-80 border-l border-slate-700/50 bg-slate-800/30 backdrop-blur-sm ${showMobilePanel ? 'block' : 'hidden md:block'}`}>
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Voice Timeline</h3>
-            <VoiceStatusTimeline events={events} />
-            
-            {/* Command Examples */}
-            <div className="mt-6">
-              <h4 className="text-md font-medium mb-3 text-slate-300">Try These Commands:</h4>
-              <div className="space-y-2 text-xs">
-                <div className="p-2 bg-slate-700/30 rounded border-l-2 border-blue-500">
-                  <div className="text-blue-300">Slash Commands:</div>
-                  <div className="text-slate-400">"/help", "/status", "/projects"</div>
-                </div>
-                <div className="p-2 bg-slate-700/30 rounded border-l-2 border-green-500">
-                  <div className="text-green-300">Natural Language:</div>
-                  <div className="text-slate-400">"Create a new project", "Run tests"</div>
-                </div>
-                <div className="p-2 bg-slate-700/30 rounded border-l-2 border-purple-500">
-                  <div className="text-purple-300">Wake Words:</div>
-                  <div className="text-slate-400">"Hey Labnex", "Computer"</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Gestures */}
-      <MobileVoiceGestures 
-        onDoubleTap={togglePause}
-        onSwipeUp={() => setShowMobilePanel(!showMobilePanel)}
-        onSwipeDown={resetVoiceSystem}
-        onLongPress={toggleActiveListening}
-      >
-        {/* Transparent overlay used solely for capturing mobile touch gestures. */}
-        <div className="absolute inset-0 pointer-events-none" />
       </MobileVoiceGestures>
-
-      {/* AI Preview Panel */}
-      <AIPreviewPanel 
-        currentAction={currentAction}
-        status={status === 'monitoring' ? 'listening' : status as "idle" | "listening" | "analyzing" | "speaking" | "paused" | "waiting" | "error"}
-      />
-
-      {/* Tutorial Modal */}
-      {showTutorial && (
-        <AIVoiceTutorial 
-          onComplete={() => setShowTutorial(false)}
-          onSkip={() => setShowTutorial(false)}
-        />
-      )}
-
-      {/* Memory Panel */}
-      {isDebugMode && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <MemoryPanel />
-          <div className="mt-2 text-slate-300 text-xs text-center">{currentSuggestion}</div>
-        </div>
-      )}
     </div>
   );
 };
