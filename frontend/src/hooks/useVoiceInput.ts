@@ -51,6 +51,7 @@ export function useVoiceInput({
   const lastActivityRef = useRef<number>(Date.now());
   const voiceSys = useVoiceSystemOptional();
   const voiceSysRef = useRef(voiceSys);
+  const stateRef = useRef<VoiceState>('idle');
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,7 @@ export function useVoiceInput({
 
   // Update state and notify parent
   const updateState = useCallback((newState: VoiceState) => {
+    stateRef.current = newState;
     setState(newState);
     onStateChange?.(newState);
   }, [onStateChange]);
@@ -175,7 +177,7 @@ export function useVoiceInput({
       }
 
       // Auto-restart if continuous and not manually stopped
-      if (continuous && autoRestart && !isManuallyStoppedRef.current && enabled) {
+      if (continuous && autoRestart && !isManuallyStoppedRef.current && enabled && stateRef.current === 'listening') {
         setTimeout(() => {
           if (!isManuallyStoppedRef.current && enabled) {
             try {
@@ -231,7 +233,7 @@ export function useVoiceInput({
     recognition.onend = () => {
       isRunningRef.current = false;
       // If we're supposed to be listening continuously and haven't been manually stopped
-      if (continuous && autoRestart && !isManuallyStoppedRef.current && enabled && state === 'listening') {
+      if (continuous && autoRestart && !isManuallyStoppedRef.current && enabled && stateRef.current === 'listening') {
         // Set a timeout to restart
         timeoutRef.current = setTimeout(() => {
           if (!isManuallyStoppedRef.current && enabled) {

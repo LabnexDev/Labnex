@@ -406,7 +406,7 @@ const AIVoiceMode: React.FC = () => {
     onError: handleVoiceError,
     onStateChange: handleVoiceStateChange,
     enabled: (listeningMode === 'handsfree' ? !isMuted : isSmartListening) && !isTTSSpeaking,
-    continuous: true,
+    continuous: listeningMode === 'handsfree',
     autoRestart: listeningMode === 'handsfree',
     silenceTimeout: 2000,
     language: 'en-US',
