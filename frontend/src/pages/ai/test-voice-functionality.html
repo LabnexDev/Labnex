@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .status {
+            font-size: 2em;
+            margin: 20px 0;
+            padding: 20px;
+            background: #334155;
+            border-radius: 10px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #3b82f6;
+            color: white;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+        .transcript {
+            background: #374151;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            min-height: 50px;
+        }
+        .log {
+            background: #111827;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Functionality Test</h1>
+        
+        <div class="status" id="status">
+            IDLE
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" onclick="startListening()">Start Listening</button>
+            <button id="stopBtn" onclick="stopListening()" disabled>Stop Listening</button>
+            <button onclick="testTTS()">Test TTS</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div>
+            <h3>Current Transcript:</h3>
+            <div class="transcript" id="transcript">
+                (Speech will appear here...)
+            </div>
+        </div>
+        
+        <div>
+            <h3>Log:</h3>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(status) {
+            document.getElementById('status').textContent = status;
+            log(`Status changed to: ${status}`);
+        }
+        
+        function checkBrowserSupport() {
+            log('Checking browser support...');
+            
+            // Check Speech Recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                log('❌ Speech Recognition not supported');
+                return false;
+            }
+            log('✅ Speech Recognition supported');
+            
+            // Check microphone access
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                log('❌ MediaDevices getUserMedia not supported');
+                return false;
+            }
+            log('✅ MediaDevices getUserMedia supported');
+            
+            // Check Audio Context
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) {
+                log('❌ AudioContext not supported');
+                return false;
+            }
+            log('✅ AudioContext supported');
+            
+            return true;
+        }
+        
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                log('🎤 Speech recognition started');
+                updateStatus('LISTENING');
+                isListening = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+            };
+            
+            recognition.onend = () => {
+                log('🛑 Speech recognition ended');
+                updateStatus('IDLE');
+                isListening = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            };
+            
+            recognition.onerror = (event) => {
+                log(`❌ Speech recognition error: ${event.error}`);
+                updateStatus('ERROR');
+                
+                if (event.error === 'not-allowed') {
+                    alert('Microphone permission denied. Please enable microphone access and refresh the page.');
+                }
+            };
+            
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    const transcript = result[0].transcript;
+                    
+                    if (result.isFinal) {
+                        finalTranscript += transcript;
+                        log(`📝 Final transcript: "${transcript}"`);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Update transcript display
+                const transcriptDiv = document.getElementById('transcript');
+                if (finalTranscript) {
+                    transcriptDiv.innerHTML += `<strong>${finalTranscript}</strong><br>`;
+                } else if (interimTranscript) {
+                    transcriptDiv.innerHTML = transcriptDiv.innerHTML.split('<em>')[0] + `<em>${interimTranscript}</em>`;
+                }
+            };
+        }
+        
+        async function startListening() {
+            try {
+                log('🔊 Requesting microphone permission...');
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                log('✅ Microphone access granted');
+                
+                // Stop the stream as we only needed permission
+                stream.getTracks().forEach(track => track.stop());
+                
+                if (!recognition) {
+                    initializeSpeechRecognition();
+                }
+                
+                recognition.start();
+            } catch (error) {
+                log(`❌ Error starting listening: ${error.message}`);
+                alert('Failed to access microphone. Please check permissions.');
+            }
+        }
+        
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+        
+        function testTTS() {
+            const utterance = new SpeechSynthesisUtterance('Hello! This is a test of text to speech functionality.');
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => log('🔊 TTS started');
+            utterance.onend = () => log('🔊 TTS ended');
+            utterance.onerror = (event) => log(`❌ TTS error: ${event.error}`);
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('transcript').innerHTML = '(Speech will appear here...)';
+        }
+        
+        // Initialize on page load
+        window.onload = () => {
+            log('🚀 Voice functionality test started');
+            
+            if (checkBrowserSupport()) {
+                log('✅ All required APIs supported');
+                log('📝 Click "Start Listening" to begin speech recognition test');
+            } else {
+                log('❌ Some required APIs not supported - voice features may not work');
+                updateStatus('UNSUPPORTED');
+                document.getElementById('startBtn').disabled = true;
+            }
+        };
+    </script>
+</body>
+</html> 
