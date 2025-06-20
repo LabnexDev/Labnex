@@ -7,6 +7,7 @@ export interface TimelineEvent {
   id: number;
   label: string;
   state: TimelineEventState;
+  timestamp: string;
 }
 
 interface VoiceStatusTimelineProps {
