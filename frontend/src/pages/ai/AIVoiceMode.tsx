@@ -14,6 +14,7 @@ import AIVoiceTutorial from '../../components/onboarding/AIVoiceTutorial';
 import { aiChatApi } from '../../api/aiChat';
 import MemoryPanel from '../../components/ai-chat/MemoryPanel';
 import { getSuggestion, suggestionsCount } from '../../utils/rotateSuggestions';
+import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceContext';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -52,12 +53,9 @@ const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { speak: speakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
 
-  // Sync TTS speaking state to voiceContext
+  // Keep voiceContext in sync with the TTS hook
   useEffect(() => {
-    (async () => {
-      const vc = await import('../../utils/voiceContext');
-      vc.setIsSpeaking(isTTSSpeaking);
-    })();
+    setIsSpeaking(isTTSSpeaking);
   }, [isTTSSpeaking]);
 
   // State management
@@ -130,13 +128,12 @@ const AIVoiceMode: React.FC = () => {
     const parsedIntents = parseMultiCommand(transcript);
 
     // Check for interruption flag
-    const { wasInterrupted } = await import('../../utils/voiceContext').then(m => m.getMemory());
+    const { wasInterrupted } = getMemory();
     if (wasInterrupted) {
       toast('⏭️ Previous task discarded.', {
         icon: '🤚',
       });
-      const vc = await import('../../utils/voiceContext');
-      vc.clearInterrupted();
+      clearInterrupted();
     }
 
     if (isDebugMode) {

@@ -142,7 +142,8 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
       for (let i = 0; i < newWaveData.length; i++) {
         const angle = (i / newWaveData.length) * Math.PI * 2;
         const amplitude = newWaveData[i];
-        const radius = baseRadius + amplitude * (isMobile ? 25 : 40);
+        let radius = baseRadius + amplitude * (isMobile ? 25 : 40);
+        if (radius < 1) radius = 1; // Prevent negative or zero radius that breaks Canvas arc
         
         const x = centerX + Math.cos(angle) * radius;
         const y = centerY + Math.sin(angle) * radius;
@@ -205,7 +206,8 @@ const AudioWaveform: React.FC<AudioWaveformProps> = ({
         
         canvasCtx.beginPath();
         // Create pulsing effect with reduced complexity on mobile
-        const pulseRadius = ringRadius + Math.sin(Date.now() * 0.005 + ring) * (isMobile ? 3 : 5) * intensity;
+        let pulseRadius = ringRadius + Math.sin(Date.now() * 0.005 + ring) * (isMobile ? 3 : 5) * intensity;
+        if (pulseRadius < 1) pulseRadius = 1;
         canvasCtx.arc(centerX, centerY, pulseRadius, 0, Math.PI * 2);
         canvasCtx.stroke();
       }
