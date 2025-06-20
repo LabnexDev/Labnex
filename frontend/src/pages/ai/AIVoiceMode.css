@@ -1,5 +1,16 @@
 /* AI Voice Mode Custom Styles */
 
+/* Fullscreen isolation */
+.voice-mode-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  isolation: isolate;
+}
+
 .voice-orb {
   box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
   transition: box-shadow 0.3s ease-in-out;

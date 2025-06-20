@@ -89,7 +89,6 @@ const AIVoiceMode: React.FC = () => {
 
   // Legacy helper states still referenced in VAD / wake-word logic
   const [, setTranscript] = useState('');
-  const [, setLastWakeWordDetected] = useState<number>(0);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   
   // Enhanced Active Listening State
@@ -273,7 +272,7 @@ const AIVoiceMode: React.FC = () => {
     autoRestart: listeningMode === 'handsfree',
     silenceTimeout: 2000,
     language: 'en-US',
-    detectWakeWord: listeningMode === 'handsfree',
+    detectWakeWord: listeningMode === 'handsfree' && activeListening.enabled,
     wakeWords: activeListening.wakeWords
   });
 
@@ -300,19 +299,22 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [listeningMode, isMuted, startVoice, stopVoice]);
 
-  // ------------------------------------------------------------------
-  // Prevent self-feedback: pause voice recognition while TTS is speaking
-  // ------------------------------------------------------------------
+  // Prevent self-feedback: pause voice recognition while TTS is speaking.
+  // Resume (with a small delay) once playback finishes so we don't capture the tail end of the audio.
   useEffect(() => {
+    let resumeTimeout: NodeJS.Timeout | null = null;
     if (isTTSSpeaking) {
-      // Stop microphone to avoid capturing our own TTS output
       stopVoice();
     } else {
-      // Resume hands-free listening if appropriate once TTS ends
       if (listeningMode === 'handsfree' && !isMuted) {
-        startVoice();
+        resumeTimeout = setTimeout(() => {
+          startVoice();
+        }, 500); // 0.5 s buffer to avoid self-capture
       }
     }
+    return () => {
+      if (resumeTimeout) clearTimeout(resumeTimeout);
+    };
   }, [isTTSSpeaking, listeningMode, isMuted, startVoice, stopVoice]);
 
   // Voice Command Parser
@@ -912,7 +914,6 @@ const AIVoiceMode: React.FC = () => {
     }
     
     if (detectWakeWord(cleanText)) {
-      setLastWakeWordDetected(Date.now());
       // Remove wake word from command if present
       const commandText = activeListening.wakeWords.reduce((text, wakeWord) => {
         return text.replace(new RegExp(wakeWord, 'gi'), '').trim();
@@ -1034,107 +1035,7 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [stopListening, stopSpeaking, pushEvent]);
 
-  // Enhanced initialization
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    if (!checkBrowserSupport()) {
-      return;
-    }
-
-    try {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-      recognition.maxAlternatives = 1;
-
-      recognition.onstart = () => {
-        pushEvent('Recognition started', 'listening');
-        retryCountRef.current = 0;
-      };
-
-      recognition.onend = () => {
-        if (!isManuallyPausedRef.current && !isTTSSpeaking && (status === 'listening' || status === 'monitoring')) {
-          const delay = Math.min(100 * Math.pow(2, retryCountRef.current), 2000);
-          setTimeout(() => {
-            if (!isManuallyPausedRef.current && !isTTSSpeaking && (status === 'listening' || status === 'monitoring')) {
-              retryCountRef.current++;
-              if (retryCountRef.current < 5) {
-                try {
-                  recognition.start();
-                } catch (error) {
-                  console.error('Auto-restart failed:', error);
-                  handleMicrophoneError('Auto-restart failed');
-                }
-              } else {
-                handleMicrophoneError('Too many restarts');
-              }
-            }
-          }, delay);
-        }
-      };
-
-      recognition.onerror = (event: any) => { // Speech recognition event
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
-          handleMicrophoneError('Permission denied');
-        } else if (event.error === 'no-speech') {
-          if (status === 'monitoring') {
-            pushEvent('No speech detected (monitoring)', 'waiting');
-          } else {
-            pushEvent('No speech detected', 'waiting');
-          }
-        } else if (event.error === 'network') {
-          handleMicrophoneError('Network error');
-        } else {
-          handleMicrophoneError(event.error);
-        }
-      };
-
-      recognition.onresult = (event: any) => { // Speech recognition event
-        let finalTranscript = '';
-        let interimTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        setTranscript(interimTranscript);
-
-        if (finalTranscript) {
-          handleFinalTranscript(finalTranscript);
-        }
-      };
-
-      recognitionRef.current = recognition;
-
-      // Enhanced welcome message
-      if (!welcomeSpokenRef.current) {
-        welcomeSpokenRef.current = true;
-        setTimeout(() => {
-          setCurrentAction('Ready! Try saying "Hey Labnex" or click to start...');
-          pushEvent('System ready', 'idle');
-        }, 500);
-      }
-
-    } catch (error) {
-      console.error('Initialization error:', error);
-      setIsSupported(false);
-      setCurrentAction('Failed to initialize voice system');
-      pushEvent('Initialization failed', 'error');
-    }
-
-    return cleanupVoiceSystem;
-  }, [checkBrowserSupport, status, pushEvent, handleMicrophoneError, handleFinalTranscript]);
-
+  // Toggle active listening mode
   const togglePause = useCallback(() => {
     try {
       if (status === 'listening' || status === 'waiting') {
@@ -1233,7 +1134,7 @@ const AIVoiceMode: React.FC = () => {
   // Minimal UI
   // ------------------------------------------------------------
   return (
-    <div className="fixed inset-0 overflow-hidden font-sans text-slate-100 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30">
+    <div className="voice-mode-container overflow-hidden font-sans text-slate-100 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30">
       {/* Animated Background */}
       <div className="absolute inset-0">
         {/* Primary gradient layer */}
@@ -1478,13 +1379,13 @@ const AIVoiceMode: React.FC = () => {
                         
                         <button
                           onClick={() => handleModeToggle(listeningMode === 'push')}
-                          className={`btn-voice-mode relative inline-flex h-10 w-18 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 hover-lift ${
+                          className={`btn-voice-mode relative inline-flex h-10 w-20 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 hover-lift ${
                             listeningMode === 'handsfree' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/50' : 'bg-slate-600'
                           } shadow-lg`}
                         >
                           <span
                             className={`inline-block h-8 w-8 transform rounded-full bg-white transition-transform duration-300 shadow-lg ${
-                              listeningMode === 'handsfree' ? 'translate-x-8 shadow-cyan-200/50' : 'translate-x-1'
+                              listeningMode === 'handsfree' ? 'translate-x-10 shadow-cyan-200/50' : 'translate-x-1'
                             }`}
                           />
                         </button>

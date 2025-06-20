@@ -63,6 +63,26 @@ const queryClient = new QueryClient({
   },
 });
 
+// Special route wrapper for full-screen components that need auth but no layout
+function FullScreenPrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function PrivateRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
   const { user, isLoading, isAuthenticated } = useAuth();
 
@@ -265,7 +285,7 @@ function AppRoutes() {
       />
       <Route
         path="/ai/voice"
-        element={<PrivateRoute><AIVoiceMode /></PrivateRoute>}
+        element={<FullScreenPrivateRoute><AIVoiceMode /></FullScreenPrivateRoute>}
       />
     </Routes>
   );

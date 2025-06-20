@@ -39,10 +39,10 @@ export const register = async (req: Request, res: Response) => {
       password,
     });
 
-    // Create a default system role for the new user
+    // Assign default USER role to the newly registered user
     const userRole = await Role.create({
       userId: user._id,
-      systemRole: SystemRoleType.ADMIN, // TEMPORARILY SET TO ADMIN FOR FIRST ADMIN CREATION
+      systemRole: SystemRoleType.USER,
     });
     console.log('Default system role created for new user:', user.email, 'Role:', userRole.systemRole);
 
