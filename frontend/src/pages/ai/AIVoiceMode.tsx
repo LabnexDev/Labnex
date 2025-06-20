@@ -187,14 +187,12 @@ const AIVoiceMode: React.FC = () => {
     // Echo-prevention: if the assistant is/was speaking very recently and the
     // recognised text is almost the same as what it was saying, ignore it.
     const now = Date.now();
-    if (now - ttsStartRef.current < 800) {
-      // too close to TTS start – likely echo
-      const sim = getSimilarity(transcript, lastSpokenRef.current);
-      if (sim > 0.8) return;
-    }
-
+    const elapsed = now - ttsStartRef.current;
     const sim = getSimilarity(transcript, lastSpokenRef.current);
-    if (sim > 0.85) return; // ignore near-identical echo
+    // Treat as echo if recognised within 5 s of TTS start AND similarity high
+    if (elapsed < 5000 && sim > 0.7) {
+      return;
+    }
 
     setCurrentAction(`Processing: "${transcript}"`);
     pushEvent(`Voice Input: ${transcript}`, 'transcribing');
