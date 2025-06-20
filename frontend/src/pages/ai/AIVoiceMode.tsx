@@ -49,8 +49,14 @@ interface DebugInfo {
 
 const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
-  const { speak: speakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
+  const { speak: baseSpeakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
   const { user } = useAuth();
+
+  const speakOpenAI = useCallback(async (text: string) => {
+    lastSpokenRef.current = text;
+    ttsStartRef.current = Date.now();
+    await baseSpeakOpenAI(text);
+  }, [baseSpeakOpenAI]);
 
   // Wrapper to prevent navigating to unknown paths that would blank the UI
   const safeNavigate = useCallback((dest: string | number) => {
@@ -124,6 +130,10 @@ const AIVoiceMode: React.FC = () => {
   const initializedRef = useRef<boolean>(false);
   const welcomeSpokenRef = useRef<boolean>(false);
 
+  // Track last spoken TTS output so we can ignore echoes
+  const lastSpokenRef = useRef<string>('');
+  const ttsStartRef = useRef<number>(0);
+
   // Simplified user-facing control model
   type ListeningMode = 'push' | 'handsfree';
   const [listeningMode, setListeningMode] = useState<ListeningMode>('push');
@@ -153,9 +163,38 @@ const AIVoiceMode: React.FC = () => {
     setEvents(prev => [{ id: Date.now(), label, state, timestamp: new Date().toLocaleTimeString() }, ...prev.slice(0, 19)]);
   }, []);
 
+  // Basic string similarity helper (ratio of matching starting words)
+  const getSimilarity = (a: string, b: string): number => {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+    if (!a || !b) return 0;
+    if (a === b) return 1;
+    const aWords = a.split(' ');
+    const bWords = b.split(' ');
+    const maxLen = Math.max(aWords.length, bWords.length);
+    let match = 0;
+    for (let i = 0; i < Math.min(aWords.length, bWords.length); i++) {
+      if (aWords[i] === bWords[i]) match++;
+      else break; // only leading words
+    }
+    return match / maxLen;
+  };
+
   // Voice command processing (was previously below useVoiceInput)
   const handleVoiceResult = useCallback(async (transcript: string) => {
     if (!transcript.trim()) return;
+
+    // Echo-prevention: if the assistant is/was speaking very recently and the
+    // recognised text is almost the same as what it was saying, ignore it.
+    const now = Date.now();
+    if (now - ttsStartRef.current < 800) {
+      // too close to TTS start – likely echo
+      const sim = getSimilarity(transcript, lastSpokenRef.current);
+      if (sim > 0.8) return;
+    }
+
+    const sim = getSimilarity(transcript, lastSpokenRef.current);
+    if (sim > 0.85) return; // ignore near-identical echo
 
     setCurrentAction(`Processing: "${transcript}"`);
     pushEvent(`Voice Input: ${transcript}`, 'transcribing');
@@ -309,19 +348,23 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [listeningMode, isMuted, startVoice, stopVoice]);
 
-  // Prevent self-feedback: pause voice recognition while TTS is speaking.
-  // Resume (with a small delay) once playback finishes so we don't capture the tail end of the audio.
+  // Keep microphone active in hands-free mode even while TTS is speaking.
+  // For push-to-talk we still pause the mic during playback.
   useEffect(() => {
     let resumeTimeout: NodeJS.Timeout | null = null;
+
+    if (listeningMode === 'handsfree') {
+      // Never stop the recogniser – echo suppression now handles self-feedback.
+      return;
+    }
+
+    // Push-to-talk behaviour (keep as before)
     if (isTTSSpeaking) {
       stopVoice();
-    } else {
-      if (listeningMode === 'handsfree' && !isMuted) {
-        resumeTimeout = setTimeout(() => {
-          startVoice();
-        }, 500); // 0.5 s buffer to avoid self-capture
-      }
+    } else if (!isMuted) {
+      resumeTimeout = setTimeout(() => startVoice(), 300);
     }
+
     return () => {
       if (resumeTimeout) clearTimeout(resumeTimeout);
     };
