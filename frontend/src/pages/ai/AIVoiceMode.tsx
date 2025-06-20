@@ -1372,7 +1372,8 @@ const AIVoiceMode: React.FC = () => {
         onSwipeDown={resetVoiceSystem}
         onLongPress={toggleActiveListening}
       >
-        <div className="absolute inset-0" />
+        {/* Transparent overlay used solely for capturing mobile touch gestures. */}
+        <div className="absolute inset-0 pointer-events-none" />
       </MobileVoiceGestures>
 
       {/* AI Preview Panel */}
