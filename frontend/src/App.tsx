@@ -53,6 +53,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import ResetRequested from './pages/auth/ResetRequested';
 import LabnexAIPage from './pages/ai/LabnexAIPage';
 import AIVoiceMode from './pages/ai/AIVoiceMode';
+import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -285,7 +286,7 @@ function AppRoutes() {
       />
       <Route
         path="/ai/voice"
-        element={<FullScreenPrivateRoute><AIVoiceMode /></FullScreenPrivateRoute>}
+        element={<FullScreenPrivateRoute><VoiceSettingsProvider><AIVoiceMode /></VoiceSettingsProvider></FullScreenPrivateRoute>}
       />
     </Routes>
   );
