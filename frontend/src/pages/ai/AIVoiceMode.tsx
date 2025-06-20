@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MicrophoneIcon, ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -17,6 +17,8 @@ import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
 import { useCurrentProjectId } from '../../hooks/useCurrentProjectId';
 import VoiceDebugOverlay from '../../components/VoiceDebugOverlay';
 import { useVoiceAutoTuning } from '../../hooks/useVoiceAutoTuning';
+import { VoiceSystemProvider, useVoiceSystemOptional } from '../../contexts/VoiceSystemContext';
+import { useVoiceHealthMonitor } from '../../hooks/useVoiceHealthMonitor';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
@@ -121,6 +123,7 @@ const AIVoiceMode: React.FC = () => {
   const [showDebug, setShowDebug] = useState(false);
   const [debugData, setDebugData] = useState<{ lastTranscript: string; similarity: number; echoSuppressed: boolean }>({ lastTranscript: '', similarity: 0, echoSuppressed: false });
   const [isPaused, setIsPaused] = useState(false);
+  const [lastTranscriptAt, setLastTranscriptAt] = useState(Date.now());
   
   // Browser / permission support states (used in legacy UI blocks)
   const [isSupported, setIsSupported] = useState(true);
@@ -217,6 +220,7 @@ const AIVoiceMode: React.FC = () => {
   const CONF_MIN = 0.45;
   const handleVoiceResult = useCallback(async (transcript: string, confidence: number = 1) => {
     if (!transcript.trim()) return;
+    setLastTranscriptAt(Date.now());
 
     // Drop low-confidence recognitions
     if (confidence < CONF_MIN) return;
@@ -409,6 +413,23 @@ const AIVoiceMode: React.FC = () => {
     detectWakeWord: listeningMode === 'handsfree' && activeListening.enabled,
     wakeWords: activeListening.wakeWords
   });
+
+  // Health monitor hook
+  useVoiceHealthMonitor({
+    isListening,
+    isSpeaking: isTTSSpeaking,
+    voiceActivityLevel,
+    lastTranscriptTime: lastTranscriptAt,
+  });
+
+  // Fatal error watcher
+  const voiceSys = useVoiceSystemOptional();
+  useEffect(() => {
+    if (!voiceSys?.fatalError) return;
+    toast.error('Voice system offline. Redirecting to AI Chat...');
+    const id = setTimeout(() => navigate('/ai'), 2000);
+    return () => clearTimeout(id);
+  }, [voiceSys?.fatalError]);
 
   // Switch between modes
   const handleModeToggle = useCallback((enabled: boolean) => {
@@ -1250,6 +1271,7 @@ const AIVoiceMode: React.FC = () => {
   // Minimal UI
   // ------------------------------------------------------------
   return (
+    <VoiceSystemProvider speak={speakOpenAI}>
     <div className="voice-mode-container overflow-hidden font-sans text-slate-100 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30">
       {/* Animated Background */}
       <div className="absolute inset-0">
@@ -1623,6 +1645,7 @@ const AIVoiceMode: React.FC = () => {
         </div>
       </MobileVoiceGestures>
     </div>
+    </VoiceSystemProvider>
   );
 };
 

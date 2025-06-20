@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useVoiceSystemOptional } from '../contexts/VoiceSystemContext';
 
 export type VoiceState = 'idle' | 'listening' | 'processing' | 'error';
 
@@ -48,11 +49,18 @@ export function useVoiceInput({
   const maxRetries = 3;
   const isRunningRef = useRef<boolean>(false);
   const lastActivityRef = useRef<number>(Date.now());
+  const voiceSys = useVoiceSystemOptional();
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const [wakeWordDetected, setWakeWordDetected] = useState(false);
+  const srRetriesRef = useRef(0);
+
+  const speakStatus = (msg: string) => voiceSys?.speakStatus(msg);
+  const bumpSr = () => voiceSys?.bumpSrRetry();
+  const resetSr = () => voiceSys?.resetSrRetry();
+  const setFatal = (r: any) => voiceSys?.setFatalError(r);
 
   // Update state and notify parent
   const updateState = useCallback((newState: VoiceState) => {
@@ -65,6 +73,16 @@ export function useVoiceInput({
     setError(errorMessage);
     updateState('error');
     onError?.(errorMessage);
+
+    bumpSr();
+    srRetriesRef.current += 1;
+    if (srRetriesRef.current === 3) {
+      speakStatus?.("Sorry, I'm having trouble hearing you. Trying again...");
+    }
+    if (srRetriesRef.current === 6) {
+      speakStatus?.("I'm still unable to hear you. You can also type if that's easier.");
+      setFatal?.('sr-failed');
+    }
 
     if (shouldRetry && autoRestart && retryCountRef.current < maxRetries && !isManuallyStoppedRef.current) {
       retryCountRef.current++;
@@ -112,6 +130,7 @@ export function useVoiceInput({
       setError(null);
       retryCountRef.current = 0;
       isRunningRef.current = true;
+      resetSr();
       lastActivityRef.current = Date.now();
     };
 

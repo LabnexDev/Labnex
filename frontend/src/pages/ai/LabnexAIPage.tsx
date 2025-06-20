@@ -9,7 +9,7 @@ import SlashCommandAutocomplete, { type AutocompleteRef } from '../../components
 import SessionDropdown from '../../components/ai-chat/SessionDropdown';
 import VoiceControls from '../../components/ai-chat/VoiceControls';
 import AIChatTutorial from '../../components/onboarding/AIChatTutorial';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const LabnexAIPage: React.FC = () => {
@@ -24,6 +24,7 @@ const LabnexAIPage: React.FC = () => {
   const [hasError, setHasError] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Check if user has seen the tutorial
   useEffect(() => {
@@ -83,6 +84,25 @@ const LabnexAIPage: React.FC = () => {
   useEffect(() => {
     setShowAutocomplete(inputValue.startsWith('/') && inputValue.length >= 1);
   }, [inputValue]);
+
+  // Voice fallback summary
+  useEffect(() => {
+    if (searchParams.get('voiceSession') !== 'failover') return;
+    if (sessionStorage.getItem('voiceFailoverHandled')) return;
+    const vm = (window as any).__voiceMode;
+    const health = vm?.getHealth?.();
+    if (!health) return;
+    const { lastSystemMessage, lastFatalError, srRetryCount, ttsRetryCount } = health;
+    const lastTranscript = vm?.getState?.().lastTranscript || 'N/A';
+    const retryCount = lastFatalError === 'sr-failed' ? srRetryCount : ttsRetryCount;
+    const summary = `🛠 Voice mode encountered an issue and redirected you here.\n• You said: "${lastTranscript}"\n• The system responded: "${lastSystemMessage}"\n• Then: ❌ ${lastFatalError} after ${retryCount} attempts`;
+    // prepend as system message
+    sendMessage(summary);
+    // Inject CTA to resume voice mode
+    const cta = '✨ Want to try Voice Mode again? [Resume Voice Mode](/ai/voice)';
+    sendMessage(cta);
+    sessionStorage.setItem('voiceFailoverHandled', 'true');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

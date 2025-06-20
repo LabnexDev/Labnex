@@ -1,12 +1,19 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useVoiceSettings } from '../contexts/VoiceSettingsContext';
+import { useVoiceSystemOptional } from '../contexts/VoiceSystemContext';
 
 export function useOpenAITTS() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentBlobUrlRef = useRef<string | null>(null);
   const { voiceOutput } = useVoiceSettings();
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const voiceSys = useVoiceSystemOptional();
+  const bumpTts = () => voiceSys?.bumpTtsRetry();
+  const resetTts = () => voiceSys?.resetTtsRetry();
+  const speakStatus = (m:string)=> voiceSys?.speakStatus(m);
+  const setFatal = (r:any)=> voiceSys?.setFatalError(r);
+  const ttsRetryRef = useRef<Record<string,number>>({});
 
   // Cleanup function for blob URLs
   const cleanupBlobUrl = useCallback(() => {
@@ -65,6 +72,7 @@ export function useOpenAITTS() {
       const finish = () => {
         cleanupBlobUrl();
         setIsSpeaking(false);
+        resetTts();
         onEnd?.();
         resolvePromise();
       };
@@ -74,7 +82,23 @@ export function useOpenAITTS() {
         if (process.env.NODE_ENV === 'development') {
           console.error('TTS Audio playback error:', e);
         }
-        finish();
+        bumpTts();
+        const count = (ttsRetryRef.current[text] = (ttsRetryRef.current[text] || 0) + 1);
+        if (count === 2) {
+          speakStatus?.('Sorry, my voice system encountered a glitch. Retrying…');
+        }
+        if (count >= 3) {
+          speakStatus?.("I'm still unable to speak right now. Please report this issue to the Labnex team.");
+          setFatal?.('tts-failed');
+          ttsRetryRef.current[text]=0;
+          onEnd?.();
+          return;
+        }
+        cleanupBlobUrl();
+        setIsSpeaking(false);
+        onEnd?.();
+        // retry once automatically
+        speak(text, onEnd);
       };
 
       const handleEnd = finish;
@@ -114,12 +138,26 @@ export function useOpenAITTS() {
         }
       }
       
+      bumpTts();
+      const count = (ttsRetryRef.current[text] = (ttsRetryRef.current[text] || 0) + 1);
+      if (count === 2) {
+        speakStatus?.('Sorry, my voice system encountered a glitch. Retrying…');
+      }
+      if (count >= 3) {
+        speakStatus?.("I'm still unable to speak right now. Please report this issue to the Labnex team.");
+        setFatal?.('tts-failed');
+        ttsRetryRef.current[text]=0;
+        onEnd?.();
+        return;
+      }
       cleanupBlobUrl();
       setIsSpeaking(false);
       onEnd?.();
+      // retry once automatically
+      await speak(text, onEnd);
       return;
     }
-  }, [voiceOutput, cleanupBlobUrl, isSpeaking]);
+  }, [voiceOutput, cleanupBlobUrl, isSpeaking, speakStatus, setFatal, bumpTts, resetTts]);
 
   // Stop current speech
   const stopSpeaking = useCallback(() => {
