@@ -20,7 +20,7 @@ export function useVoiceHealthMonitor({ isListening, isSpeaking, voiceActivityLe
       if (!srStallRef.current) srStallRef.current = Date.now();
       const elapsed = Date.now() - (srStallRef.current || Date.now());
       if (elapsed > 10_000) {
-        voiceSys.speakStatus("I think the microphone got stuck. Restarting it now.");
+        voiceSys.speakStatus("Let me restart, something went wrong.");
         voiceSys.bumpSrRetry();
         srStallRef.current = null;
         voiceSys.speakStatus('');
@@ -43,7 +43,7 @@ export function useVoiceHealthMonitor({ isListening, isSpeaking, voiceActivityLe
       if (!ttsStartRef.current) ttsStartRef.current = Date.now();
       const elapsed = Date.now() - (ttsStartRef.current || Date.now());
       if (elapsed > 7_000) {
-        voiceSys.speakStatus("Voice output seems stuck. Trying to fix it.");
+        voiceSys.speakStatus("Speech engine stuck. Retrying.");
         voiceSys.bumpTtsRetry();
         window.speechSynthesis.cancel();
         ttsStartRef.current = null;

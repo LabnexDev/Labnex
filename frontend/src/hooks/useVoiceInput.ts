@@ -50,6 +50,7 @@ export function useVoiceInput({
   const isRunningRef = useRef<boolean>(false);
   const lastActivityRef = useRef<number>(Date.now());
   const voiceSys = useVoiceSystemOptional();
+  const voiceSysRef = useRef(voiceSys);
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -57,10 +58,12 @@ export function useVoiceInput({
   const [wakeWordDetected, setWakeWordDetected] = useState(false);
   const srRetriesRef = useRef(0);
 
-  const speakStatus = (msg: string) => voiceSys?.speakStatus(msg);
-  const bumpSr = () => voiceSys?.bumpSrRetry();
-  const resetSr = () => voiceSys?.resetSrRetry();
-  const setFatal = (r: any) => voiceSys?.setFatalError(r);
+  useEffect(() => { voiceSysRef.current = voiceSys; }, [voiceSys]);
+
+  const speakStatus = (msg: string) => voiceSysRef.current?.speakStatus(msg);
+  const bumpSr = () => voiceSysRef.current?.bumpSrRetry();
+  const resetSr = () => voiceSysRef.current?.resetSrRetry();
+  const setFatal = (r: any) => voiceSysRef.current?.setFatalError(r);
 
   // Update state and notify parent
   const updateState = useCallback((newState: VoiceState) => {
@@ -132,6 +135,10 @@ export function useVoiceInput({
       isRunningRef.current = true;
       resetSr();
       lastActivityRef.current = Date.now();
+      if (srRetriesRef.current === 0) {
+        // Only announce on first start to avoid repetition on auto-restarts
+        speakStatus?.('Voice Mode is active. Say something to begin.');
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -144,6 +151,9 @@ export function useVoiceInput({
 
       // Wake-word logic
       if (cleaned) {
+        // Store last user transcript for diagnostics / failover
+        voiceSysRef.current?.recordUserTranscript?.(cleaned);
+
         if (detectWakeWord && wakeWords.length > 0) {
           const matched = wakeWords.find(w => cleaned.toLowerCase().includes(w.toLowerCase()));
           if (!matched) {
@@ -155,6 +165,12 @@ export function useVoiceInput({
         }
 
         onResult(cleaned, confidence);
+        // Spoken confirmation feedback
+        if (confidence < 0.6) {
+          speakStatus?.('Sorry, could you repeat that?');
+        } else {
+          speakStatus?.('Got it.');
+        }
         setWakeWordDetected(false);
       }
 
@@ -190,6 +206,7 @@ export function useVoiceInput({
         case 'no-speech':
           errorMessage = 'No speech detected';
           shouldRetry = autoRestart;
+          speakStatus?.("I think I missed that. Trying again.");
           break;
         case 'audio-capture':
           errorMessage = 'No microphone found or audio capture failed';
@@ -304,6 +321,7 @@ export function useVoiceInput({
     if (state === 'listening' && silenceTimeout > 0) {
       timeoutRef.current = setTimeout(() => {
         if (autoRestart && !isManuallyStoppedRef.current && enabled) {
+          speakStatus?.("Still there? I didn't catch anything.");
           // Restart recognition
           try {
             recognitionRef.current?.stop();

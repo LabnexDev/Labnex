@@ -167,7 +167,8 @@ export function useOpenAITTS() {
     }
     cleanupBlobUrl();
     setIsSpeaking(false);
-  }, [cleanupBlobUrl]);
+    speakStatus?.('Go ahead.');
+  }, [cleanupBlobUrl, speakStatus]);
 
   return { speak, isSpeaking, stopSpeaking };
 } 

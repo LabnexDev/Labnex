@@ -426,8 +426,9 @@ const AIVoiceMode: React.FC = () => {
   const voiceSys = useVoiceSystemOptional();
   useEffect(() => {
     if (!voiceSys?.fatalError) return;
+    voiceSys.speakStatus("Voice Mode isn't working right now. Redirecting to chat.");
     toast.error('Voice system offline. Redirecting to AI Chat...');
-    const id = setTimeout(() => navigate('/ai'), 2000);
+    const id = setTimeout(() => navigate('/ai?voiceSession=failover'), 2000);
     return () => clearTimeout(id);
   }, [voiceSys?.fatalError]);
 
@@ -1161,6 +1162,19 @@ const AIVoiceMode: React.FC = () => {
     setHasWelcomed(true);
     pushEvent('🎉 Welcome message played', 'done');
   }, [hasWelcomed, status, isTTSSpeaking, user, speakOpenAI, pushEvent]);
+
+  // Announce readiness on first mount (and on retry query param)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const first = params.get('retry') === '1' ? true : false;
+    if (voiceSys) {
+      voiceSys.speakStatus('Voice Mode is active. Say something to begin.');
+      if (first) {
+        voiceSys.speakStatus('Voice Mode is active. Say something to begin.');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Browser not supported UI
   if (!isSupported) {

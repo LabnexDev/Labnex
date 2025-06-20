@@ -7,13 +7,15 @@ interface VoiceSystem {
   ttsRetries: number;
   fatalError?: FatalErrorReason;
   lastSystemMessage: string;
+  lastUserTranscript: string;
+  recordUserTranscript: (t: string) => void;
   speakStatus: (msg: string) => void;
   bumpSrRetry: () => void;
   resetSrRetry: () => void;
   bumpTtsRetry: () => void;
   resetTtsRetry: () => void;
   setFatalError: (r: FatalErrorReason) => void;
-  getHealth: () => { srRetryCount: number; ttsRetryCount: number; lastFatalError?: string; lastSystemMessage: string };
+  getHealth: () => { srRetryCount: number; ttsRetryCount: number; lastFatalError?: string; lastSystemMessage: string; lastUserTranscript: string };
 }
 
 const Ctx = createContext<VoiceSystem | undefined>(undefined);
@@ -28,6 +30,7 @@ export const VoiceSystemProvider: React.FC<Props> = ({ speak, children }) => {
   const [ttsRetries, setTtsRetries] = useState(0);
   const [fatalError, setFatal] = useState<FatalErrorReason | undefined>();
   const [lastSystemMessage, setLastSystemMessage] = useState('');
+  const [lastUserTranscript, _setLastUserTranscript] = useState('');
 
   // queue to avoid re-entrant speech
   const feedbackQueueRef = useRef<string[]>([]);
@@ -66,6 +69,10 @@ export const VoiceSystemProvider: React.FC<Props> = ({ speak, children }) => {
     setFatal(r);
   }, []);
 
+  const recordUserTranscript = useCallback((t: string) => {
+    _setLastUserTranscript(t);
+  }, []);
+
   return (
     <Ctx.Provider
       value={{
@@ -73,13 +80,15 @@ export const VoiceSystemProvider: React.FC<Props> = ({ speak, children }) => {
         ttsRetries,
         fatalError,
         lastSystemMessage,
+        lastUserTranscript,
+        recordUserTranscript,
         speakStatus,
         bumpSrRetry,
         resetSrRetry,
         bumpTtsRetry,
         resetTtsRetry,
         setFatalError,
-        getHealth: () => ({ srRetryCount: srRetries, ttsRetryCount: ttsRetries, lastFatalError: fatalError, lastSystemMessage }),
+        getHealth: () => ({ srRetryCount: srRetries, ttsRetryCount: ttsRetries, lastFatalError: fatalError, lastSystemMessage, lastUserTranscript }),
       }}
     >
       {children}
