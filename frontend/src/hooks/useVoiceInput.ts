@@ -13,6 +13,7 @@ export interface VoiceInputOptions {
   language?: string;
   detectWakeWord?: boolean;
   wakeWords?: string[];
+  inactivityTimeout?: number; // ms
 }
 
 export interface VoiceInputReturn {
@@ -37,7 +38,8 @@ export function useVoiceInput({
   silenceTimeout = 3000,
   language = 'en-US',
   detectWakeWord = false,
-  wakeWords = []
+  wakeWords = [],
+  inactivityTimeout = 10000 // ms
 }: VoiceInputOptions): VoiceInputReturn {
   const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -45,6 +47,7 @@ export function useVoiceInput({
   const retryCountRef = useRef(0);
   const maxRetries = 3;
   const isRunningRef = useRef<boolean>(false);
+  const lastActivityRef = useRef<number>(Date.now());
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -109,10 +112,12 @@ export function useVoiceInput({
       setError(null);
       retryCountRef.current = 0;
       isRunningRef.current = true;
+      lastActivityRef.current = Date.now();
     };
 
     recognition.onresult = (event: any) => {
       updateState('processing');
+      lastActivityRef.current = Date.now();
 
       const result = event.results[event.results.length - 1];
       const cleaned = result[0].transcript.trim();
@@ -184,6 +189,7 @@ export function useVoiceInput({
       }
 
       handleError(errorMessage, shouldRetry);
+      lastActivityRef.current = Date.now();
     };
 
     recognition.onend = () => {
@@ -203,6 +209,7 @@ export function useVoiceInput({
       } else if (!isManuallyStoppedRef.current) {
         updateState('idle');
       }
+      lastActivityRef.current = Date.now();
     };
 
     recognitionRef.current = recognition;
@@ -295,6 +302,31 @@ export function useVoiceInput({
       return () => clearTimeouts();
     }
   }, [state, silenceTimeout, autoRestart, enabled, start, handleError, clearTimeouts]);
+
+  // Inactivity watchdog – restart recognition if no activity for inactivityTimeout
+  useEffect(() => {
+    if (!enabled) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (isRunningRef.current && state === 'listening' && now - lastActivityRef.current > inactivityTimeout) {
+        // Force restart if stuck
+        try {
+          recognitionRef.current?.stop();
+          // Will auto-restart via onend logic (autoRestart) or start manually
+          if (!autoRestart) {
+            setTimeout(() => {
+              if (enabled && !isManuallyStoppedRef.current) {
+                recognitionRef.current?.start();
+              }
+            }, 200);
+          }
+        } catch (err) {
+          console.warn('Watchdog restart failed:', err);
+        }
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [enabled, inactivityTimeout, autoRestart, state]);
 
   return {
     state,

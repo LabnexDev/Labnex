@@ -54,6 +54,7 @@ import ResetRequested from './pages/auth/ResetRequested';
 import LabnexAIPage from './pages/ai/LabnexAIPage';
 import AIVoiceMode from './pages/ai/AIVoiceMode';
 import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
+import { useCurrentProjectId } from './hooks/useCurrentProjectId';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -132,6 +133,9 @@ function AppRoutes() {
     const base = import.meta.env.BASE_URL || '/';
     return base === '/' ? '' : base.replace(/\/$/, '');
   }, []);
+
+  // Keep projectId synced to localStorage for cross-route use
+  useCurrentProjectId();
 
   useEffect(() => {
     // The SPA redirect logic that was here has been removed as it was causing

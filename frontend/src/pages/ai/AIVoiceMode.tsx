@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { MicrophoneIcon, ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -14,6 +14,9 @@ import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceCon
 import './AIVoiceMode.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
+import { useCurrentProjectId } from '../../hooks/useCurrentProjectId';
+import VoiceDebugOverlay from '../../components/VoiceDebugOverlay';
+import { useVoiceAutoTuning } from '../../hooks/useVoiceAutoTuning';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
@@ -52,7 +55,10 @@ const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { speak: baseSpeakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
   const { user } = useAuth();
-  const { voiceOutput, setVoiceOutput } = useVoiceSettings();
+  const { voiceOutput, setVoiceOutput, similarityThreshold: baseSim, amplitudeThreshold: baseAmp } = useVoiceSettings();
+
+  // Auto-tuning thresholds (session-only)
+  const { similarityThreshold, amplitudeThreshold, feed } = useVoiceAutoTuning(baseSim, baseAmp);
 
   const ttsQueueRef = useRef<string[]>([]);
   const processTTSQueue = useCallback(() => {
@@ -70,7 +76,7 @@ const AIVoiceMode: React.FC = () => {
   const speakOpenAI = useCallback(async (text: string) => {
     ttsQueueRef.current.push(text);
     processTTSQueue();
-  }, []);
+  }, [processTTSQueue]);
 
   // Wrapper to prevent navigating to unknown paths that would blank the UI
   const safeNavigate = useCallback((dest: string | number) => {
@@ -110,6 +116,11 @@ const AIVoiceMode: React.FC = () => {
   const [voiceActivityLevel, setVoiceActivityLevel] = useState(0);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [isDebugMode] = useState(localStorage.getItem('devMode') === 'true');
+  const [liveCaption, setLiveCaption] = useState<string>('');
+  const [showHelp, setShowHelp] = useState(() => localStorage.getItem('voiceHelpSeen') !== 'true');
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugData, setDebugData] = useState<{ lastTranscript: string; similarity: number; echoSuppressed: boolean }>({ lastTranscript: '', similarity: 0, echoSuppressed: false });
+  const [isPaused, setIsPaused] = useState(false);
   
   // Browser / permission support states (used in legacy UI blocks)
   const [isSupported, setIsSupported] = useState(true);
@@ -135,7 +146,7 @@ const AIVoiceMode: React.FC = () => {
   
   // We no longer use the setter but keep state structure for potential future features
   const [, _setDetectedCommands] = useState<VoiceCommand[]>([]);
-  const [currentProjectId] = useState<string | undefined>(undefined); // Would come from context
+  const currentProjectId = useCurrentProjectId();
 
   // Refs for audio processing and welcome state
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -203,7 +214,7 @@ const AIVoiceMode: React.FC = () => {
   };
 
   // Voice command processing (was previously below useVoiceInput)
-  const CONF_MIN = 0.65;
+  const CONF_MIN = 0.45;
   const handleVoiceResult = useCallback(async (transcript: string, confidence: number = 1) => {
     if (!transcript.trim()) return;
 
@@ -211,13 +222,36 @@ const AIVoiceMode: React.FC = () => {
     if (confidence < CONF_MIN) return;
 
     // If bot is currently speaking and audio output is loud, likely echo
-    if (status === 'speaking' && voiceActivityLevel > 0.15) {
+    if (status === 'speaking' && voiceActivityLevel > amplitudeThreshold) {
       return;
     }
 
     const lower = transcript.trim().toLowerCase();
+    if (lower === 'pause') {
+      stopVoice();
+      setIsPaused(true);
+      pushEvent('Paused', 'idle');
+      toast('⏸️ Paused');
+      return;
+    }
+    if (lower === 'resume') {
+      if (isPaused) {
+        setIsPaused(false);
+        startVoice();
+        pushEvent('Resumed', 'listening');
+        toast('▶️ Resumed');
+      }
+      return;
+    }
     if (lower === 'stop' || lower === 'cancel') {
+      ttsQueueRef.current = [];
       window.speechSynthesis.cancel();
+      stopSpeaking();
+      // slight delay before restarting SR to avoid ghost echo
+      setTimeout(() => {
+        if (!isMuted) startVoice();
+      }, 250);
+      pushEvent('TTS cancelled', 'idle');
       return;
     }
 
@@ -227,11 +261,18 @@ const AIVoiceMode: React.FC = () => {
     const elapsed = now - ttsStartRef.current;
     const sim = getSimilarity(transcript, lastSpokenRef.current);
     // Treat as echo if recognised within 5 s of TTS start AND similarity high
-    if (elapsed < 5000 && sim > 0.7) {
+    if (elapsed < 5000 && sim > similarityThreshold) {
+      setDebugData({ lastTranscript: transcript, similarity: sim, echoSuppressed: true });
+      if (isDebugMode) toast('🔇 Echo suppressed', { icon: '🛑' });
+      feed({ similarity: sim, confidence, vad: voiceActivityLevel, suppressed: true });
       return;
     }
+    setDebugData({ lastTranscript: transcript, similarity: sim, echoSuppressed: false });
+    feed({ similarity: sim, confidence, vad: voiceActivityLevel, suppressed: false });
 
     setCurrentAction(`Processing: "${transcript}"`);
+    setLiveCaption(transcript);
+    setTimeout(()=> setLiveCaption(''),2000);
     pushEvent(`Voice Input: ${transcript}`, 'transcribing');
 
     // Parse potentially multi-step commands
@@ -262,11 +303,13 @@ const AIVoiceMode: React.FC = () => {
           await speakOpenAI(chatRes.reply);
         }
         setCurrentAction('Ready for next command');
+        setLiveCaption('');
       } catch (err) {
         console.error('Chat fallback failed', err);
         toast.error('Failed to get AI response');
         pushEvent('Chat error', 'error');
         setCurrentAction('Ready (chat error)');
+        setLiveCaption('');
       }
       return;
     }
@@ -305,11 +348,17 @@ const AIVoiceMode: React.FC = () => {
     }
 
     setCurrentAction('Ready for next command');
-  }, [safeNavigate, currentProjectId, isDebugMode, isSmartListening, speakOpenAI, pushEvent]);
+    setLiveCaption('');
+  }, [safeNavigate, currentProjectId, isDebugMode, isSmartListening, speakOpenAI, pushEvent, voiceActivityLevel, status, amplitudeThreshold, similarityThreshold, isPaused, isMuted]);
 
   // Error handler
   const handleVoiceError = useCallback((error: string) => {
     console.warn('Voice input error:', error);
+    if (error.includes('No speech')) {
+      toast(`🤔 I didn't catch that, try again`, { icon: '🎤' });
+    } else {
+      toast.error(error);
+    }
     pushEvent(`Voice Error: ${error}`, 'error');
     setCurrentAction(`Voice Error: ${error}`);
   }, [pushEvent]);
@@ -1139,6 +1188,64 @@ const AIVoiceMode: React.FC = () => {
     );
   }
 
+  // Push-to-talk with spacebar (desktop)
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && listeningMode === 'push') {
+        startVoice();
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && listeningMode === 'push') {
+        stopVoice();
+      }
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, [listeningMode, startVoice, stopVoice]);
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ignore if typing in input/textarea
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+
+      switch (e.code) {
+        case 'Escape':
+          navigate('/ai');
+          break;
+        case 'KeyH': // Toggle handsfree
+          handleModeToggle(listeningMode !== 'handsfree');
+          break;
+        case 'KeyM': // Toggle mute when in handsfree
+          if (listeningMode === 'handsfree') toggleMute();
+          break;
+        case 'KeyD':
+          setShowDebug(prev => !prev);
+          break;
+        case 'Slash': // prevent help overlay attack with ?
+          if (e.shiftKey) {
+            setShowHelp(true);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate, listeningMode, handleModeToggle, toggleMute]);
+
+  const closeHelp = () => {
+    setShowHelp(false);
+    localStorage.setItem('voiceHelpSeen', 'true');
+  };
+
   // ------------------------------------------------------------
   // Minimal UI
   // ------------------------------------------------------------
@@ -1344,6 +1451,13 @@ const AIVoiceMode: React.FC = () => {
                     />
                   </div>
                   
+                  {/* Live caption */}
+                  {liveCaption && (
+                    <div className="absolute inset-4 flex items-center justify-center text-center px-4 text-white text-sm animate-fade-in-scale">
+                      <span className="drop-shadow-lg">{liveCaption}</span>
+                    </div>
+                  )}
+                  
                   {/* Central Mic Button */}
                   <button
                     onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
@@ -1358,11 +1472,9 @@ const AIVoiceMode: React.FC = () => {
                         'text-white/90 group-hover:text-white group-hover:scale-110'
                       }`} />
                       
-                      {/* Infinity symbol for hands-free */}
+                      {/* Mode indicator overlay */}
                       {listeningMode === 'handsfree' && !isMuted && (
-                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                          <span className="text-white text-xl font-bold">∞</span>
-                        </div>
+                        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs text-cyan-200">AUTO</span>
                       )}
                     </div>
                   </button>
@@ -1477,6 +1589,37 @@ const AIVoiceMode: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Help Overlay */}
+          {showHelp && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center animate-fade-in">
+              <div className="bg-slate-900 w-full max-w-lg mx-4 rounded-2xl p-8 border border-slate-700 relative shadow-2xl">
+                <button onClick={closeHelp} className="absolute top-4 right-4 text-slate-400 hover:text-white focus:outline-none">✕</button>
+                <h2 className="text-white text-xl font-bold mb-4 flex items-center gap-2"><span>🗣️</span> Voice-Mode Shortcuts</h2>
+                <ul className="space-y-3 text-slate-300 text-sm list-disc list-inside">
+                  <li><kbd className="kbd">Space</kbd> Hold to speak (push-to-talk mode)</li>
+                  <li><kbd className="kbd">H</kbd> Toggle hands-free / push-to-talk</li>
+                  <li><kbd className="kbd">M</kbd> Mute / un-mute mic in hands-free</li>
+                  <li><kbd className="kbd">Esc</kbd> Exit Voice-Mode</li>
+                  <li><kbd className="kbd">Shift</kbd> + <kbd className="kbd">?</kbd> Show this help</li>
+                </ul>
+                <div className="mt-6 text-right">
+                  <button onClick={closeHelp} className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm focus:outline-none">Got it</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Debug Overlay */}
+          <VoiceDebugOverlay
+            show={showDebug}
+            lastTranscript={debugData.lastTranscript}
+            similarityScore={debugData.similarity}
+            echoSuppressed={debugData.echoSuppressed}
+            voiceActivityLevel={voiceActivityLevel}
+            isSpeaking={isTTSSpeaking}
+            isListening={isListening}
+          />
         </div>
       </MobileVoiceGestures>
     </div>
