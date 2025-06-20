@@ -119,4 +119,221 @@
   -webkit-backdrop-filter: blur(16px);
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Additional animations for enhanced UI */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Radial gradient utility */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Enhanced orb animations */
+.voice-orb.listening {
+  animation: pulse-glow 2s ease-in-out infinite, breathe 4s ease-in-out infinite;
+  box-shadow: 
+    0 0 60px rgba(34, 197, 94, 0.4),
+    0 0 120px rgba(34, 197, 94, 0.2),
+    inset 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+.voice-orb.speaking {
+  animation: pulse-glow 1.5s ease-in-out infinite, breathe 3s ease-in-out infinite;
+  box-shadow: 
+    0 0 60px rgba(139, 92, 246, 0.4),
+    0 0 120px rgba(139, 92, 246, 0.2),
+    inset 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+.voice-orb.analyzing {
+  box-shadow: 
+    0 0 60px rgba(59, 130, 246, 0.4),
+    0 0 120px rgba(59, 130, 246, 0.2),
+    inset 0 0 60px rgba(255, 255, 255, 0.1);
+}
+
+/* Panel slide-in animations */
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.6s ease-out;
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* Micro-interactions */
+.hover-lift {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+}
+
+/* Status text shimmer effect */
+.status-shimmer {
+  background: linear-gradient(
+    90deg,
+    currentColor 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    currentColor 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Activity level indicator */
+.activity-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Timeline connection lines */
+.timeline-connector {
+  position: relative;
+}
+
+.timeline-connector::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 2px;
+  height: 32px;
+  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.5), transparent);
+  transform: translateX(-50%);
+}
+
+.timeline-connector:last-child::after {
+  display: none;
+}
+
+/* Enhanced button styles */
+.btn-voice-mode {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.btn-voice-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-voice-mode:hover::before {
+  left: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+  .voice-orb {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+  }
+}
+
+@media (max-width: 768px) {
+  .particle {
+    animation-duration: 3s;
+  }
+  
+  .voice-orb.listening {
+    box-shadow: 
+      0 0 40px rgba(34, 197, 94, 0.4),
+      0 0 80px rgba(34, 197, 94, 0.2);
+  }
+  
+  .voice-orb.speaking {
+    box-shadow: 
+      0 0 40px rgba(139, 92, 246, 0.4),
+      0 0 80px rgba(139, 92, 246, 0.2);
+  }
 } 

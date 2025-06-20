@@ -12,6 +12,7 @@ import AudioWaveform from '../../components/ai-chat/AudioWaveform';
 import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
 import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceContext';
 import './AIVoiceMode.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
@@ -49,6 +50,7 @@ interface DebugInfo {
 const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { speak: speakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
+  const { user } = useAuth();
 
   // Wrapper to prevent navigating to unknown paths that would blank the UI
   const safeNavigate = useCallback((dest: string | number) => {
@@ -71,6 +73,8 @@ const AIVoiceMode: React.FC = () => {
     setIsSpeaking(isTTSSpeaking);
   }, [isTTSSpeaking]);
 
+  // (Self-feedback prevention effect will be added later, after voice control functions are available)
+   
   // State management
   const [status, setStatus] = useState<AIStatus>('idle');
   const [, setCurrentAction] = useState<string>('Starting voice mode...');
@@ -295,6 +299,21 @@ const AIVoiceMode: React.FC = () => {
       stopVoice();
     }
   }, [listeningMode, isMuted, startVoice, stopVoice]);
+
+  // ------------------------------------------------------------------
+  // Prevent self-feedback: pause voice recognition while TTS is speaking
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (isTTSSpeaking) {
+      // Stop microphone to avoid capturing our own TTS output
+      stopVoice();
+    } else {
+      // Resume hands-free listening if appropriate once TTS ends
+      if (listeningMode === 'handsfree' && !isMuted) {
+        startVoice();
+      }
+    }
+  }, [isTTSSpeaking, listeningMode, isMuted, startVoice, stopVoice]);
 
   // Voice Command Parser
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1142,6 +1161,27 @@ const AIVoiceMode: React.FC = () => {
     }
   };
 
+  // ------------------------------------------------------------------
+  // Personalized Welcome Message (first-time vs returning)
+  // ------------------------------------------------------------------
+  const [hasWelcomed, setHasWelcomed] = useState<boolean>(false);
+  useEffect(() => {
+    if (hasWelcomed) return;
+    if (status !== 'idle' || isTTSSpeaking) return; // wait until system idle and TTS free
+    const firstName = user?.name?.split(' ')[0] || 'there';
+    const hasSeen = localStorage.getItem('voice_welcome_shown');
+    const message = hasSeen
+      ? `Welcome back ${firstName}! What are we doing today?`
+      : `Hello ${firstName}, welcome to Labnex Voice Mode. How can I help you today?`;
+
+    speakOpenAI(message).then(() => {
+      // after speaking finished, system will auto resume mic by earlier effect
+    });
+    localStorage.setItem('voice_welcome_shown', 'true');
+    setHasWelcomed(true);
+    pushEvent('🎉 Welcome message played', 'done');
+  }, [hasWelcomed, status, isTTSSpeaking, user, speakOpenAI, pushEvent]);
+
   // Browser not supported UI
   if (!isSupported) {
     return (
@@ -1193,21 +1233,34 @@ const AIVoiceMode: React.FC = () => {
   // Minimal UI
   // ------------------------------------------------------------
   return (
-    <div className="fixed inset-0 overflow-hidden font-sans text-slate-100">
+    <div className="fixed inset-0 overflow-hidden font-sans text-slate-100 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30">
       {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30"></div>
+      <div className="absolute inset-0">
+        {/* Primary gradient layer */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/30 to-indigo-900/40"></div>
+        
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-purple-600/5 to-cyan-600/10 animate-pulse opacity-70"></div>
+        
+        {/* Radial gradient for depth */}
+        <div className="absolute inset-0 bg-gradient-radial from-purple-500/10 via-transparent to-transparent"></div>
+      </div>
       
       {/* Floating Particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 30 }).map((_, i) => (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {Array.from({ length: 50 }).map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white/10 rounded-full particle"
+            className={`absolute rounded-full particle ${
+              i % 3 === 0 ? 'w-2 h-2 bg-purple-400/20' :
+              i % 3 === 1 ? 'w-1 h-1 bg-cyan-400/30' :
+              'w-1.5 h-1.5 bg-indigo-400/15'
+            }`}
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 4}s`
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${4 + Math.random() * 6}s`
             }}
           />
         ))}
@@ -1218,165 +1271,295 @@ const AIVoiceMode: React.FC = () => {
         onSwipeDown={resetVoiceSystem}
         onLongPress={toggleActiveListening}
       >
-        <div className="relative h-full flex items-center justify-center">
-          {/* Status Card - Top Left */}
-          <div className="absolute top-8 left-8 glass-panel floating-panel rounded-2xl p-6 shadow-2xl z-10 voice-transition">
-            <div className="flex items-center gap-3">
-              <div className={`w-3 h-3 rounded-full animate-pulse ${
-                status === 'listening' ? 'bg-green-400' :
-                status === 'speaking' ? 'bg-purple-400' :
-                status === 'analyzing' ? 'bg-blue-400' :
-                status === 'error' ? 'bg-red-400' : 'bg-slate-400'
-              }`}></div>
-              <div>
-                <h3 className="text-white font-semibold">Voice Mode</h3>
-                <p className="text-slate-400 text-sm">{
-                  status === 'listening' ? 'Listening for commands...' :
-                  status === 'speaking' ? 'AI is responding...' :
-                  status === 'analyzing' ? 'Processing your request...' :
-                  status === 'error' ? 'Voice error occurred' :
-                  'Ready to listen'
-                }</p>
+        <div className="relative h-full">
+          {/* Top Status Bar */}
+          <div className="absolute top-0 left-0 right-0 z-20 animate-slide-in-top">
+            <div className="flex items-center justify-between p-8">
+              {/* Status Indicator */}
+              <div className="flex items-center gap-4">
+                <div className={`relative w-4 h-4 rounded-full transition-all duration-500 ${
+                  status === 'listening' ? 'bg-green-400 shadow-green-400/50' :
+                  status === 'speaking' ? 'bg-purple-400 shadow-purple-400/50' :
+                  status === 'analyzing' ? 'bg-blue-400 shadow-blue-400/50' :
+                  status === 'error' ? 'bg-red-400 shadow-red-400/50' : 'bg-slate-400 shadow-slate-400/50'
+                } shadow-lg`}>
+                  {/* Pulsing ring for active states */}
+                  {(status === 'listening' || status === 'speaking' || status === 'analyzing') && (
+                    <div className="absolute inset-0 rounded-full border-2 border-current animate-ping opacity-30"></div>
+                  )}
+                </div>
+                <div className="text-white">
+                  <h3 className="font-bold text-lg tracking-wide">LABNEX AI</h3>
+                  <p className="text-slate-300 text-sm opacity-80">{
+                    status === 'listening' ? 'Listening for commands...' :
+                    status === 'speaking' ? 'AI is responding...' :
+                    status === 'analyzing' ? 'Processing your request...' :
+                    status === 'error' ? 'Voice error occurred' :
+                    'Ready to listen'
+                  }</p>
+                </div>
+              </div>
+              
+              {/* System Stats */}
+              <div className="hidden md:flex items-center gap-6 text-slate-400 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span>Online</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>{events.length}</span>
+                  <span>Events</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>{listeningMode === 'handsfree' ? 'Auto' : 'Manual'}</span>
+                  <span>Mode</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Timeline Panel - Right Side */}
-          <div className="fixed right-8 top-1/2 -translate-y-1/2 w-80 max-h-[32rem] glass-panel floating-panel rounded-3xl shadow-2xl overflow-hidden z-10 hidden lg:block voice-transition">
-            <div className="p-6">
-              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-                <div className="w-5 h-5 text-purple-400">🕒</div>
-                Activity Timeline
-              </h3>
-              
-              <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                {events.slice(0, 10).map((event, i) => (
-                  <div key={event.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-700/30 border border-slate-600/30 hover:bg-slate-700/50 transition-colors">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                      event.state === 'done' ? 'bg-green-400' :
-                      event.state === 'error' ? 'bg-red-400' :
-                      event.state === 'listening' ? 'bg-blue-400' :
-                      event.state === 'analyzing' ? 'bg-yellow-400' : 'bg-slate-400'
-                    }`}></div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-white text-sm leading-relaxed">{event.label}</p>
-                      <p className="text-slate-400 text-xs mt-1">{i === 0 ? 'now' : `${i * 2}s ago`}</p>
+          {/* Main Content Area */}
+          <div className="flex h-full">
+            {/* Left Timeline Panel */}
+            <div className="hidden xl:flex w-80 flex-col animate-slide-in-left">
+              <div className="flex-1 p-8 pt-32">
+                <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 h-full border border-slate-700/30 shadow-2xl hover-glow voice-transition">
+                  <h3 className="text-white font-bold text-lg mb-6 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm">⚡</span>
+                    </div>
+                    Activity Timeline
+                  </h3>
+                  
+                  <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
+                    {events.slice(0, 12).map((event, i) => (
+                      <div key={event.id} className="group flex items-start gap-4 p-4 rounded-xl bg-slate-800/50 border border-slate-600/20 hover:bg-slate-700/50 hover:border-slate-500/30 transition-all duration-300 hover-lift">
+                        <div className="relative timeline-connector">
+                          <div className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            event.state === 'done' ? 'bg-green-400 shadow-green-400/50' :
+                            event.state === 'error' ? 'bg-red-400 shadow-red-400/50' :
+                            event.state === 'listening' ? 'bg-blue-400 shadow-blue-400/50' :
+                            event.state === 'analyzing' ? 'bg-yellow-400 shadow-yellow-400/50' : 'bg-slate-400 shadow-slate-400/50'
+                          } shadow-lg group-hover:scale-110`}></div>
+                          {i < events.length - 1 && (
+                            <div className="absolute top-4 left-1/2 w-px h-8 bg-gradient-to-b from-slate-500/50 to-transparent -translate-x-1/2"></div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white text-sm leading-relaxed group-hover:text-slate-100 transition-colors">{event.label}</p>
+                          <p className="text-slate-400 text-xs mt-1 font-mono">{i === 0 ? 'now' : `${i * 2}s ago`}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {events.length === 0 && (
+                      <div className="text-center py-12 text-slate-500">
+                        <div className="w-12 h-12 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <span className="text-slate-400">🔇</span>
+                        </div>
+                        <p className="text-sm">No activity yet</p>
+                        <p className="text-xs mt-1">Start speaking to see events</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Central Voice Interface */}
+            <div className="flex-1 flex flex-col items-center justify-center p-8">
+              {/* Large Status Display */}
+              <div className="mb-12 animate-fade-in-scale">
+                <div className={`text-6xl md:text-8xl font-black tracking-wider transition-all duration-500 text-center status-shimmer ${getStatusColor()}`}>
+                  {status.toUpperCase()}
+                </div>
+                <div className="text-center mt-4">
+                  <div className="h-1 w-32 mx-auto bg-gradient-to-r from-transparent via-current to-transparent opacity-50 rounded-full"></div>
+                </div>
+              </div>
+
+              {/* Enhanced Voice Orb */}
+              <div className="relative mb-12 animate-fade-in-scale">
+                {/* Outer glow rings */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {(status === 'listening' || status === 'monitoring') && (
+                    <>
+                      <div className="absolute w-80 h-80 md:w-96 md:h-96 rounded-full border border-green-400/20 animate-ping"></div>
+                      <div className="absolute w-72 h-72 md:w-88 md:h-88 rounded-full border border-green-400/30 animate-pulse"></div>
+                    </>
+                  )}
+                  
+                  {status === 'speaking' && (
+                    <>
+                      <div className="absolute w-80 h-80 md:w-96 md:h-96 rounded-full border border-purple-400/20 animate-ping"></div>
+                      <div className="absolute w-72 h-72 md:w-88 md:h-88 rounded-full border border-purple-400/30 animate-pulse"></div>
+                    </>
+                  )}
+                  
+                  {status === 'analyzing' && (
+                    <>
+                      <div className="absolute w-80 h-80 md:w-96 md:h-96 rounded-full border border-blue-400/20 animate-spin-slow"></div>
+                      <div className="absolute w-72 h-72 md:w-88 md:h-88 rounded-full border border-blue-400/30 animate-pulse"></div>
+                    </>
+                  )}
+                </div>
+
+                {/* Main Orb */}
+                <div className={`voice-orb voice-transition relative w-56 h-56 md:w-72 md:h-72 rounded-full shadow-2xl transition-all duration-700 ${
+                  status === 'listening' ? 'bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 listening' :
+                  status === 'speaking' ? 'bg-gradient-to-br from-purple-400 via-indigo-500 to-blue-600 speaking' :
+                  status === 'analyzing' ? 'bg-gradient-to-br from-blue-400 via-cyan-500 to-sky-600 animate-spin-slow' :
+                  status === 'error' ? 'bg-gradient-to-br from-red-400 via-rose-500 to-pink-600' :
+                  'bg-gradient-to-br from-slate-500 via-slate-600 to-slate-700'
+                }`}>
+                  
+                  {/* Inner glow effect */}
+                  <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/20 to-transparent"></div>
+                  
+                  {/* Waveform Overlay */}
+                  <div className="absolute inset-0 rounded-full overflow-hidden opacity-70">
+                    <AudioWaveform
+                      audioStream={audioStream}
+                      isActive={status === 'listening' || status === 'monitoring'}
+                      mode={status === 'speaking' ? 'output' : status === 'listening' || status === 'monitoring' ? 'input' : 'idle'}
+                      intensity={status === 'speaking' ? 0.8 : voiceActivityLevel}
+                    />
+                  </div>
+                  
+                  {/* Central Mic Button */}
+                  <button
+                    onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
+                    disabled={!isVoiceSupported}
+                    className="absolute inset-0 flex items-center justify-center focus:outline-none group transition-all duration-300 hover:scale-105"
+                  >
+                    <div className="relative">
+                      <MicrophoneIcon className={`w-24 h-24 md:w-32 md:h-32 transition-all duration-300 ${
+                        !isVoiceSupported ? 'text-gray-500' :
+                        listeningMode === 'handsfree' && !isMuted ? 'text-cyan-100 drop-shadow-2xl' :
+                        isListening ? 'text-white drop-shadow-2xl' :
+                        'text-white/90 group-hover:text-white group-hover:scale-110'
+                      }`} />
+                      
+                      {/* Infinity symbol for hands-free */}
+                      {listeningMode === 'handsfree' && !isMuted && (
+                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                          <span className="text-white text-xl font-bold">∞</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Control Panel */}
+            <div className="hidden lg:flex w-80 flex-col animate-slide-in-right">
+              <div className="flex-1 p-8 pt-32">
+                <div className="space-y-6">
+                  {/* Mode Control Card */}
+                  <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/30 shadow-2xl hover-glow voice-transition hover-lift">
+                    <h4 className="text-white font-bold text-lg mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm">⚙️</span>
+                      </div>
+                      Voice Mode
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-600/20">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-lg">∞</span>
+                          </div>
+                          <div>
+                            <h5 className="text-white font-semibold">Always Listen</h5>
+                            <p className="text-slate-400 text-sm">Hands-free voice mode</p>
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={() => handleModeToggle(listeningMode === 'push')}
+                          className={`btn-voice-mode relative inline-flex h-10 w-18 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 hover-lift ${
+                            listeningMode === 'handsfree' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/50' : 'bg-slate-600'
+                          } shadow-lg`}
+                        >
+                          <span
+                            className={`inline-block h-8 w-8 transform rounded-full bg-white transition-transform duration-300 shadow-lg ${
+                              listeningMode === 'handsfree' ? 'translate-x-8 shadow-cyan-200/50' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                ))}
-                {events.length === 0 && (
-                  <p className="text-slate-500 text-sm text-center py-8">No activity yet</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Central Voice Orb */}
-          <div className="relative flex flex-col items-center space-y-8">
-            {/* Status Text */}
-            <div className={`text-5xl md:text-6xl font-bold tracking-wider transition-colors duration-300 ${getStatusColor()}`}>
-              {status.toUpperCase()}
-            </div>
-
-            {/* Voice Orb */}
-            <div className="relative flex items-center justify-center">
-              <div className={`voice-orb voice-transition relative w-48 h-48 md:w-64 md:h-64 rounded-full shadow-2xl transition-all duration-500 ${
-                status === 'listening' ? 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700 listening' :
-                status === 'speaking' ? 'bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-700 speaking' :
-                status === 'analyzing' ? 'bg-gradient-to-br from-blue-500 via-cyan-600 to-sky-700 animate-spin-slow' :
-                status === 'error' ? 'bg-gradient-to-br from-red-500 via-rose-600 to-pink-700' :
-                'bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800'
-              }`}>
-                
-                {/* Pulsing Rings */}
-                {(status === 'listening' || status === 'monitoring') && (
-                  <>
-                    <div className="absolute inset-0 rounded-full border-2 border-green-400/30 animate-ping"></div>
-                    <div className="absolute inset-4 rounded-full border border-green-300/20 animate-pulse"></div>
-                  </>
-                )}
-                
-                {status === 'speaking' && (
-                  <>
-                    <div className="absolute inset-0 rounded-full border-2 border-purple-400/30 animate-ping"></div>
-                    <div className="absolute inset-4 rounded-full border border-purple-300/20 animate-pulse"></div>
-                  </>
-                )}
-
-                {/* Waveform Overlay */}
-                <div className="absolute inset-0 rounded-full overflow-hidden opacity-60">
-                  <AudioWaveform
-                    audioStream={audioStream}
-                    isActive={status === 'listening' || status === 'monitoring'}
-                    mode={status === 'speaking' ? 'output' : status === 'listening' || status === 'monitoring' ? 'input' : 'idle'}
-                    intensity={status === 'speaking' ? 0.8 : voiceActivityLevel}
-                  />
-                </div>
-                
-                {/* Central Mic Icon */}
-                <button
-                  onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
-                  disabled={!isVoiceSupported}
-                  className="absolute inset-0 flex items-center justify-center focus:outline-none group transition-transform hover:scale-105"
-                >
-                  <MicrophoneIcon className={`w-16 h-16 md:w-20 md:h-20 transition-colors duration-300 ${
-                    !isVoiceSupported ? 'text-gray-500' :
-                    listeningMode === 'handsfree' && !isMuted ? 'text-cyan-200 drop-shadow-lg' :
-                    isListening ? 'text-white drop-shadow-lg' :
-                    'text-white/80 group-hover:text-white'
-                  }`} />
                   
-                  {listeningMode === 'handsfree' && !isMuted && (
-                    <span className="absolute -right-4 -bottom-4 text-cyan-300 text-3xl select-none drop-shadow-lg">∞</span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Hands-free Toggle Card */}
-            <div className="glass-panel rounded-2xl p-6 shadow-xl voice-transition hover:shadow-2xl">
-              <div className="flex items-center justify-between gap-6">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">∞</span>
-                  <div>
-                    <h4 className="text-white font-medium">Always Listen</h4>
-                    <p className="text-slate-400 text-sm">Hands-free voice mode</p>
+                  {/* Voice Activity Indicator */}
+                  <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/30 shadow-2xl hover-glow voice-transition hover-lift">
+                    <h4 className="text-white font-bold text-lg mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm">🎤</span>
+                      </div>
+                      Voice Activity
+                    </h4>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-400">Level</span>
+                        <span className="text-white font-mono activity-pulse">{Math.round(voiceActivityLevel * 100)}%</span>
+                      </div>
+                      
+                      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-150 rounded-full"
+                          style={{ 
+                            width: `${voiceActivityLevel * 100}%`,
+                            boxShadow: voiceActivityLevel > 0.1 ? '0 0 10px rgba(34, 197, 94, 0.5)' : 'none'
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2 text-xs text-slate-400">
+                        <div className="text-center">
+                          <div className="w-full h-1 bg-slate-700 rounded mb-1"></div>
+                          <span>Silent</span>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-full h-1 bg-yellow-500 rounded mb-1"></div>
+                          <span>Speaking</span>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-full h-1 bg-green-500 rounded mb-1"></div>
+                          <span>Loud</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                <button
-                  onClick={() => handleModeToggle(listeningMode === 'push')}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
-                    listeningMode === 'handsfree' ? 'bg-cyan-600' : 'bg-slate-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-200 ${
-                      listeningMode === 'handsfree' ? 'translate-x-7' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
               </div>
             </div>
           </div>
 
           {/* Mobile Gesture Hints */}
-          <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel rounded-full px-6 py-3 z-10 voice-transition floating-panel">
-            <div className="flex items-center gap-4 text-slate-300">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">👆</span>
-                <span className="text-xs">Tap orb</span>
-              </div>
-              <div className="w-px h-4 bg-slate-600"></div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⬆️</span>
-                <span className="text-xs">Swipe up</span>
+          <div className="xl:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-20 animate-slide-in-top">
+            <div className="bg-slate-900/80 backdrop-blur-xl rounded-full px-8 py-4 border border-slate-700/50 shadow-2xl hover-glow voice-transition">
+              <div className="flex items-center gap-6 text-slate-300">
+                <div className="flex items-center gap-3 hover-lift voice-transition">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-sm">👆</span>
+                  </div>
+                  <span className="text-sm font-medium">Tap orb</span>
+                </div>
+                <div className="w-px h-6 bg-gradient-to-b from-slate-600 to-transparent"></div>
+                <div className="flex items-center gap-3 hover-lift voice-transition">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-sm">⬆️</span>
+                  </div>
+                  <span className="text-sm font-medium">Swipe up</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </MobileVoiceGestures>
-
     </div>
   );
 };
