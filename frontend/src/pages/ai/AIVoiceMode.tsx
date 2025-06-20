@@ -11,6 +11,7 @@ import { type TimelineEvent, type TimelineEventState } from '../../components/ai
 import AudioWaveform from '../../components/ai-chat/AudioWaveform';
 import MobileVoiceGestures from '../../components/ai-chat/MobileVoiceGestures';
 import { getMemory, clearInterrupted, setIsSpeaking } from '../../utils/voiceContext';
+import './AIVoiceMode.css';
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-use-before-define, no-use-before-define */
@@ -48,6 +49,22 @@ interface DebugInfo {
 const AIVoiceMode: React.FC = () => {
   const navigate = useNavigate();
   const { speak: speakOpenAI, isSpeaking: isTTSSpeaking, stopSpeaking } = useOpenAITTS();
+
+  // Wrapper to prevent navigating to unknown paths that would blank the UI
+  const safeNavigate = useCallback((dest: string | number) => {
+    if (typeof dest === 'string') {
+      // Basic whitelist – extend as needed
+      const allowed = [
+        '/', '/dashboard', '/projects', '/tasks', '/notes', '/ai',
+        '/settings', '/login', '/register', '/contact', '/snippets'
+      ];
+      if (!allowed.includes(dest)) {
+        toast.error('Unknown page');
+        return;
+      }
+    }
+    navigate(dest as any);
+  }, [navigate]);
 
   // Keep voiceContext in sync with the TTS hook
   useEffect(() => {
@@ -107,6 +124,10 @@ const AIVoiceMode: React.FC = () => {
   const [listeningMode, setListeningMode] = useState<ListeningMode>('push');
   const [isMuted, setIsMuted] = useState(false);
 
+  // at top of component add mountedRef
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   // ------------------------------------------------------------------
   // Event utilities and voice callback handlers (moved before useVoiceInput to avoid
   // "variable used before declaration" TypeScript errors)
@@ -162,7 +183,7 @@ const AIVoiceMode: React.FC = () => {
     }
 
     // Execute in sequence if we have actual commands
-    const results = await executeCommandQueue(parsedIntents, { navigate, currentProjectId, isDebugMode });
+    const results = await executeCommandQueue(parsedIntents, { navigate: safeNavigate, currentProjectId, isDebugMode });
 
     // Update debug info with all results
     setDebugInfo(prev => ({
@@ -195,7 +216,7 @@ const AIVoiceMode: React.FC = () => {
     }
 
     setCurrentAction('Ready for next command');
-  }, [navigate, currentProjectId, isDebugMode, isSmartListening, speakOpenAI, pushEvent]);
+  }, [safeNavigate, currentProjectId, isDebugMode, isSmartListening, speakOpenAI, pushEvent]);
 
   // Error handler
   const handleVoiceError = useCallback((error: string) => {
@@ -243,7 +264,7 @@ const AIVoiceMode: React.FC = () => {
     onResult: handleVoiceResult,
     onError: handleVoiceError,
     onStateChange: handleVoiceStateChange,
-    enabled: listeningMode === 'handsfree' ? !isMuted : isSmartListening,
+    enabled: (listeningMode === 'handsfree' ? !isMuted : isSmartListening) && !isTTSSpeaking,
     continuous: true,
     autoRestart: listeningMode === 'handsfree',
     silenceTimeout: 2000,
@@ -622,7 +643,7 @@ const AIVoiceMode: React.FC = () => {
 
   // Enhanced VAD with active listening
   const vadLoop = useCallback(() => {
-    if (!analyserRef.current || !vadDataArrayRef.current) return;
+    if (!mountedRef.current || !analyserRef.current || !vadDataArrayRef.current) return;
 
     try {
       analyserRef.current.getByteFrequencyData(vadDataArrayRef.current);
@@ -912,9 +933,9 @@ const AIVoiceMode: React.FC = () => {
         setCurrentAction('Ready for your next input...');
         pushEvent('Ready for next input', 'waiting');
         
-        if (!isManuallyPausedRef.current && isSmartListening) {
+        if (!isManuallyPausedRef.current && !isTTSSpeaking && recognitionRef.current) {
           setTimeout(() => {
-            if (!isManuallyPausedRef.current && recognitionRef.current) {
+            if (!isManuallyPausedRef.current && !isTTSSpeaking && recognitionRef.current) {
               try {
                 recognitionRef.current.start();
                 setStatus('listening');
@@ -959,7 +980,7 @@ const AIVoiceMode: React.FC = () => {
         toast.success('Active listening enabled - I\'m always listening for wake words!');
         
         // Start monitoring immediately
-        if (!vadTimeoutRef.current) {
+        if (!vadTimeoutRef.current && mountedRef.current) {
           vadLoop();
         }
       } else {
@@ -1017,10 +1038,10 @@ const AIVoiceMode: React.FC = () => {
       };
 
       recognition.onend = () => {
-        if ((status === 'listening' || status === 'monitoring') && !isManuallyPausedRef.current) {
+        if (!isManuallyPausedRef.current && !isTTSSpeaking && (status === 'listening' || status === 'monitoring')) {
           const delay = Math.min(100 * Math.pow(2, retryCountRef.current), 2000);
           setTimeout(() => {
-            if (!isManuallyPausedRef.current && (status === 'listening' || status === 'monitoring')) {
+            if (!isManuallyPausedRef.current && !isTTSSpeaking && (status === 'listening' || status === 'monitoring')) {
               retryCountRef.current++;
               if (retryCountRef.current < 5) {
                 try {
@@ -1172,58 +1193,190 @@ const AIVoiceMode: React.FC = () => {
   // Minimal UI
   // ------------------------------------------------------------
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center font-sans text-slate-100">
+    <div className="fixed inset-0 overflow-hidden font-sans text-slate-100">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-indigo-900/30"></div>
+      
+      {/* Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/10 rounded-full particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
+
       <MobileVoiceGestures
         onDoubleTap={togglePause}
         onSwipeDown={resetVoiceSystem}
         onLongPress={toggleActiveListening}
       >
-        <div className="flex flex-col items-center space-y-10 px-6 w-full max-w-md">
-          {/* Waveform & Status */}
-          <div className="flex flex-col items-center space-y-4 w-full">
-            <div className={`text-4xl font-bold ${getStatusColor()}`}>{status.toUpperCase()}</div>
-            <AudioWaveform
-              audioStream={audioStream}
-              isActive={status === 'listening' || status === 'monitoring'}
-              mode={status === 'speaking' ? 'output' : status === 'listening' || status === 'monitoring' ? 'input' : 'idle'}
-              intensity={status === 'speaking' ? 0.8 : voiceActivityLevel}
-            />
+        <div className="relative h-full flex items-center justify-center">
+          {/* Status Card - Top Left */}
+          <div className="absolute top-8 left-8 glass-panel floating-panel rounded-2xl p-6 shadow-2xl z-10 voice-transition">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full animate-pulse ${
+                status === 'listening' ? 'bg-green-400' :
+                status === 'speaking' ? 'bg-purple-400' :
+                status === 'analyzing' ? 'bg-blue-400' :
+                status === 'error' ? 'bg-red-400' : 'bg-slate-400'
+              }`}></div>
+              <div>
+                <h3 className="text-white font-semibold">Voice Mode</h3>
+                <p className="text-slate-400 text-sm">{
+                  status === 'listening' ? 'Listening for commands...' :
+                  status === 'speaking' ? 'AI is responding...' :
+                  status === 'analyzing' ? 'Processing your request...' :
+                  status === 'error' ? 'Voice error occurred' :
+                  'Ready to listen'
+                }</p>
+              </div>
+            </div>
           </div>
 
-          {/* Mic Button */}
-          <button
-            onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
-            disabled={!isVoiceSupported}
-            aria-label={listeningMode === 'push' ? (isListening ? 'Stop listening' : 'Start listening') : (isMuted ? 'Unmute' : 'Mute')}
-            className={`relative p-8 rounded-full shadow-lg focus:outline-none transition-all duration-200 select-none
-              ${!isVoiceSupported ? 'bg-gray-500 cursor-not-allowed' : listeningMode === 'push'
-                ? isListening ? 'bg-red-600 animate-pulse' : 'bg-green-600 hover:bg-green-700'
-                : isMuted ? 'bg-slate-700 opacity-50' : 'bg-cyan-600 animate-pulse'}`}
-          >
-            <MicrophoneIcon className="w-10 h-10 text-white" />
-            {listeningMode === 'handsfree' && !isMuted && (
-              <span className="absolute -right-3 -bottom-3 text-cyan-300 text-2xl select-none">∞</span>
-            )}
-          </button>
+          {/* Timeline Panel - Right Side */}
+          <div className="fixed right-8 top-1/2 -translate-y-1/2 w-80 max-h-[32rem] glass-panel floating-panel rounded-3xl shadow-2xl overflow-hidden z-10 hidden lg:block voice-transition">
+            <div className="p-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <div className="w-5 h-5 text-purple-400">🕒</div>
+                Activity Timeline
+              </h3>
+              
+              <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+                {events.slice(0, 10).map((event, i) => (
+                  <div key={event.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-700/30 border border-slate-600/30 hover:bg-slate-700/50 transition-colors">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
+                      event.state === 'done' ? 'bg-green-400' :
+                      event.state === 'error' ? 'bg-red-400' :
+                      event.state === 'listening' ? 'bg-blue-400' :
+                      event.state === 'analyzing' ? 'bg-yellow-400' : 'bg-slate-400'
+                    }`}></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white text-sm leading-relaxed">{event.label}</p>
+                      <p className="text-slate-400 text-xs mt-1">{i === 0 ? 'now' : `${i * 2}s ago`}</p>
+                    </div>
+                  </div>
+                ))}
+                {events.length === 0 && (
+                  <p className="text-slate-500 text-sm text-center py-8">No activity yet</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Hands-free toggle */}
-          <div className="flex items-center gap-3">
-            <span className="text-slate-400 text-sm select-none">∞ Always listen</span>
-            <button
-              onClick={() => handleModeToggle(listeningMode === 'push')}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                listeningMode === 'handsfree' ? 'bg-cyan-600' : 'bg-slate-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  listeningMode === 'handsfree' ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+          {/* Central Voice Orb */}
+          <div className="relative flex flex-col items-center space-y-8">
+            {/* Status Text */}
+            <div className={`text-5xl md:text-6xl font-bold tracking-wider transition-colors duration-300 ${getStatusColor()}`}>
+              {status.toUpperCase()}
+            </div>
+
+            {/* Voice Orb */}
+            <div className="relative flex items-center justify-center">
+              <div className={`voice-orb voice-transition relative w-48 h-48 md:w-64 md:h-64 rounded-full shadow-2xl transition-all duration-500 ${
+                status === 'listening' ? 'bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700 listening' :
+                status === 'speaking' ? 'bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-700 speaking' :
+                status === 'analyzing' ? 'bg-gradient-to-br from-blue-500 via-cyan-600 to-sky-700 animate-spin-slow' :
+                status === 'error' ? 'bg-gradient-to-br from-red-500 via-rose-600 to-pink-700' :
+                'bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800'
+              }`}>
+                
+                {/* Pulsing Rings */}
+                {(status === 'listening' || status === 'monitoring') && (
+                  <>
+                    <div className="absolute inset-0 rounded-full border-2 border-green-400/30 animate-ping"></div>
+                    <div className="absolute inset-4 rounded-full border border-green-300/20 animate-pulse"></div>
+                  </>
+                )}
+                
+                {status === 'speaking' && (
+                  <>
+                    <div className="absolute inset-0 rounded-full border-2 border-purple-400/30 animate-ping"></div>
+                    <div className="absolute inset-4 rounded-full border border-purple-300/20 animate-pulse"></div>
+                  </>
+                )}
+
+                {/* Waveform Overlay */}
+                <div className="absolute inset-0 rounded-full overflow-hidden opacity-60">
+                  <AudioWaveform
+                    audioStream={audioStream}
+                    isActive={status === 'listening' || status === 'monitoring'}
+                    mode={status === 'speaking' ? 'output' : status === 'listening' || status === 'monitoring' ? 'input' : 'idle'}
+                    intensity={status === 'speaking' ? 0.8 : voiceActivityLevel}
+                  />
+                </div>
+                
+                {/* Central Mic Icon */}
+                <button
+                  onClick={listeningMode === 'push' ? toggleVoiceInput : toggleMute}
+                  disabled={!isVoiceSupported}
+                  className="absolute inset-0 flex items-center justify-center focus:outline-none group transition-transform hover:scale-105"
+                >
+                  <MicrophoneIcon className={`w-16 h-16 md:w-20 md:h-20 transition-colors duration-300 ${
+                    !isVoiceSupported ? 'text-gray-500' :
+                    listeningMode === 'handsfree' && !isMuted ? 'text-cyan-200 drop-shadow-lg' :
+                    isListening ? 'text-white drop-shadow-lg' :
+                    'text-white/80 group-hover:text-white'
+                  }`} />
+                  
+                  {listeningMode === 'handsfree' && !isMuted && (
+                    <span className="absolute -right-4 -bottom-4 text-cyan-300 text-3xl select-none drop-shadow-lg">∞</span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Hands-free Toggle Card */}
+            <div className="glass-panel rounded-2xl p-6 shadow-xl voice-transition hover:shadow-2xl">
+              <div className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">∞</span>
+                  <div>
+                    <h4 className="text-white font-medium">Always Listen</h4>
+                    <p className="text-slate-400 text-sm">Hands-free voice mode</p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleModeToggle(listeningMode === 'push')}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
+                    listeningMode === 'handsfree' ? 'bg-cyan-600' : 'bg-slate-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-200 ${
+                      listeningMode === 'handsfree' ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Gesture Hints */}
+          <div className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel rounded-full px-6 py-3 z-10 voice-transition floating-panel">
+            <div className="flex items-center gap-4 text-slate-300">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">👆</span>
+                <span className="text-xs">Tap orb</span>
+              </div>
+              <div className="w-px h-4 bg-slate-600"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⬆️</span>
+                <span className="text-xs">Swipe up</span>
+              </div>
+            </div>
           </div>
         </div>
       </MobileVoiceGestures>
+
     </div>
   );
 };

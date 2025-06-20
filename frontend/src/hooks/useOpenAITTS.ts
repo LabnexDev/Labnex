@@ -27,10 +27,10 @@ export function useOpenAITTS() {
     };
   }, [cleanupBlobUrl]);
 
-  const speak = useCallback(async (text: string, onEnd?: () => void) => {
+  const speak = useCallback(async (text: string, onEnd?: () => void): Promise<void> => {
     if (!voiceOutput || !text?.trim()) {
       onEnd?.();
-      return;
+      return Promise.resolve();
     }
 
     try {
@@ -45,6 +45,10 @@ export function useOpenAITTS() {
       // Strip code blocks & trim length
       text = text.replace(/```[\s\S]*?```/g, '').trim().slice(0, 500);
       
+      // We'll resolve this promise when playback ends or errors
+      let resolvePromise: () => void;
+      const playbackPromise = new Promise<void>(res => { resolvePromise = res; });
+      
       const res = await api.post(
         '/openai/tts',
         { model: 'tts-1', input: text, voice: 'shimmer', format: 'mp3' },
@@ -58,22 +62,22 @@ export function useOpenAITTS() {
       const audio = new Audio(url);
       audioRef.current = audio;
 
-      // Enhanced error handling with cleanup
+      const finish = () => {
+        cleanupBlobUrl();
+        setIsSpeaking(false);
+        onEnd?.();
+        resolvePromise();
+      };
+
       const handleError = (e: any) => {
         // Log error only in development
         if (process.env.NODE_ENV === 'development') {
           console.error('TTS Audio playback error:', e);
         }
-        cleanupBlobUrl();
-        setIsSpeaking(false);
-        onEnd?.();
+        finish();
       };
 
-      const handleEnd = () => {
-        cleanupBlobUrl();
-        setIsSpeaking(false);
-        onEnd?.();
-      };
+      const handleEnd = finish;
 
       audio.onplay  = () => {
         // Audio started playing successfully
@@ -84,15 +88,18 @@ export function useOpenAITTS() {
       // Handle interrupted playback
       audio.onpause = () => {
         if (isSpeaking) {
-          cleanupBlobUrl();
-          setIsSpeaking(false);
-          onEnd?.();
+          finish();
         }
       };
 
       await audio.play().catch(err => {
         handleError(err);
       });
+
+      // Wait until playback completes or errors
+      await playbackPromise;
+
+      return;
 
     } catch (err: any) {
       // Only log in development environment
@@ -110,6 +117,7 @@ export function useOpenAITTS() {
       cleanupBlobUrl();
       setIsSpeaking(false);
       onEnd?.();
+      return;
     }
   }, [voiceOutput, cleanupBlobUrl, isSpeaking]);
 
