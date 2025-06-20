@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { MicrophoneIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { MicrophoneIcon, ExclamationTriangleIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
@@ -54,11 +54,23 @@ const AIVoiceMode: React.FC = () => {
   const { user } = useAuth();
   const { voiceOutput, setVoiceOutput } = useVoiceSettings();
 
-  const speakOpenAI = useCallback(async (text: string) => {
-    lastSpokenRef.current = text;
+  const ttsQueueRef = useRef<string[]>([]);
+  const processTTSQueue = useCallback(() => {
+    if (isTTSSpeaking) return;
+    const next = ttsQueueRef.current.shift();
+    if (!next) return;
+    lastSpokenRef.current = next;
     ttsStartRef.current = Date.now();
-    await baseSpeakOpenAI(text);
-  }, [baseSpeakOpenAI]);
+    baseSpeakOpenAI(next, () => {
+      // after finish, recurse
+      processTTSQueue();
+    });
+  }, [isTTSSpeaking, baseSpeakOpenAI]);
+
+  const speakOpenAI = useCallback(async (text: string) => {
+    ttsQueueRef.current.push(text);
+    processTTSQueue();
+  }, []);
 
   // Wrapper to prevent navigating to unknown paths that would blank the UI
   const safeNavigate = useCallback((dest: string | number) => {
@@ -79,6 +91,9 @@ const AIVoiceMode: React.FC = () => {
   // Keep voiceContext in sync with the TTS hook
   useEffect(() => {
     setIsSpeaking(isTTSSpeaking);
+    if (!isTTSSpeaking) {
+      processTTSQueue();
+    }
   }, [isTTSSpeaking]);
 
   // Ensure TTS output is enabled while in Voice Mode
@@ -331,7 +346,8 @@ const AIVoiceMode: React.FC = () => {
     start: startVoice,
     stop: stopVoice,
     toggle: toggleVoiceInput,
-    isSupported: isVoiceSupported
+    isSupported: isVoiceSupported,
+    isRunning: isSRRunning
   } = useVoiceInput({
     onResult: handleVoiceResult,
     onError: handleVoiceError,
@@ -350,11 +366,18 @@ const AIVoiceMode: React.FC = () => {
     setListeningMode(enabled ? 'handsfree' : 'push');
     setIsMuted(false);
     if (enabled) {
-      startVoice();
+      if (!isSRRunning) startVoice();
     } else {
       stopVoice();
     }
-  }, [startVoice, stopVoice]);
+  }, [startVoice, stopVoice, isSRRunning]);
+
+  // Auto-start SR if handsfree enabled and recognition not running
+  useEffect(() => {
+    if (listeningMode === 'handsfree' && !isMuted && !isSRRunning) {
+      startVoice();
+    }
+  }, [listeningMode, isMuted, isSRRunning, startVoice]);
 
   // Mute / un-mute while in hands-free
   const toggleMute = useCallback(() => {
@@ -374,7 +397,7 @@ const AIVoiceMode: React.FC = () => {
     let resumeTimeout: NodeJS.Timeout | null = null;
 
     if (listeningMode === 'handsfree') {
-      // Never stop the recogniser – echo suppression now handles self-feedback.
+      // keep mic alive; do not stop
       return;
     }
 
@@ -1162,6 +1185,15 @@ const AIVoiceMode: React.FC = () => {
           {/* Top Status Bar */}
           <div className="absolute top-0 left-0 right-0 z-20 animate-slide-in-top">
             <div className="flex items-center justify-between p-8">
+              {/* Back button */}
+              <button
+                onClick={() => navigate('/ai')}
+                className="mr-4 text-slate-400 hover:text-white focus:outline-none"
+                title="Back"
+              >
+                <ArrowLeftIcon className="w-6 h-6" />
+              </button>
+
               {/* Status Indicator */}
               <div className="flex items-center gap-4">
                 <div className={`relative w-4 h-4 rounded-full transition-all duration-500 ${

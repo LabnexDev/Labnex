@@ -24,6 +24,7 @@ export interface VoiceInputReturn {
   toggle: () => void;
   isSupported: boolean;
   wakeWordDetected: boolean;
+  isRunning: boolean;
 }
 
 export function useVoiceInput({
@@ -153,6 +154,7 @@ export function useVoiceInput({
     };
 
     recognition.onerror = (event: any) => {
+      isRunningRef.current = false;
       const errorType = event.error;
       let errorMessage = 'Speech recognition error';
       let shouldRetry = false;
@@ -302,6 +304,7 @@ export function useVoiceInput({
     stop,
     toggle,
     isSupported,
-    wakeWordDetected
+    wakeWordDetected,
+    isRunning: isRunningRef.current,
   };
 } 
