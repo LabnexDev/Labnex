@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MicrophoneIcon } from '@heroicons/react/24/solid';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
+import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
 
 export default function AIVoiceMode() {
   const [transcript, setTranscript] = useState('');
@@ -17,6 +18,13 @@ export default function AIVoiceMode() {
   });
 
   const { isSpeaking, speak } = useOpenAITTS();
+
+  const { voiceOutput, setVoiceOutput } = useVoiceSettings();
+  
+  // Ensure voice output is enabled
+  useEffect(() => {
+    if (!voiceOutput) setVoiceOutput(true);
+  }, [voiceOutput, setVoiceOutput]);
 
   // Update status based on voice states
   useEffect(() => {
