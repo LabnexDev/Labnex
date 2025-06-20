@@ -260,7 +260,7 @@ export function useVoiceInput({
         }
       }
     };
-  }, [continuous, language, autoRestart, enabled, onResult, handleError, updateState, clearTimeouts, state, detectWakeWord, wakeWords]);
+  }, [continuous, language, autoRestart, enabled, onResult, handleError, updateState, clearTimeouts, detectWakeWord, wakeWords]);
 
   // Start listening
   const start = useCallback(() => {
