@@ -1,13 +1,13 @@
 import React from 'react';
 import { MicrophoneIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/solid';
 import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
-import { useSpeechInput } from '../../hooks/useSpeechInput';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useAIChat } from '../../contexts/AIChatContext';
 
 const VoiceControls: React.FC = () => {
   const { voiceInput, voiceOutput, setVoiceInput, setVoiceOutput } = useVoiceSettings();
   const { sendMessage, isTyping } = useAIChat();
-  const { listening, start, stop } = useSpeechInput({ enabled: voiceInput, onResult: (txt) => sendMessage(txt) });
+  const { isListening: listening, start, stop } = useVoiceInput({ enabled: voiceInput, onResult: (txt: string) => sendMessage(txt) });
 
   const handleMicClick = () => {
     if (!voiceInput) {

@@ -199,7 +199,7 @@ export class VoiceTestHelper {
     const audioAnalysisTest = await this.testAudioAnalysis();
     const ttsTest = await this.testTextToSpeech();
     
-    const allTests = {
+    const allTests: Record<string, boolean> = {
       ...support,
       speechRecognitionFunctional: speechRecTest,
       audioAnalysisFunctional: audioAnalysisTest,

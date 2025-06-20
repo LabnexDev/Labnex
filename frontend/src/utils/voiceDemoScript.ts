@@ -247,7 +247,7 @@ export class VoiceDemoRunner {
     console.log('🚀 Starting Voice Functionality Demo...\n');
     
     // Test each scenario
-    for (const [key, scenario] of Object.entries(voiceDemoScript.scenarios)) {
+    for (const [_key, scenario] of Object.entries(voiceDemoScript.scenarios)) {
       console.log(`\n📋 ${scenario.title}`);
       console.log(`Description: ${scenario.description}\n`);
       
