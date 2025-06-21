@@ -11,6 +11,17 @@ export default function AIVoiceMode() {
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
   const [microphonePaused, setMicrophonePaused] = useState(false);
   
+  // Stable particle positions to prevent re-rendering glitches
+  const [particles] = useState(() => 
+    Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      animationDelay: Math.random() * 3,
+      animationDuration: 2 + Math.random() * 4,
+    }))
+  );
+  
   const { voiceOutput, setVoiceOutput } = useVoiceSettings();
   
   // Ensure voice output is enabled
@@ -119,7 +130,7 @@ export default function AIVoiceMode() {
         
         {/* Main Orb */}
         <div
-          className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 transform hover:scale-105 z-10 ${
+          className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out transform hover:scale-105 z-10 ${
             status === 'listening' 
               ? 'bg-green-500/30 shadow-lg shadow-green-500/20' 
               : status === 'speaking'
@@ -143,7 +154,7 @@ export default function AIVoiceMode() {
           <div className="absolute inset-2 rounded-full border border-white/20" />
           
           {/* Microphone Icon */}
-          <MicrophoneIcon className={`w-16 h-16 z-10 transition-colors duration-300 ${
+          <MicrophoneIcon className={`w-16 h-16 z-10 transition-colors duration-500 ease-in-out ${
             status === 'listening' 
               ? 'text-green-300' 
               : status === 'speaking'
@@ -154,7 +165,7 @@ export default function AIVoiceMode() {
           }`} />
           
           {/* Status indicator dot */}
-          <div className={`absolute top-4 right-4 w-3 h-3 rounded-full transition-colors duration-300 ${
+          <div className={`absolute top-4 right-4 w-3 h-3 rounded-full transition-colors duration-500 ease-in-out ${
             status === 'listening' 
               ? 'bg-green-400' 
               : status === 'speaking'
@@ -186,15 +197,15 @@ export default function AIVoiceMode() {
 
       {/* Decorative Particles */}
       <div className="absolute inset-0 pointer-events-none">
-        {Array.from({ length: 30 }).map((_, i) => (
+        {particles.map((particle) => (
           <div
-            key={i}
+            key={particle.id}
             className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 4}s`,
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              animationDelay: `${particle.animationDelay}s`,
+              animationDuration: `${particle.animationDuration}s`,
             }}
           />
         ))}
