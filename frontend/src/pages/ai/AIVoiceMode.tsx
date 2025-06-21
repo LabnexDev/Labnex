@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { MicrophoneIcon } from '@heroicons/react/24/solid';
+import { MicrophoneIcon, ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
 import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
 import { aiChatApi } from '../../api/aiChat';
-import VoiceRingWaveform from '../../components/voice/VoiceRingWaveform';
 
 export default function AIVoiceMode() {
+  const navigate = useNavigate();
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
   const [microphonePaused, setMicrophonePaused] = useState(false);
@@ -129,15 +130,16 @@ export default function AIVoiceMode() {
   return (
     <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white">
 
-      {/* Pulsing Orb with Waveform */}
+      {/* Back Button */}
+      <button
+        onClick={() => navigate('/ai/chat')}
+        className="absolute top-8 right-8 bg-gradient-to-br from-slate-800/80 to-slate-900/60 backdrop-blur-xl p-3 rounded-2xl border border-white/20 shadow-2xl shadow-black/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:scale-105 group"
+      >
+        <ArrowLeftIcon className="w-5 h-5 text-white/80 group-hover:text-white transition-colors duration-300" />
+      </button>
+
+      {/* Main Orb */}
       <div className="relative">
-        {/* Animated Ring Waveform */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <VoiceRingWaveform 
-            isActive={status !== 'idle'}
-          />
-        </div>
-        
         {/* Main Orb */}
         <div
           className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out transform hover:scale-105 z-10 backdrop-blur-sm border border-white/20 ${
