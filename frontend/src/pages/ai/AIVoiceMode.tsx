@@ -63,18 +63,6 @@ export default function AIVoiceMode() {
   // Multi-turn voice processor
   const multiTurnProcessor = useRef<MultiTurnVoiceProcessor | null>(null);
   
-  // Stable particle positions with performance-optimized count
-  const [particles] = useState(() => {
-    const particleCount = getRecommendedParticleCount();
-    return Array.from({ length: particleCount }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      animationDelay: Math.random() * 3,
-      animationDuration: 2 + Math.random() * 4,
-    }));
-  });
-  
   const { voiceOutput, setVoiceOutput } = useVoiceSettings();
   
   // Performance monitoring
@@ -84,9 +72,21 @@ export default function AIVoiceMode() {
     trackCommandProcessing,
     trackNetworkLatency,
     shouldUseLowPowerMode: performanceShouldUseLowPowerMode,
-    getRecommendedParticleCount,
     logPerformanceIssue
   } = useVoicePerformance();
+
+  // Stable particle positions with performance-optimized count (initialized after performance hook)
+  const [particles] = useState(() => {
+    // Use fallback for initial render, will be optimized by performance monitor
+    const fallbackParticleCount = window.innerWidth < 768 ? 8 : 15;
+    return Array.from({ length: fallbackParticleCount }, (_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      animationDelay: Math.random() * 3,
+      animationDuration: 2 + Math.random() * 4,
+    }));
+  });
 
   // Add activity event helper
   const addActivityEvent = useCallback((type: ActivityEvent['type'], message: string, duration?: number) => {
