@@ -9,6 +9,7 @@ import VoiceRingWaveform from '../../components/voice/VoiceRingWaveform';
 export default function AIVoiceMode() {
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
+  const [microphonePaused, setMicrophonePaused] = useState(false);
   
   const { voiceOutput, setVoiceOutput } = useVoiceSettings();
   
@@ -20,9 +21,12 @@ export default function AIVoiceMode() {
   const { isListening, start: startVoice, stop: stopVoice } = useVoiceInput({
     enabled: true,
     onResult: async (text) => {
-      setTranscript(text);
+      // Immediately pause microphone and set processing status
+      setMicrophonePaused(true);
       stopVoice();
+      setTranscript(text);
       setStatus('processing');
+      
       try {
         const chatRes = await aiChatApi.sendMessage(text, { page: window.location.pathname });
         await speak(chatRes.reply);
@@ -46,34 +50,51 @@ export default function AIVoiceMode() {
     }
   }, [isSpeaking, isListening]);
 
-  // Pause STT when TTS is active to prevent echo
+  // Comprehensive echo prevention system
   useEffect(() => {
     if (isSpeaking) {
-      // Pause STT when TTS starts
+      // TTS started - immediately pause microphone
+      setMicrophonePaused(true);
       if (isListening) {
         stopVoice();
       }
-    } else {
-      // Resume STT shortly after TTS ends with buffer delay
+    } else if (microphonePaused && !isSpeaking) {
+      // TTS ended - wait before resuming microphone
       const resumeTimeout = setTimeout(() => {
-        if (!isListening && status !== 'processing') {
+        setMicrophonePaused(false);
+        // Only resume if we're truly idle and not already listening
+        if (!isListening && status === 'idle') {
           startVoice();
         }
-      }, 250); // Small buffer delay to prevent tail bleed
+      }, 500); // Longer delay to ensure TTS audio has completely finished
 
       return () => clearTimeout(resumeTimeout);
     }
-  }, [isSpeaking, isListening, startVoice, stopVoice, status]);
+  }, [isSpeaking, microphonePaused, isListening, status, startVoice, stopVoice]);
 
-  // Start listening on mount
+  // Prevent microphone from starting if we're paused
   useEffect(() => {
-    startVoice();
+    if (microphonePaused && isListening) {
+      stopVoice();
+    }
+  }, [microphonePaused, isListening, stopVoice]);
+
+  // Start listening on mount (only if not paused)
+  useEffect(() => {
+    if (!microphonePaused) {
+      startVoice();
+    }
     return () => {
       stopVoice();
     };
-  }, [startVoice, stopVoice]);
+  }, [startVoice, stopVoice, microphonePaused]);
 
   const handleOrbClick = () => {
+    if (microphonePaused) {
+      // If microphone is paused, don't allow manual override during TTS
+      return;
+    }
+    
     if (status === 'listening') {
       stopVoice();
     } else if (status === 'idle') {
@@ -92,6 +113,7 @@ export default function AIVoiceMode() {
         <div className="absolute inset-0 flex items-center justify-center">
           <VoiceRingWaveform 
             isActive={status !== 'idle'}
+            status={status}
           />
         </div>
         
