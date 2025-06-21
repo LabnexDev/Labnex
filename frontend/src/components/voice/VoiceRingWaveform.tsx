@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { useMicrophoneVolume } from "../../hooks/useMicrophoneVolume";
 
 const SIZE = 300;
 const CENTER = SIZE / 2;
@@ -7,28 +6,13 @@ const BASE_RADIUS = 110; // Base radius for the waveform rings
 
 interface VoiceRingWaveformProps {
   isActive?: boolean;
-  status?: 'idle' | 'listening' | 'speaking' | 'processing';
 }
 
 export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
-  isActive = true,
-  status = 'idle'
+  isActive = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const micVolume = useMicrophoneVolume();
-  const smoothedVolume = useRef(0);
   const animationRef = useRef<number | undefined>(undefined);
-
-  // Determine which volume to use based on status 
-  const getActiveVolume = () => {
-    if (status === 'listening') {
-      return micVolume; // Use microphone volume when listening
-    } else if (status === 'speaking' || status === 'processing') {
-      // For speaking/processing, create synthetic volume for visual feedback
-      return 0.4 + Math.sin(Date.now() * 0.008) * 0.3;
-    }
-    return 0.2; // Minimal activity when idle
-  };
 
   useEffect(() => {
     if (!isActive) {
@@ -47,10 +31,8 @@ export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
       animationRef.current = requestAnimationFrame(draw);
       time += 0.015;
 
-      // Smooth volume for fluid animation
-      const currentVolume = getActiveVolume();
-      smoothedVolume.current += (currentVolume - smoothedVolume.current) * 0.08;
-      const amp = 8 + smoothedVolume.current * 25;
+      // Perfect constant amplitude for smooth visual flow
+      const amp = 20; // Fixed amplitude for consistent beautiful animation
 
       // Clear canvas
       ctx.clearRect(0, 0, SIZE, SIZE);
@@ -134,7 +116,7 @@ export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [micVolume, isActive, status]);
+  }, [isActive]);
 
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">

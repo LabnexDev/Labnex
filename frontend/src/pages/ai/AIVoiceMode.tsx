@@ -10,6 +10,7 @@ export default function AIVoiceMode() {
   const [transcript, setTranscript] = useState('');
   const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
   const [microphonePaused, setMicrophonePaused] = useState(false);
+  const [isProcessingRequest, setIsProcessingRequest] = useState(false); // Prevent concurrent requests
   
   // Stable particle positions to prevent re-rendering glitches
   const [particles] = useState(() => 
@@ -32,7 +33,14 @@ export default function AIVoiceMode() {
   const { isListening, start: startVoice, stop: stopVoice } = useVoiceInput({
     enabled: true,
     onResult: async (text) => {
+      // Prevent multiple simultaneous requests
+      if (isProcessingRequest) {
+        console.log('Already processing request, ignoring duplicate');
+        return;
+      }
+      
       // Immediately pause microphone and set processing status
+      setIsProcessingRequest(true);
       setMicrophonePaused(true);
       stopVoice();
       setTranscript(text);
@@ -44,6 +52,9 @@ export default function AIVoiceMode() {
       } catch (err) {
         console.error('AI chat failed', err);
         await speak("Sorry, I couldn't get a response.");
+      } finally {
+        // Always clear processing flag
+        setIsProcessingRequest(false);
       }
     },
   });
@@ -69,19 +80,19 @@ export default function AIVoiceMode() {
       if (isListening) {
         stopVoice();
       }
-    } else if (microphonePaused && !isSpeaking) {
-      // TTS ended - wait before resuming microphone
+    } else if (microphonePaused && !isSpeaking && !isProcessingRequest) {
+      // TTS ended - wait before resuming microphone (only if not processing)
       const resumeTimeout = setTimeout(() => {
         setMicrophonePaused(false);
-        // Only resume if we're truly idle and not already listening
-        if (!isListening && status === 'idle') {
+        // Only resume if we're truly idle and not already listening or processing
+        if (!isListening && status === 'idle' && !isProcessingRequest) {
           startVoice();
         }
       }, 500); // Longer delay to ensure TTS audio has completely finished
 
       return () => clearTimeout(resumeTimeout);
     }
-  }, [isSpeaking, microphonePaused, isListening, status, startVoice, stopVoice]);
+  }, [isSpeaking, microphonePaused, isListening, status, startVoice, stopVoice, isProcessingRequest]);
 
   // Prevent microphone from starting if we're paused
   useEffect(() => {
@@ -101,8 +112,8 @@ export default function AIVoiceMode() {
   }, [startVoice, stopVoice, microphonePaused]);
 
   const handleOrbClick = () => {
-    if (microphonePaused) {
-      // If microphone is paused, don't allow manual override during TTS
+    if (microphonePaused || isProcessingRequest) {
+      // If microphone is paused or processing request, don't allow manual override
       return;
     }
     
@@ -116,7 +127,7 @@ export default function AIVoiceMode() {
 
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white">
+    <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 text-white">
 
       {/* Pulsing Orb with Waveform */}
       <div className="relative">
@@ -124,20 +135,19 @@ export default function AIVoiceMode() {
         <div className="absolute inset-0 flex items-center justify-center">
           <VoiceRingWaveform 
             isActive={status !== 'idle'}
-            status={status}
           />
         </div>
         
         {/* Main Orb */}
         <div
-          className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out transform hover:scale-105 z-10 ${
+          className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out transform hover:scale-105 z-10 backdrop-blur-sm border border-white/20 ${
             status === 'listening' 
-              ? 'bg-green-500/30 shadow-lg shadow-green-500/20' 
+              ? 'bg-gradient-to-br from-green-400/40 to-green-600/20 shadow-2xl shadow-green-500/30' 
               : status === 'speaking'
-              ? 'bg-purple-500/30 shadow-lg shadow-purple-500/20'
+              ? 'bg-gradient-to-br from-purple-400/40 to-purple-600/20 shadow-2xl shadow-purple-500/30'
               : status === 'processing'
-              ? 'bg-blue-500/30 shadow-lg shadow-blue-500/20'
-              : 'bg-white/10 hover:bg-white/20'
+              ? 'bg-gradient-to-br from-blue-400/40 to-blue-600/20 shadow-2xl shadow-blue-500/30'
+              : 'bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 shadow-2xl shadow-white/10'
           }`}
           onClick={handleOrbClick}
         >
@@ -151,7 +161,10 @@ export default function AIVoiceMode() {
           )}
           
           {/* Inner glow ring */}
-          <div className="absolute inset-2 rounded-full border border-white/20" />
+          <div className="absolute inset-3 rounded-full border border-white/30 shadow-inner" />
+          
+          {/* Subtle inner highlight */}
+          <div className="absolute inset-6 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
           
           {/* Microphone Icon */}
           <MicrophoneIcon className={`w-16 h-16 z-10 transition-colors duration-500 ease-in-out ${
@@ -178,20 +191,33 @@ export default function AIVoiceMode() {
       </div>
 
       {/* Status Card */}
-      <div className="absolute top-8 left-8 bg-slate-800/60 backdrop-blur-lg px-5 py-3 rounded-2xl border border-slate-600/30 shadow-lg">
-        <p className="text-slate-200 font-medium text-sm">
-          {status === 'idle' && 'Tap to speak'}
-          {status === 'listening' && 'Listening...'}
-          {status === 'speaking' && 'Speaking...'}
-          {status === 'processing' && 'Processing...'}
-        </p>
+      <div className="absolute top-8 left-8 bg-gradient-to-br from-slate-800/80 to-slate-900/60 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/20 shadow-2xl shadow-black/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10">
+        <div className="flex items-center space-x-3">
+          <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+            status === 'listening' ? 'bg-green-400 animate-pulse' :
+            status === 'speaking' ? 'bg-purple-400 animate-pulse' :
+            status === 'processing' ? 'bg-blue-400 animate-pulse' :
+            'bg-slate-400'
+          }`} />
+          <p className="text-white font-medium text-sm tracking-wide">
+            {status === 'idle' && 'Tap to speak'}
+            {status === 'listening' && 'Listening...'}
+            {status === 'speaking' && 'Speaking...'}
+            {status === 'processing' && 'Processing...'}
+          </p>
+        </div>
       </div>
 
       {/* Transcript Card */}
       {transcript && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 max-w-md w-full mx-4 bg-slate-800/70 backdrop-blur-lg px-6 py-4 rounded-2xl border border-slate-600/30 shadow-lg">
-          <p className="text-slate-300 text-sm font-medium mb-1">Last transcript:</p>
-          <p className="text-white text-base">{transcript}</p>
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 max-w-lg w-full mx-4 bg-gradient-to-br from-slate-800/90 to-slate-900/70 backdrop-blur-xl px-8 py-6 rounded-3xl border border-white/20 shadow-2xl shadow-black/30 transition-all duration-500 animate-in slide-in-from-bottom-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2 animate-pulse" />
+            <div className="flex-1">
+              <p className="text-slate-300 text-xs font-medium mb-2 uppercase tracking-wider">Last transcript</p>
+              <p className="text-white text-base leading-relaxed font-medium">{transcript}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -211,9 +237,14 @@ export default function AIVoiceMode() {
         ))}
       </div>
 
-      {/* Gradient Overlays for depth */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 via-transparent to-indigo-900/10 pointer-events-none" />
+      {/* Enhanced Gradient Overlays for depth */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-indigo-900/20 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-purple-500/5 to-transparent pointer-events-none" />
+      
+      {/* Subtle animated background light */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse pointer-events-none opacity-50" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse pointer-events-none opacity-50" style={{ animationDelay: '2s' }} />
     </div>
   );
 }
