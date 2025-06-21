@@ -3,28 +3,37 @@ import { MicrophoneIcon } from '@heroicons/react/24/solid';
 import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
 import { useVoiceSettings } from '../../contexts/VoiceSettingsContext';
+import { aiChatApi } from '../../api/aiChat';
+import VoiceRingWaveform from '../../components/voice/VoiceRingWaveform';
 
 export default function AIVoiceMode() {
   const [transcript, setTranscript] = useState('');
-  const [status, setStatus] = useState<'idle' | 'listening' | 'speaking'>('idle');
+  const [status, setStatus] = useState<'idle' | 'listening' | 'speaking' | 'processing'>('idle');
   
-  const { isListening, start: startVoice, stop: stopVoice } = useVoiceInput({
-    enabled: true,
-    onResult: (text) => {
-      setTranscript(text);
-      stopVoice();
-      speak(text);
-    },
-  });
-
-  const { isSpeaking, speak } = useOpenAITTS();
-
   const { voiceOutput, setVoiceOutput } = useVoiceSettings();
   
   // Ensure voice output is enabled
   useEffect(() => {
     if (!voiceOutput) setVoiceOutput(true);
   }, [voiceOutput, setVoiceOutput]);
+
+  const { isListening, start: startVoice, stop: stopVoice } = useVoiceInput({
+    enabled: true,
+    onResult: async (text) => {
+      setTranscript(text);
+      stopVoice();
+      setStatus('processing');
+      try {
+        const chatRes = await aiChatApi.sendMessage(text, { page: window.location.pathname });
+        await speak(chatRes.reply);
+      } catch (err) {
+        console.error('AI chat failed', err);
+        await speak("Sorry, I couldn't get a response.");
+      }
+    },
+  });
+
+  const { isSpeaking, speak } = useOpenAITTS();
 
   // Update status based on voice states
   useEffect(() => {
@@ -63,47 +72,75 @@ export default function AIVoiceMode() {
     }
   };
 
+  // Calculate volume for waveform (simulate for now)
+  const getWaveformVolume = () => {
+    if (status === 'speaking') return 0.8;
+    if (status === 'listening') return 0.6;
+    if (status === 'processing') return 0.4;
+    return 0.2;
+  };
+
   return (
     <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white">
 
-      {/* Pulsing Orb */}
-      <div
-        className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 transform hover:scale-105 ${
-          status === 'listening' 
-            ? 'bg-green-500/30 shadow-lg shadow-green-500/20' 
-            : status === 'speaking'
-            ? 'bg-purple-500/30 shadow-lg shadow-purple-500/20'
-            : 'bg-white/10 hover:bg-white/20'
-        }`}
-        onClick={handleOrbClick}
-      >
-        {/* Outer pulse ring for active states */}
-        {(status === 'listening' || status === 'speaking') && (
-          <div className={`absolute inset-0 rounded-full border-2 animate-ping ${
-            status === 'listening' ? 'border-green-400/50' : 'border-purple-400/50'
+      {/* Pulsing Orb with Waveform */}
+      <div className="relative">
+        {/* Animated Ring Waveform */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <VoiceRingWaveform 
+            volume={getWaveformVolume()}
+            size={240}
+            isActive={status !== 'idle'}
+          />
+        </div>
+        
+        {/* Main Orb */}
+        <div
+          className={`relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer transition-all duration-500 transform hover:scale-105 z-10 ${
+            status === 'listening' 
+              ? 'bg-green-500/30 shadow-lg shadow-green-500/20' 
+              : status === 'speaking'
+              ? 'bg-purple-500/30 shadow-lg shadow-purple-500/20'
+              : status === 'processing'
+              ? 'bg-blue-500/30 shadow-lg shadow-blue-500/20'
+              : 'bg-white/10 hover:bg-white/20'
+          }`}
+          onClick={handleOrbClick}
+        >
+          {/* Outer pulse ring for active states */}
+          {(status === 'listening' || status === 'speaking' || status === 'processing') && (
+            <div className={`absolute inset-0 rounded-full border-2 animate-ping ${
+              status === 'listening' ? 'border-green-400/50' : 
+              status === 'speaking' ? 'border-purple-400/50' :
+              'border-blue-400/50'
+            }`} />
+          )}
+          
+          {/* Inner glow ring */}
+          <div className="absolute inset-2 rounded-full border border-white/20" />
+          
+          {/* Microphone Icon */}
+          <MicrophoneIcon className={`w-16 h-16 z-10 transition-colors duration-300 ${
+            status === 'listening' 
+              ? 'text-green-300' 
+              : status === 'speaking'
+              ? 'text-purple-300'
+              : status === 'processing'
+              ? 'text-blue-300'
+              : 'text-white/80'
           }`} />
-        )}
-        
-        {/* Inner glow ring */}
-        <div className="absolute inset-2 rounded-full border border-white/20" />
-        
-        {/* Microphone Icon */}
-        <MicrophoneIcon className={`w-16 h-16 z-10 transition-colors duration-300 ${
-          status === 'listening' 
-            ? 'text-green-300' 
-            : status === 'speaking'
-            ? 'text-purple-300'
-            : 'text-white/80'
-        }`} />
-        
-        {/* Status indicator dot */}
-        <div className={`absolute top-4 right-4 w-3 h-3 rounded-full transition-colors duration-300 ${
-          status === 'listening' 
-            ? 'bg-green-400' 
-            : status === 'speaking'
-            ? 'bg-purple-400'
-            : 'bg-slate-400'
-        }`} />
+          
+          {/* Status indicator dot */}
+          <div className={`absolute top-4 right-4 w-3 h-3 rounded-full transition-colors duration-300 ${
+            status === 'listening' 
+              ? 'bg-green-400' 
+              : status === 'speaking'
+              ? 'bg-purple-400'
+              : status === 'processing'
+              ? 'bg-blue-400'
+              : 'bg-slate-400'
+          }`} />
+        </div>
       </div>
 
       {/* Status Card */}
@@ -112,6 +149,7 @@ export default function AIVoiceMode() {
           {status === 'idle' && 'Tap to speak'}
           {status === 'listening' && 'Listening...'}
           {status === 'speaking' && 'Speaking...'}
+          {status === 'processing' && 'Processing...'}
         </p>
       </div>
 
