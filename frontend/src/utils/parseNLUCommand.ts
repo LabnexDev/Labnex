@@ -171,10 +171,19 @@ const intentPatterns: IntentPattern[] = [
     patterns: [
       /(?:show|list|display)\s+(?:me\s+)?(?:all\s+)?(.+)/i,
       /(?:what|which)\s+(.+)\s+(?:are\s+there|do\s+i\s+have|exist)/i,
-      /(?:get|fetch)\s+(?:all\s+)?(.+)/i
+      /(?:get|fetch)\s+(?:all\s+)?(.+)/i,
+      /(?:tell\s+me\s+about|give\s+me\s+info\s+about|describe)\s+(?:my\s+)?(.+)/i,
+      /(?:what\s+about|how\s+about)\s+(?:my\s+)?(.+)/i,
+      /(?:overview|summary)\s+of\s+(?:my\s+)?(.+)/i
     ],
     extractData: (match, fullText) => {
-      const itemType = match[1]?.trim().toLowerCase() || 'items';
+      let itemType = match[1]?.trim().toLowerCase() || 'items';
+      
+      // Clean up common phrases from itemType
+      itemType = itemType
+        .replace(/^(all\s+)?(my\s+)?/, '') // Remove "all", "my" prefixes
+        .replace(/\s+(please|now|currently)$/, '') // Remove trailing words
+        .trim();
       
       // Extract filters
       const projectMatch = fullText.match(/(?:project|in)\s+([^,\s]+)/i);
@@ -183,15 +192,29 @@ const intentPatterns: IntentPattern[] = [
       const statusMatch = fullText.match(/(?:status|with\s+status)\s*[:=]?\s*(open|closed|pending|done|complete)/i);
       const status = statusMatch?.[1]?.toLowerCase();
       
-      // Map item types
+      // Map item types (enhanced for "tell me about" variations)
       const typeMap: Record<string, string> = {
         'tasks': 'tasks',
+        'task': 'tasks',
+        'todos': 'tasks',
+        'todo': 'tasks',
         'projects': 'projects',
+        'project': 'projects',
         'notes': 'notes',
+        'note': 'notes',
         'test cases': 'testCases',
+        'testcases': 'testCases',
         'tests': 'testCases',
+        'test': 'testCases',
+        'testing': 'testCases',
         'errors': 'errors',
-        'reports': 'reports'
+        'error': 'errors',
+        'reports': 'reports',
+        'report': 'reports',
+        'work': 'tasks',
+        'assignments': 'tasks',
+        'activities': 'queryHistory',
+        'activity': 'queryHistory'
       };
       
       const type = typeMap[itemType] || itemType;
@@ -227,7 +250,8 @@ const intentPatterns: IntentPattern[] = [
     patterns: [
       /(?:what|show|tell)(?:\s+me)?(?:\s+my)?(?:\s+last|\s+recent)?\s+(?:actions?|commands?|tasks?|projects?|things|history)/i,
       /history\s+(?:of|for)?\s*(?:my\s+)?(?:tasks?|projects?|commands?|actions?)/i,
-      /(what|which)\s+(?:projects?|tasks?|actions?)\s+did\s+i\s+(?:work|do|run)\s+(?:on|last|recently)?/i
+      /(what|which)\s+(?:projects?|tasks?|actions?)\s+did\s+i\s+(?:work|do|run)\s+(?:on|last|recently)?/i,
+      /(?:tell\s+me\s+about|what\s+about)\s+(?:my\s+)?(?:recent|last|latest)\s+(.+)/i
     ],
     extractData: () => ({})
   }
