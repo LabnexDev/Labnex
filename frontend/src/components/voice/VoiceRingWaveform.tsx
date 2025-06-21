@@ -1,181 +1,143 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useEffect, useRef } from "react";
+import { useMicrophoneVolume } from "../../hooks/useMicrophoneVolume";
+
+const SIZE = 400;
+const RADIUS = SIZE / 3;
 
 interface VoiceRingWaveformProps {
-  volume?: number; // 0 to 1
-  size?: number;   // Canvas size (default 300)
-  isActive?: boolean; // Whether to animate
+  isActive?: boolean;
 }
 
 export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
-  volume = 0.6,
-  size = 300,
   isActive = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const volume = useMicrophoneVolume();
+  const smoothedVolume = useRef(0);
   const animationRef = useRef<number | undefined>(undefined);
-  const timeRef = useRef(0);
-
-  const draw = useCallback((ctx: CanvasRenderingContext2D, time: number) => {
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const baseRadius = size * 0.3; // Base ring radius
-    const waveAmplitude = 20 * volume; // How much the wave varies
-    const numPoints = 128; // More points for smoother curves
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, size, size);
-    
-    // Draw multiple flowing lines for the effect
-    const numLines = 3;
-    
-    for (let lineIndex = 0; lineIndex < numLines; lineIndex++) {
-      const lineOffset = (lineIndex / numLines) * Math.PI * 0.5;
-      const lineOpacity = 0.8 - (lineIndex * 0.2);
-      const lineWidth = 3 - (lineIndex * 0.5);
-      
-      // Create gradient for this line
-      const gradient = ctx.createRadialGradient(
-        centerX, centerY, baseRadius - 30, 
-        centerX, centerY, baseRadius + 30
-      );
-      
-      if (lineIndex === 0) {
-        // Main line - brightest
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${lineOpacity})`);
-        gradient.addColorStop(0.3, `rgba(168, 85, 247, ${lineOpacity})`); // Purple-500
-        gradient.addColorStop(0.7, `rgba(147, 51, 234, ${lineOpacity})`); // Purple-600
-        gradient.addColorStop(1, `rgba(126, 34, 206, ${lineOpacity * 0.5})`); // Purple-700
-      } else {
-        // Secondary lines - more purple
-        gradient.addColorStop(0, `rgba(196, 181, 253, ${lineOpacity * 0.6})`); // Purple-200
-        gradient.addColorStop(0.5, `rgba(147, 51, 234, ${lineOpacity})`); // Purple-600
-        gradient.addColorStop(1, `rgba(88, 28, 135, ${lineOpacity * 0.3})`); // Purple-800
-      }
-      
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = lineWidth;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      
-      // Add glow effect
-      ctx.shadowColor = lineIndex === 0 ? 'rgba(168, 85, 247, 0.6)' : 'rgba(147, 51, 234, 0.3)';
-      ctx.shadowBlur = lineIndex === 0 ? 12 : 6;
-      
-      // Generate smooth flowing points
-      const points: { x: number; y: number }[] = [];
-      
-      for (let i = 0; i <= numPoints; i++) {
-        const angle = (i / numPoints) * Math.PI * 2;
-        
-        // Create flowing waves with different frequencies and phases
-        const wave1 = Math.sin(angle * 2 + time * 0.002 + lineOffset) * 0.6;
-        const wave2 = Math.sin(angle * 3 - time * 0.003 + lineOffset) * 0.4;
-        const wave3 = Math.sin(angle * 5 + time * 0.001 + lineOffset) * 0.3;
-        const wave4 = Math.cos(angle * 4 - time * 0.0025 + lineOffset) * 0.2;
-        
-        // Combine waves for complex, flowing pattern
-        const combinedWave = (wave1 + wave2 + wave3 + wave4) / 4;
-        
-        // Add some randomness for organic feel
-        const noise = Math.sin(angle * 7 + time * 0.004 + lineOffset) * 0.1;
-        
-        // Calculate radius with wave distortion
-        const radiusOffset = (combinedWave + noise) * waveAmplitude;
-        const radius = baseRadius + radiusOffset + (lineIndex * 3);
-        
-        // Convert to cartesian coordinates
-        const x = centerX + Math.cos(angle) * radius;
-        const y = centerY + Math.sin(angle) * radius;
-        
-        points.push({ x, y });
-      }
-      
-      // Draw smooth curve using quadratic curves
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      
-      for (let i = 1; i < points.length - 1; i++) {
-        const currentPoint = points[i];
-        const nextPoint = points[i + 1];
-        
-        // Calculate control point for smooth curve
-        const controlX = (currentPoint.x + nextPoint.x) / 2;
-        const controlY = (currentPoint.y + nextPoint.y) / 2;
-        
-        ctx.quadraticCurveTo(currentPoint.x, currentPoint.y, controlX, controlY);
-      }
-      
-      // Close the path smoothly
-      const lastPoint = points[points.length - 1];
-      const firstPoint = points[0];
-      ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, firstPoint.x, firstPoint.y);
-      
-      ctx.stroke();
-    }
-    
-    // Add subtle inner glow
-    ctx.shadowBlur = 8;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, baseRadius - 15, 0, Math.PI * 2);
-    ctx.stroke();
-    
-  }, [size, volume]);
-
-  const animate = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    timeRef.current += 16; // ~60fps
-    draw(ctx, timeRef.current);
-    
-    if (isActive) {
-      animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [draw, isActive]);
 
   useEffect(() => {
-    if (isActive) {
-      animate();
-    } else {
+    if (!isActive) {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      return;
     }
+
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+
+    let time = 0;
+
+    const draw = () => {
+      animationRef.current = requestAnimationFrame(draw);
+      time += 0.02;
+
+      // Smooth volume for fluid animation
+      smoothedVolume.current += (volume - smoothedVolume.current) * 0.05;
+      const amp = 10 + smoothedVolume.current * 30;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, SIZE, SIZE);
+      ctx.save();
+      
+      // Center the drawing
+      ctx.translate(SIZE / 2, SIZE / 2);
+      
+      // Draw multiple ring layers for depth
+      const layers = 3;
+      
+      for (let layer = 0; layer < layers; layer++) {
+        const layerOpacity = 0.9 - (layer * 0.2);
+        const layerRadius = RADIUS + (layer * 8);
+        const layerAmp = amp * (1 - layer * 0.2);
+        
+        ctx.beginPath();
+        
+        const points = 128;
+        for (let i = 0; i <= points; i++) {
+          const angle = (i / points) * Math.PI * 2;
+          
+          // Create complex wave pattern
+          const wave1 = Math.sin(i * 0.4 + time * 2) * layerAmp;
+          const wave2 = Math.sin(i * 0.8 + time * 1.5) * (layerAmp * 0.5);
+          const wave3 = Math.cos(i * 0.2 + time * 3) * (layerAmp * 0.3);
+          
+          const offset = wave1 + wave2 + wave3;
+          const r = layerRadius + offset;
+          const x = r * Math.cos(angle);
+          const y = r * Math.sin(angle);
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        
+        ctx.closePath();
+        
+        // Create gradient for each layer
+        const gradient = ctx.createRadialGradient(0, 0, layerRadius - 20, 0, 0, layerRadius + 20);
+        
+        if (layer === 0) {
+          // Main layer - brightest
+          gradient.addColorStop(0, `rgba(255, 255, 255, ${layerOpacity * 0.8})`);
+          gradient.addColorStop(0.5, `rgba(168, 85, 247, ${layerOpacity})`); // Purple-500
+          gradient.addColorStop(1, `rgba(139, 92, 246, ${layerOpacity * 0.6})`); // Purple-400
+        } else {
+          // Secondary layers - more purple
+          gradient.addColorStop(0, `rgba(196, 181, 253, ${layerOpacity * 0.4})`); // Purple-200
+          gradient.addColorStop(0.5, `rgba(147, 51, 234, ${layerOpacity})`); // Purple-600
+          gradient.addColorStop(1, `rgba(126, 34, 206, ${layerOpacity * 0.3})`); // Purple-700
+        }
+        
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = layer === 0 ? 3 : 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Add glow effect
+        ctx.shadowBlur = layer === 0 ? 20 : 10;
+        ctx.shadowColor = layer === 0 ? "rgba(139, 92, 246, 0.6)" : "rgba(147, 51, 234, 0.3)";
+        
+        ctx.stroke();
+      }
+      
+      // Add subtle inner ring
+      ctx.beginPath();
+      ctx.arc(0, 0, RADIUS - 20, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + smoothedVolume.current * 0.2})`;
+      ctx.lineWidth = 1;
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = "rgba(255, 255, 255, 0.3)";
+      ctx.stroke();
+      
+      ctx.restore();
+    };
+
+    draw();
     
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [animate, isActive]);
-
-  // Initial draw when component mounts
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    draw(ctx, 0);
-  }, [draw]);
+  }, [volume, isActive]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={size}
-      height={size}
-      className="absolute inset-0 pointer-events-none"
-      style={{
-        width: size,
-        height: size,
-      }}
-    />
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+      <canvas 
+        ref={canvasRef} 
+        width={SIZE} 
+        height={SIZE}
+        className="block"
+        style={{
+          width: SIZE,
+          height: SIZE,
+        }}
+      />
+    </div>
   );
 };
 

@@ -46,15 +46,24 @@ export default function AIVoiceMode() {
     }
   }, [isSpeaking, isListening]);
 
-  // Auto-restart listening after speaking
+  // Pause STT when TTS is active to prevent echo
   useEffect(() => {
-    if (!isSpeaking && !isListening) {
-      const timer = setTimeout(() => {
-        startVoice();
-      }, 500);
-      return () => clearTimeout(timer);
+    if (isSpeaking) {
+      // Pause STT when TTS starts
+      if (isListening) {
+        stopVoice();
+      }
+    } else {
+      // Resume STT shortly after TTS ends with buffer delay
+      const resumeTimeout = setTimeout(() => {
+        if (!isListening && status !== 'processing') {
+          startVoice();
+        }
+      }, 250); // Small buffer delay to prevent tail bleed
+
+      return () => clearTimeout(resumeTimeout);
     }
-  }, [isSpeaking, isListening, startVoice]);
+  }, [isSpeaking, isListening, startVoice, stopVoice, status]);
 
   // Start listening on mount
   useEffect(() => {
@@ -72,13 +81,7 @@ export default function AIVoiceMode() {
     }
   };
 
-  // Calculate volume for waveform (simulate for now)
-  const getWaveformVolume = () => {
-    if (status === 'speaking') return 0.8;
-    if (status === 'listening') return 0.6;
-    if (status === 'processing') return 0.4;
-    return 0.2;
-  };
+
 
   return (
     <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white">
@@ -88,8 +91,6 @@ export default function AIVoiceMode() {
         {/* Animated Ring Waveform */}
         <div className="absolute inset-0 flex items-center justify-center">
           <VoiceRingWaveform 
-            volume={getWaveformVolume()}
-            size={240}
             isActive={status !== 'idle'}
           />
         </div>
