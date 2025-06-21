@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { useMicrophoneVolume } from "../../hooks/useMicrophoneVolume";
 
-const SIZE = 300; // Reduced size to fit better with the orb
-const RADIUS = SIZE / 3;
+const SIZE = 300;
+const CENTER = SIZE / 2;
+const BASE_RADIUS = 110; // Base radius for the waveform rings
 
 interface VoiceRingWaveformProps {
   isActive?: boolean;
@@ -24,9 +25,9 @@ export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
       return micVolume; // Use microphone volume when listening
     } else if (status === 'speaking' || status === 'processing') {
       // For speaking/processing, create synthetic volume for visual feedback
-      return 0.3 + Math.sin(Date.now() * 0.01) * 0.2;
+      return 0.4 + Math.sin(Date.now() * 0.008) * 0.3;
     }
-    return 0.1; // Minimal activity when idle
+    return 0.2; // Minimal activity when idle
   };
 
   useEffect(() => {
@@ -44,108 +45,84 @@ export const VoiceRingWaveform: React.FC<VoiceRingWaveformProps> = ({
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      time += 0.02;
+      time += 0.015;
 
       // Smooth volume for fluid animation
       const currentVolume = getActiveVolume();
-      smoothedVolume.current += (currentVolume - smoothedVolume.current) * 0.05;
-      const amp = 10 + smoothedVolume.current * 30;
+      smoothedVolume.current += (currentVolume - smoothedVolume.current) * 0.08;
+      const amp = 8 + smoothedVolume.current * 25;
 
       // Clear canvas
       ctx.clearRect(0, 0, SIZE, SIZE);
       ctx.save();
       
       // Center the drawing
-      ctx.translate(SIZE / 2, SIZE / 2);
+      ctx.translate(CENTER, CENTER);
       
-      // Draw smooth waveform rings
-      const layers = 2; // Reduced layers for cleaner look
+      // Draw multiple flowing rings like in reference image
+      const rings = [
+        { radius: BASE_RADIUS, thickness: 3, opacity: 0.9, speed: 1 },
+        { radius: BASE_RADIUS - 15, thickness: 2, opacity: 0.6, speed: 0.7 },
+        { radius: BASE_RADIUS + 20, thickness: 2, opacity: 0.4, speed: 1.3 }
+      ];
       
-      for (let layer = 0; layer < layers; layer++) {
-        const layerOpacity = 0.8 - (layer * 0.3);
-        const layerRadius = RADIUS + (layer * 15);
-        const layerAmp = amp * (0.8 - layer * 0.3);
-        
+      rings.forEach((ring, ringIndex) => {
         ctx.beginPath();
         
-        const points = 64; // Fewer points for smoother curves
-        const coordinates: { x: number; y: number }[] = [];
+        const numPoints = 120;
+        const rotationOffset = time * ring.speed;
         
-        // Calculate all points first
-        for (let i = 0; i < points; i++) {
-          const angle = (i / points) * Math.PI * 2;
+        for (let i = 0; i <= numPoints; i++) {
+          const angle = (i / numPoints) * Math.PI * 2 + rotationOffset;
           
-          // Create smoother, more organic wave pattern
-          const wave1 = Math.sin(angle * 3 + time * 1.5) * layerAmp * 0.6;
-          const wave2 = Math.sin(angle * 5 + time * 2) * layerAmp * 0.3;
-          const wave3 = Math.cos(angle * 2 + time * 1.2) * layerAmp * 0.4;
+          // Create organic flowing waves
+          const wave1 = Math.sin(angle * 3 + time * 1.2) * amp * 0.6;
+          const wave2 = Math.sin(angle * 7 + time * 0.8) * amp * 0.25;
+          const wave3 = Math.cos(angle * 5 + time * 1.5) * amp * 0.35;
+          const wave4 = Math.sin(angle * 9 + time * 0.6) * amp * 0.15;
           
-          const offset = wave1 + wave2 + wave3;
-          const r = layerRadius + offset;
-          const x = r * Math.cos(angle);
-          const y = r * Math.sin(angle);
+          const waveOffset = wave1 + wave2 + wave3 + wave4;
+          const radius = ring.radius + waveOffset;
           
-          coordinates.push({ x, y });
-        }
-        
-        // Draw smooth curves using quadratic curves
-        if (coordinates.length > 0) {
-          ctx.moveTo(coordinates[0].x, coordinates[0].y);
+          const x = radius * Math.cos(angle);
+          const y = radius * Math.sin(angle);
           
-          for (let i = 0; i < coordinates.length; i++) {
-            const current = coordinates[i];
-            const next = coordinates[(i + 1) % coordinates.length];
-            const controlX = (current.x + next.x) / 2;
-            const controlY = (current.y + next.y) / 2;
-            
-            ctx.quadraticCurveTo(current.x, current.y, controlX, controlY);
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
           }
-          
-          // Close the path smoothly
-          const first = coordinates[0];
-          const last = coordinates[coordinates.length - 1];
-          const finalControlX = (last.x + first.x) / 2;
-          const finalControlY = (last.y + first.y) / 2;
-          ctx.quadraticCurveTo(last.x, last.y, finalControlX, finalControlY);
         }
         
         ctx.closePath();
         
-        // Create smooth gradient for organic look
-        const gradient = ctx.createRadialGradient(0, 0, layerRadius - 30, 0, 0, layerRadius + 30);
+        // Create beautiful gradients for each ring
+        const gradient = ctx.createRadialGradient(0, 0, ring.radius - 40, 0, 0, ring.radius + 40);
         
-        if (layer === 0) {
-          // Main layer - bright and smooth
-          gradient.addColorStop(0, `rgba(168, 85, 247, ${layerOpacity * 0.9})`); // Purple-500
-          gradient.addColorStop(0.5, `rgba(139, 92, 246, ${layerOpacity})`); // Purple-400  
-          gradient.addColorStop(1, `rgba(168, 85, 247, ${layerOpacity * 0.4})`); // Purple-500 fade
+        if (ringIndex === 0) {
+          // Main ring - brightest
+          gradient.addColorStop(0, `rgba(255, 255, 255, ${ring.opacity * 0.8})`);
+          gradient.addColorStop(0.3, `rgba(168, 85, 247, ${ring.opacity})`);
+          gradient.addColorStop(0.7, `rgba(139, 92, 246, ${ring.opacity * 0.8})`);
+          gradient.addColorStop(1, `rgba(168, 85, 247, ${ring.opacity * 0.2})`);
         } else {
-          // Secondary layer - softer purple
-          gradient.addColorStop(0, `rgba(196, 181, 253, ${layerOpacity * 0.6})`); // Purple-200
-          gradient.addColorStop(0.5, `rgba(147, 51, 234, ${layerOpacity * 0.8})`); // Purple-600
-          gradient.addColorStop(1, `rgba(147, 51, 234, ${layerOpacity * 0.2})`); // Purple-600 fade
+          // Secondary rings - more purple
+          gradient.addColorStop(0, `rgba(196, 181, 253, ${ring.opacity * 0.6})`);
+          gradient.addColorStop(0.4, `rgba(147, 51, 234, ${ring.opacity})`);
+          gradient.addColorStop(1, `rgba(126, 34, 206, ${ring.opacity * 0.3})`);
         }
         
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = layer === 0 ? 4 : 3; // Slightly thicker for smoother appearance
+        ctx.lineWidth = ring.thickness;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
-        // Enhanced glow effect for smooth organic look
-        ctx.shadowBlur = layer === 0 ? 25 : 15;
-        ctx.shadowColor = layer === 0 ? "rgba(168, 85, 247, 0.8)" : "rgba(147, 51, 234, 0.5)";
+        // Add glow effect
+        ctx.shadowBlur = ringIndex === 0 ? 25 : 15;
+        ctx.shadowColor = ringIndex === 0 ? "rgba(168, 85, 247, 0.8)" : "rgba(147, 51, 234, 0.5)";
         
         ctx.stroke();
-      }
-      
-      // Add subtle inner ring
-      ctx.beginPath();
-      ctx.arc(0, 0, RADIUS - 20, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + smoothedVolume.current * 0.2})`;
-      ctx.lineWidth = 1;
-      ctx.shadowBlur = 5;
-      ctx.shadowColor = "rgba(255, 255, 255, 0.3)";
-      ctx.stroke();
+      });
       
       ctx.restore();
     };
