@@ -6,7 +6,6 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { toast } from 'react-hot-toast';
 import { PlusIcon, TrashIcon, ArrowUturnLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { parseRawSteps } from '../../utils/parseRawSteps';
 import { createTestCase as createTestCaseApi } from '../../api/testCases';
 
 export function CreateTestCase() {
@@ -78,7 +77,11 @@ export function CreateTestCase() {
   };
 
   const handleConvertRaw = () => {
-    const parsed = parseRawSteps(rawStepsText);
+    const parsed = rawStepsText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line);
+      
     if (parsed.length) {
       setSteps(parsed);
       setRawStepsText('');
