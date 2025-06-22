@@ -10,7 +10,9 @@
   "devDependencies": {
     "@types/node": "^20.11.19",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "@vitejs/plugin-react": "^4.5.2",
     "ts-node": "^10.9.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vite-plugin-compression": "^0.5.1"
   }
 }

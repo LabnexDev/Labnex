@@ -30,7 +30,7 @@ const TypingDots: React.FC<TypingDotsProps> = ({ staticRender = false }) => {
               y: ['-20%', '20%', '-20%'],
               opacity: [0.5, 1, 0.5],
             }}
-            transition={dotTransition(i * 0.2)}
+            transition={dotTransition(i * 0.2) as any}
           />
         ))}
       </div>
