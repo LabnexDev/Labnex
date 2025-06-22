@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useVoiceInput, type VoiceInputOptions } from '../../hooks/useVoiceInput';
+import { useVoiceInput } from '../../hooks/useVoiceInput';
 import { useOpenAITTS } from '../../hooks/useOpenAITTS';
 import { aiChatApi } from '../../api/aiChat';
 import { MicrophoneIcon, SpeakerWaveIcon } from '@heroicons/react/24/solid';
@@ -12,6 +12,7 @@ const AIVoiceMode: React.FC = () => {
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const navigate = useNavigate();
   const { speak, isSpeaking } = useOpenAITTS();
 
@@ -53,8 +54,8 @@ const AIVoiceMode: React.FC = () => {
     }
   }, [navigate, speak]);
 
-  const voiceInputOptions: VoiceInputOptions = {
-    enabled: false,
+  const { start: startListening, stop: stopListening, isListening, isSupported } = useVoiceInput({
+    enabled: isVoiceEnabled,
     onResult: handleListenResult,
     onError: (err) => {
       setError(err);
@@ -62,9 +63,7 @@ const AIVoiceMode: React.FC = () => {
     },
     continuous: false,
     autoRestart: false,
-  };
-
-  const { start: startListening, stop: stopListening, isListening, isSupported } = useVoiceInput(voiceInputOptions);
+  });
 
   const handleToggleListening = () => {
     if (!isSupported) {
@@ -75,6 +74,7 @@ const AIVoiceMode: React.FC = () => {
 
     if (isListening || isSpeaking) {
       stopListening();
+      setIsVoiceEnabled(false);
       setStatus('idle');
       setTranscript('');
       setResponse('');
@@ -83,6 +83,7 @@ const AIVoiceMode: React.FC = () => {
       setStatus('listening');
       setTranscript('');
       setResponse('');
+      setIsVoiceEnabled(true);
       startListening();
     }
   };
