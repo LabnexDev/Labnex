@@ -93,6 +93,18 @@ const AIVoiceMode: React.FC = () => {
     };
   }, [stopListening]);
 
+  useEffect(() => {
+    console.log('Attempting to detect SpeechRecognition API...');
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.error('SpeechRecognition API not found on window object.');
+      console.log('window.SpeechRecognition:', window.SpeechRecognition);
+      console.log('window.webkitSpeechRecognition:', (window as any).webkitSpeechRecognition);
+    } else {
+      console.log('SpeechRecognition API is available!');
+    }
+  }, []);
+
   const getStatusText = () => {
     switch (status) {
       case 'listening':
