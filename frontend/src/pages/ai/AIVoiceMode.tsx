@@ -84,7 +84,6 @@ const AIVoiceMode: React.FC = () => {
       setTranscript('');
       setResponse('');
       setIsVoiceEnabled(true);
-      startListening();
     }
   };
 
@@ -93,6 +92,20 @@ const AIVoiceMode: React.FC = () => {
       stopListening();
     };
   }, [stopListening]);
+
+  // Automatically start or stop listening when voice mode is toggled
+  useEffect(() => {
+    if (isVoiceEnabled) {
+      // Delay start to ensure the hook reinitialized with the latest "enabled" value
+      const id = setTimeout(() => {
+        startListening();
+      }, 0);
+      return () => clearTimeout(id);
+    } else {
+      stopListening();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVoiceEnabled]);
 
   useEffect(() => {
     console.log('Attempting to detect SpeechRecognition API...');
