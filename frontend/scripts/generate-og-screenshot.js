@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import fs from 'node:fs';
+import net from 'node:net';
 
 const VIEWPORT = { width: 1200, height: 630 };
 const buildId = process.env.GITHUB_SHA?.slice(0, 7) || Date.now().toString();
@@ -10,31 +11,41 @@ const FILENAME = `og-index-${buildId}.png`;
 const OUT_PATH = join(process.cwd(), 'public', FILENAME);
 const PREVIEW_PORT = 4173;
 
-async function waitForServer(url, timeout = 10000) {
+async function waitForServer(port, host = 'localhost', timeout = 30000) {
   const start = Date.now();
+  console.log(`Waiting for port ${port} to open...`);
   while (Date.now() - start < timeout) {
+    await new Promise(r => setTimeout(r, 500));
     try {
-      const res = await fetch(url, { method: 'HEAD' });
-      if (res.ok) return true;
-    } catch {
-      /* server not ready */
+      await new Promise((resolve, reject) => {
+        const socket = net.createConnection({ port, host });
+        socket.on('connect', () => {
+          socket.end();
+          resolve(true);
+        });
+        socket.on('error', (err) => {
+          reject(err);
+        });
+      });
+      console.log(`Port ${port} is open!`);
+      return true;
+    } catch (err) {
+      // Port not open yet
     }
-    await new Promise(r => setTimeout(r, 300));
   }
-  throw new Error(`Preview server did not start within ${timeout}ms`);
+  throw new Error(`Timed out waiting for port ${port} to open.`);
 }
 
 async function main() {
-  // Start vite preview for built site
   const previewProc = spawn('npx', ['vite', 'preview', '--port', String(PREVIEW_PORT), '--strictPort'], {
     stdio: 'inherit',
     cwd: process.cwd(),
     shell: process.platform === 'win32',
   });
 
-  // Wait for server up
-  const previewURL = `http://localhost:${PREVIEW_PORT}/?og=true`;
-  await waitForServer(previewURL, 15000);
+  await waitForServer(PREVIEW_PORT);
+  
+  const previewURL = `https://localhost:${PREVIEW_PORT}/?og=true`;
 
   let browser;
   try {
@@ -43,7 +54,11 @@ async function main() {
     console.warn('Falling back to bundled Chromium – system Google Chrome not available:', err.message);
     browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   }
-  const page = await browser.newPage({ viewport: VIEWPORT });
+  const context = await browser.newContext({
+    ignoreHTTPSErrors: true,
+    viewport: VIEWPORT,
+  });
+  const page = await context.newPage();
   await page.goto(previewURL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
 
