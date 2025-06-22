@@ -29,6 +29,11 @@ export interface VoiceInputReturn {
   isRunning: boolean;
 }
 
+const SpeechRecognition =
+  typeof window !== 'undefined'
+    ? window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+
 export function useVoiceInput({
   onResult,
   onError,
@@ -42,7 +47,9 @@ export function useVoiceInput({
   wakeWords = [],
   inactivityTimeout = 10000 // ms
 }: VoiceInputOptions): VoiceInputReturn {
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<any>(
+    SpeechRecognition ? new SpeechRecognition() : null
+  );
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isManuallyStoppedRef = useRef(false);
   const retryCountRef = useRef(0);
@@ -55,7 +62,7 @@ export function useVoiceInput({
 
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
+  const [isSupported] = useState<boolean>(() => !!recognitionRef.current);
   const [wakeWordDetected, setWakeWordDetected] = useState(false);
   const srRetriesRef = useRef(0);
 
@@ -113,17 +120,12 @@ export function useVoiceInput({
 
   // Initialize speech recognition
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      setIsSupported(false);
-      handleError('Speech recognition not supported in this browser');
+    if (!enabled || !isSupported || !recognitionRef.current) {
       return;
     }
 
-    setIsSupported(true);
+    const recognition = recognitionRef.current;
     
-    const recognition = new SpeechRecognition();
     recognition.continuous = continuous;
     recognition.interimResults = false;
     recognition.lang = language;
@@ -250,66 +252,73 @@ export function useVoiceInput({
       lastActivityRef.current = Date.now();
     };
 
-    recognitionRef.current = recognition;
+    // The recognition object is now created, but not started.
+    // Starting is handled by the `start` function.
 
     return () => {
-      clearTimeouts();
-      if (recognition && isRunningRef.current) {
-        try {
-          recognition.stop();
-        } catch (err) {
-          console.warn('Error stopping recognition:', err);
+      if (recognition) {
+        // Clean up all listeners
+        recognition.onstart = null;
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
+        if (isRunningRef.current) {
+            recognition.stop();
         }
       }
     };
-  }, [continuous, language, autoRestart, enabled, onResult, handleError, updateState, clearTimeouts, detectWakeWord, wakeWords]);
+  }, [
+    enabled,
+    isSupported,
+    continuous,
+    language,
+    onResult,
+    handleError,
+    updateState,
+    autoRestart,
+    clearTimeouts,
+    detectWakeWord,
+    wakeWords,
+  ]);
 
   // Start listening
   const start = useCallback(() => {
     if (!isSupported || !recognitionRef.current || !enabled) {
-      handleError('Speech recognition not available');
+      handleError('Speech recognition not available or not enabled.');
       return;
     }
 
     if (isRunningRef.current) {
-      updateState('listening');
+      console.warn('Recognition is already running.');
       return;
     }
 
     isManuallyStoppedRef.current = false;
-    clearTimeouts();
-    setError(null);
+    updateState('listening');
 
     try {
       recognitionRef.current.start();
-    } catch (err: any) {
-      if (err.name === 'InvalidStateError') {
-        updateState('listening');
-      } else {
-        handleError(`Failed to start speech recognition: ${err.message}`);
-      }
+    } catch (err) {
+      console.error('Error starting speech recognition:', err);
+      handleError('Failed to start speech recognition.');
     }
-  }, [isSupported, enabled, handleError, updateState, clearTimeouts]);
+  }, [isSupported, enabled, handleError, updateState]);
 
   // Stop listening
   const stop = useCallback(() => {
+    if (!isSupported || !recognitionRef.current) {
+      return;
+    }
     isManuallyStoppedRef.current = true;
+    updateState('idle');
     clearTimeouts();
 
-    if (recognitionRef.current && isRunningRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (err) {
-        console.warn('Error stopping recognition:', err);
-      }
+    if (isRunningRef.current) {
+      recognitionRef.current.stop();
     }
+  }, [isSupported, clearTimeouts, updateState]);
 
-    updateState('idle');
-    setError(null);
-    retryCountRef.current = 0;
-  }, [updateState, clearTimeouts]);
-
-  // Toggle listening
+  // Toggle listening state
   const toggle = useCallback(() => {
     if (state === 'listening' || state === 'processing') {
       stop();
