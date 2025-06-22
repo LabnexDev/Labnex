@@ -29,7 +29,7 @@ const AIVoiceMode: React.FC = () => {
       setResponse("I'll open the AI chat to continue.");
       setStatus('speaking');
       await speak("I'll open the AI chat to continue.");
-      navigate('/ai');
+      navigate(`/ai?voiceCommand=${encodeURIComponent(transcript)}`);
       return;
     }
 

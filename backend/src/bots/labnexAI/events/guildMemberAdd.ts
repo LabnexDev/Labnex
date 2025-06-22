@@ -16,6 +16,22 @@ export async function handleGuildMemberAddEvent(member: GuildMember) {
       return;
     }
 
+    // Prevent duplicate welcome messages by checking if we've already greeted this member
+    try {
+      const recentMessages = await (welcomeChannel as any).messages.fetch({ limit: 20 });
+      const alreadyWelcomed = recentMessages.some((msg: any) => {
+        if (msg.author.id !== member.client.user?.id) return false; // Only consider bot messages
+        return msg.content.includes(`<@${member.id}>`);
+      });
+
+      if (alreadyWelcomed) {
+        console.log(`[guildMemberAdd.ts] Welcome message for ${member.user.tag} already sent. Skipping duplicate.`);
+        return;
+      }
+    } catch (fetchErr) {
+      console.warn(`[guildMemberAdd.ts] Failed to fetch recent messages for duplicate check:`, fetchErr);
+    }
+
     const embed = new EmbedBuilder()
       .setTitle('👋 Welcome to Labnex (Closed Beta)')
       .setColor(0x66CCFF)

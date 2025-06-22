@@ -25,6 +25,8 @@ const LabnexAIPage: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const voiceCommandParam = searchParams.get('voiceCommand');
+  const [voiceCommandHandled, setVoiceCommandHandled] = useState(false);
 
   // Check if user has seen the tutorial
   useEffect(() => {
@@ -103,6 +105,23 @@ const LabnexAIPage: React.FC = () => {
     sendMessage(cta);
     sessionStorage.setItem('voiceFailoverHandled', 'true');
   }, []);
+
+  // Handle voice command redirected from Voice Mode
+  useEffect(() => {
+    if (!voiceCommandParam || voiceCommandHandled) return;
+    // Send the voice command as if the user had typed it
+    (async () => {
+      try {
+        await sendMessage(voiceCommandParam);
+      } catch (err) {
+        console.error('Failed to process voice command param:', err);
+      } finally {
+        setVoiceCommandHandled(true);
+      }
+    })();
+    // We intentionally leave sendMessage out of deps to avoid re-sending on changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceCommandParam, voiceCommandHandled]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
