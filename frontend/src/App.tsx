@@ -290,7 +290,7 @@ function AppRoutes() {
       />
       <Route
         path="/ai/voice"
-        element={<FullScreenPrivateRoute><VoiceSettingsProvider><AIVoiceMode /></VoiceSettingsProvider></FullScreenPrivateRoute>}
+        element={<FullScreenPrivateRoute><AIVoiceMode /></FullScreenPrivateRoute>}
       />
     </Routes>
   );
@@ -353,7 +353,9 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
             <AuthProvider>
-              <AppContent />
+              <VoiceSettingsProvider>
+                <AppContent />
+              </VoiceSettingsProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>
