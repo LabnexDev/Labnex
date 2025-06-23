@@ -1,7 +1,17 @@
 import { EmbedBuilder, GuildMember } from 'discord.js';
 
+// Simple in-memory cache to avoid duplicate welcome messages within the same bot process
+const welcomedMembers = new Set<string>();
+
 // Named export for the handler function
 export async function handleGuildMemberAddEvent(member: GuildMember) {
+  // Guard against duplicate sends in the same runtime
+  if (welcomedMembers.has(member.id)) {
+    console.log(`[guildMemberAdd.ts] Member ${member.user.tag} already welcomed in this session. Skipping.`);
+    return;
+  }
+
+  welcomedMembers.add(member.id);
   try {
     const waitlistRole = member.guild.roles.cache.find(role => role.name === 'Waitlist');
     if (waitlistRole) {

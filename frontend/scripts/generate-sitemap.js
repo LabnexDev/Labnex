@@ -17,6 +17,7 @@ const DISALLOWED_PATHS = [
   '/integrations',
   '/notes',
   '/snippets',
+  '/admin',
   '/my-tasks',
   '/users',
 ];
@@ -54,6 +55,11 @@ function main() {
   const publicRoutes = allRoutes.filter(isPublicRoute);
 
   const xml = generateSitemapXml(publicRoutes);
+
+  // Write routes.json for prerendering stubs
+  const routesJsonPath = join(process.cwd(), 'scripts', 'routes.json');
+  if (!existsSync(join(process.cwd(), 'scripts'))) mkdirSync(join(process.cwd(), 'scripts'));
+  writeFileSync(routesJsonPath, JSON.stringify(publicRoutes, null, 2), 'utf8');
 
   const publicDir = join(process.cwd(), 'public');
   if (!existsSync(publicDir)) mkdirSync(publicDir, { recursive: true });
