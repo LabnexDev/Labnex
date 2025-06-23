@@ -248,13 +248,6 @@ client.on(Events.GuildMemberAdd, async member => {
     await handleGuildMemberAddEvent(member);
 });
 
-//**********************************************************************
-// REACTION TO RULES MESSAGE HANDLER
-//**********************************************************************
-client.on(Events.MessageReactionAdd, async (reaction, user) => {
-    await handleMessageReactionAddEvent(reaction, user);
-});
-
 // Bot login
 if (DISCORD_BOT_TOKEN) {
     console.log('[labnexAI.bot.ts] Setting token and logging in...');

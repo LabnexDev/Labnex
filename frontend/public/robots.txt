@@ -11,5 +11,9 @@ Disallow: /notifications
 Disallow: /integrations
 Disallow: /notes
 Disallow: /snippets
+Disallow: /reset-password
+Disallow: /reset-requested
+Disallow: /ai
+Disallow: /cli
 
 Sitemap: https://www.labnex.dev/sitemap.xml 

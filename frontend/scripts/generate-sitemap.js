@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 const BASE_URL = 'https://www.labnex.dev';
 const APP_FILE = resolve(process.cwd(), 'src', 'App.tsx');
 
-// Paths we don't want to list publicly (auth-gated or API-ish)
+// Paths we don't want to list publicly (auth-gated or utility pages)
 const DISALLOWED_PATHS = [
   '/login',
   '/register',
@@ -20,6 +20,11 @@ const DISALLOWED_PATHS = [
   '/admin',
   '/my-tasks',
   '/users',
+  '/reset-password',
+  '/reset-requested',
+  '/ai', // landing for logged-in AI chat
+  '/ai/voice',
+  '/cli',
 ];
 
 function extractRoutes(fileContent) {

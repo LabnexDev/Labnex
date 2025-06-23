@@ -1,4 +1,9 @@
 import { EmbedBuilder, GuildMember } from 'discord.js';
+import { connectDB } from '../../../config/database';
+import WelcomedMember from '../../../models/WelcomedMember';
+
+// Ensure DB connection (no-op if already connected)
+connectDB().catch(err => console.error('[guildMemberAdd.ts] Mongo connection failed', err));
 
 // Simple in-memory cache to avoid duplicate welcome messages within the same bot process
 const welcomedMembers = new Set<string>();
@@ -11,7 +16,26 @@ export async function handleGuildMemberAddEvent(member: GuildMember) {
     return;
   }
 
+  // Use a DB insert as an atomic lock to ensure only one process sends the welcome message
+  try {
+    // Attempt to create a DB record as an atomic "lock". If this succeeds, we are the first
+    // process to welcome the user. If it fails with duplicate-key, someone else already did it.
+    await WelcomedMember.create({ memberId: member.id });
+    // Record inserted – we're the first process to greet this member
+  } catch (insertErr: any) {
+    if (insertErr.code === 11000) {
+      console.log(`[guildMemberAdd.ts] Member ${member.user.tag} already welcomed per DB record (duplicate key). Skipping.`);
+      return;
+    }
+    console.error(`[guildMemberAdd.ts] Failed to create DB welcome record for ${member.user.tag}:`, insertErr);
+    // If DB is down, fall back to in-memory dedup to avoid spamming
+    if (welcomedMembers.has(member.id)) return;
+    // still attempt – better to risk a duplicate than miss welcoming entirely
+  }
+
+  // Add to in-memory cache to prevent duplicates in this runtime
   welcomedMembers.add(member.id);
+
   try {
     const waitlistRole = member.guild.roles.cache.find(role => role.name === 'Waitlist');
     if (waitlistRole) {
@@ -28,7 +52,7 @@ export async function handleGuildMemberAddEvent(member: GuildMember) {
 
     // Prevent duplicate welcome messages by checking if we've already greeted this member
     try {
-      const recentMessages = await (welcomeChannel as any).messages.fetch({ limit: 20 });
+      const recentMessages = await (welcomeChannel as any).messages.fetch({ limit: 100 });
       const alreadyWelcomed = recentMessages.some((msg: any) => {
         if (msg.author.id !== member.client.user?.id) return false; // Only consider bot messages
         return msg.content.includes(`<@${member.id}>`);
