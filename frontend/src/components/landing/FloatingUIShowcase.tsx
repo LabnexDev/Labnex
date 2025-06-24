@@ -73,10 +73,10 @@ const FloatingUIShowcase: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Recent Activity */}
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <span>📊</span>
                   Recent Activity
-                </h3>
+                </h2>
                 <div className="space-y-3">
                   {[
                     { action: "Project 'Labnex Core' created", time: "2 minutes ago", status: "success" },

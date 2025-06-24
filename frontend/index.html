@@ -6,6 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#3b82f6" />
     <meta name="msvalidate.01" content="4C2AAB4174E5FA3A77822365A5298D82" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Labnex" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" type="module" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap" as="style" />
+    
     <!-- Static social preview tags so Discord and other bots that do not execute JS can display a rich card -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Labnex – AI-Powered Development Platform" />
@@ -21,68 +33,41 @@
     <meta name="twitter:image" content="https://labnex.dev/og-index.png" />
     <link rel="canonical" href="https://www.labnex.dev/" />
     <title>Labnex</title>
-    <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // MIT License
-      // https://github.com/rafgraph/spa-github-pages
-      (function(l) {
-        if (l.search) {
-          var q = {};
-          l.search.slice(1).split('&').forEach(function(v) {
-            var a = v.split('=');
-            q[a[0]] = a.slice(1).join('=').replace(/~and~/g, '&');
-          });
-          console.log('[index.html] Parsed query params (q):', JSON.parse(JSON.stringify(q)));
-
-          if (q.p !== undefined) {
-            console.log('[index.html] q.p detected:', q.p);
-            var pathname = l.pathname; 
-            console.log('[index.html] current l.pathname:', pathname);
-            var basePath = pathname.substring(0, pathname.lastIndexOf('/') + 1);
-            console.log('[index.html] calculated basePath:', basePath);
-            
-            var pagePath = q.p.startsWith('/') ? q.p.substring(1) : q.p;
-            console.log('[index.html] calculated pagePath (from q.p):', pagePath);
-
-            var finalPath = basePath + pagePath;
-            var finalQuery = q.q ? ('?' + q.q) : '';
-            var finalHash = l.hash;
-            console.log('[index.html] Attempting history.replaceState with path:', finalPath, 'query:', finalQuery, 'hash:', finalHash);
-
-            window.history.replaceState(null, null,
-              finalPath +
-              finalQuery +
-              finalHash
-            );
-            console.log('[index.html] history.replaceState called. New location.href should be:', l.protocol + '//' + l.host + finalPath + finalQuery + finalHash);
-          } else {
-            console.log('[index.html] q.p was undefined. No redirect performed by this script.');
-          }
-        }
-      }(window.location))
-    </script>
+    
+    <!-- Async Google Font load to avoid render-blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Async Google Font load to avoid render-blocking -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap" onload="this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap"></noscript>
-    <script>
-      if (window.location.search.includes('og=true')) {
-        const style = document.createElement('style');
-        style.innerHTML = 'header, nav, footer { display: none !important; }';
-        document.head.appendChild(style);
-      }
-    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap">
+    
     <!-- Updated Content Security Policy to enable fonts, TTS, Cloudflare analytics -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: data:; connect-src 'self' https://labnex-backend.onrender.com https://api.openai.com;" />
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Lazy load images for better performance
       window.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('img:not([loading])').forEach(img => img.setAttribute('loading', 'lazy'));
       });
+      
+      // Remove SPA redirect script to improve performance
+      // Modern hosting platforms handle SPA routing better
     </script>
   </body>
 </html>

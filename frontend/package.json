@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/generate-sitemap.js && node scripts/prerender-spa.js && node scripts/generate-og-images.js && node scripts/generate-og-screenshot.js",
+    "analyze": "node scripts/analyze-bundle.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist",

@@ -45,6 +45,7 @@ export interface AIPowerItem {
   description: string;
 }
 
+// Lazy load non-critical components with proper fallbacks
 const BeforeAfterComparison = lazy(() => import('../components/landing/BeforeAfterComparison'));
 const FeatureGrid = lazy(() => import('../components/landing/FeatureGrid'));
 const TechnicalMetrics = lazy(() => import('../components/landing/TechnicalMetrics'));
@@ -56,6 +57,13 @@ const SecurityCompliance = lazy(() => import('../components/landing/SecurityComp
 const PerformanceBenchmarks = lazy(() => import('../components/landing/PerformanceBenchmarks'));
 const AIHighlights = lazy(() => import('../components/landing/AIHighlights'));
 const FinalCTA = lazy(() => import('../components/landing/FinalCTA'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="animate-pulse">
+    <div className="h-64 bg-slate-800/30 rounded-xl mb-8"></div>
+  </div>
+);
 
 const LandingPage: React.FC = () => {
   const { openModal } = useModal();
@@ -165,15 +173,15 @@ const LandingPage: React.FC = () => {
 
         {/* Page Sections - Strategically Arranged for Maximum Impact */}
         <HeroSection />
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingFallback />}>
           <BeforeAfterComparison />
         </Suspense>
         <div id="features">
-          <Suspense fallback={null}>
+          <Suspense fallback={<LoadingFallback />}>
             <FeatureGrid />
           </Suspense>
         </div>
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingFallback />}>
           <TechnicalMetrics />
         </Suspense>
         
@@ -199,39 +207,59 @@ const LandingPage: React.FC = () => {
               {' '}Assistant
             </h2>
             
-            <p className="text-lg sm:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Unlock new levels of productivity. Interact with Labnex directly from Discord using simple commands or natural language for project setup and management.
+            <p className="text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Your AI-powered development companion, available 24/7 on Discord. 
+              Get instant help with coding, project management, and testing.
             </p>
-            
-            <AIResponseBox 
-              message={`@Labnex AI link my discord account\n# Securely connect your Labnex and Discord accounts.\n\n@Labnex AI create a note "Finalize UI mockups" for the Phoenix App project\n# Instantly capture thoughts and link them to projects.\n\n@Labnex AI set up a new mobile game project and include unit tests for player movement\n# Let AI handle the initial project scaffolding via natural language.`}
-            />
+
+            {/* AI Response Box */}
+            <div className="mb-12">
+              <AIResponseBox 
+                message={`@Labnex AI link my discord account\n# Securely connect your Labnex and Discord accounts.\n\n@Labnex AI create a note "Finalize UI mockups" for the Phoenix App project\n# Instantly capture thoughts and link them to projects.\n\n@Labnex AI set up a new mobile game project and include unit tests for player movement\n# Let AI handle the initial project scaffolding via natural language.`}
+              />
+            </div>
+
+            {/* Workflow Steps */}
+            <Suspense fallback={<LoadingFallback />}>
+              <WorkflowSteps workflowStepsData={workflowStepsData} />
+            </Suspense>
+
+            {/* AI Highlights */}
+            <Suspense fallback={<LoadingFallback />}>
+              <AIHighlights aiHighlightsData={aiHighlightsData} />
+            </Suspense>
           </div>
         </section>
 
-        <Suspense fallback={null}>
+        {/* Advanced Features */}
+        <Suspense fallback={<LoadingFallback />}>
           <AdvancedCodeInterface />
         </Suspense>
-        <Suspense fallback={null}>
+
+        {/* Floating UI Showcase */}
+        <Suspense fallback={<LoadingFallback />}>
           <FloatingUIShowcase />
         </Suspense>
-        <Suspense fallback={null}>
-          <WorkflowSteps workflowStepsData={workflowStepsData} />
-        </Suspense>
-        <Suspense fallback={null}>
+
+        {/* System Architecture */}
+        <Suspense fallback={<LoadingFallback />}>
           <SystemArchitecture />
         </Suspense>
-        <Suspense fallback={null}>
+
+        {/* Security & Compliance */}
+        <Suspense fallback={<LoadingFallback />}>
           <SecurityCompliance />
         </Suspense>
-        <Suspense fallback={null}>
+
+        {/* Performance Benchmarks */}
+        <Suspense fallback={<LoadingFallback />}>
           <PerformanceBenchmarks />
         </Suspense>
-        <Suspense fallback={null}>
-          <AIHighlights aiHighlightsData={aiHighlightsData} />
-        </Suspense>
-        <FinalCTA />
 
+        {/* Final CTA */}
+        <Suspense fallback={<LoadingFallback />}>
+          <FinalCTA />
+        </Suspense>
       </div>
     </>
   );

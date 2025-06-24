@@ -68,7 +68,7 @@ const WorkflowSteps: React.FC<WorkflowStepsProps> = ({ workflowStepsData }) => {
             {workflowStepsData.map((step, _index) => (
               <div key={step.id} className="flex flex-col items-center text-center flex-1 px-2">
                 <button
-                  aria-label={step.title}
+                  aria-label={`${step.title}: ${step.shortDescription}`}
                   onClick={() => setSelectedStepId(step.id)}
                   className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 mb-4 ${
                     selectedStepId === step.id
@@ -76,7 +76,7 @@ const WorkflowSteps: React.FC<WorkflowStepsProps> = ({ workflowStepsData }) => {
                       : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-400'
                   }`}
                 >
-                  <step.icon className="w-6 h-6" />
+                  <step.icon className="w-6 h-6" aria-hidden="true" />
                 </button>
                 
                 <div className="text-center">

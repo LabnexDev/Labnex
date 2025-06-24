@@ -56,6 +56,7 @@ import AIVoiceMode from './pages/ai/AIVoiceMode';
 import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
 import { useCurrentProjectId } from './hooks/useCurrentProjectId';
 import Contact from './pages/Contact';
+import PerformanceMonitor from './components/common/PerformanceMonitor';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -363,6 +364,7 @@ function App() {
         </QueryClientProvider>
         <GlobalModalRenderer />
       </Router>
+      <PerformanceMonitor />
     </ModalProvider>
   );
 }
