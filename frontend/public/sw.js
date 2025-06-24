@@ -7,10 +7,10 @@ const STATIC_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/assets/index-CwzpkHum.css',
-  '/assets/react-Cx0f49jy.js',
-  '/assets/ui-Cv2Eptpo.js',
-  '/assets/index-_6JGQd_s.js'
+  '/icon-192.svg',
+  '/icon-512.svg',
+  '/screenshot-wide.svg',
+  '/screenshot-narrow.svg'
 ];
 
 // Install event - cache static files
@@ -31,24 +31,28 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-              console.log('Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('Service worker activated');
-        return self.clients.claim();
-      })
+    Promise.all([
+      // Clean up old caches
+      caches.keys()
+        .then((cacheNames) => {
+          return Promise.all(
+            cacheNames.map((cacheName) => {
+              if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+                console.log('Deleting old cache:', cacheName);
+                return caches.delete(cacheName);
+              }
+            })
+          );
+        }),
+      // Claim all clients immediately
+      self.clients.claim()
+    ])
+    .then(() => {
+      console.log('Service worker activated and claiming clients');
+    })
   );
 });
 

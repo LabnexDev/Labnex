@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Labnex" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     
     <!-- Preload critical resources -->
     <link rel="preload" href="/src/main.tsx" as="script" type="module" />
@@ -46,9 +46,18 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('/sw.js', {
+            scope: '/'
+          })
             .then((registration) => {
-              console.log('SW registered: ', registration);
+              console.log('SW registered successfully: ', registration);
+              
+              // Check if the service worker is controlling the page
+              if (navigator.serviceWorker.controller) {
+                console.log('Service worker is controlling the page');
+              } else {
+                console.log('Service worker will control the page on next load');
+              }
             })
             .catch((registrationError) => {
               console.log('SW registration failed: ', registrationError);
