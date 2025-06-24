@@ -15,6 +15,6 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: .lighthouserc.json
-          artifactName: lhci-${{ github.run_id }}
+          artifactName: lhci_${{ github.run_id }}
           uploadArtifacts: true
           temporaryPublicStorage: true 
