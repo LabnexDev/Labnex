@@ -23,7 +23,18 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@headlessui/react', 'clsx'],
+        },
+      },
+    },
+  },
+  esbuild: {
+    drop: ['console'],
   },
   resolve: {
     alias: {
