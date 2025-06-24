@@ -55,6 +55,7 @@ import LabnexAIPage from './pages/ai/LabnexAIPage';
 import AIVoiceMode from './pages/ai/AIVoiceMode';
 import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
 import { useCurrentProjectId } from './hooks/useCurrentProjectId';
+import Contact from './pages/Contact';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -188,6 +189,7 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<SimpleLayout><PrivacyPolicy /></SimpleLayout>} />
       <Route path="/terms-of-service" element={<SimpleLayout><TermsOfService /></SimpleLayout>} />
       <Route path="/support" element={<SimpleLayout><Support /></SimpleLayout>} />
+      <Route path="/contact" element={<SimpleLayout><Contact /></SimpleLayout>} />
       <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
       <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
       <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />

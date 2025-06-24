@@ -9,9 +9,11 @@ interface SeoProps {
   image?: string;
   breadcrumbs?: BreadcrumbItem[];
   extraJsonLd?: object | object[];
+  /** If true, add <meta name="robots" content="noindex,nofollow" /> so crawlers skip the page */
+  noIndex?: boolean;
 }
 
-export default function Seo({ title, description, canonical, image, breadcrumbs, extraJsonLd }: SeoProps) {
+export default function Seo({ title, description, canonical, image, breadcrumbs, extraJsonLd, noIndex }: SeoProps) {
   const fullTitle = title ? `${title} | Labnex` : 'Labnex';
   const defaultImage = 'https://www.labnex.dev/og-default.png';
   const imageUrl = image || defaultImage;
@@ -79,6 +81,9 @@ export default function Seo({ title, description, canonical, image, breadcrumbs,
 
       {/* JSON-LD structured data */}
       <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+
+      {/* Robots */}
+      {noIndex && <meta name="robots" content="noindex,nofollow" />}
     </Helmet>
   );
 } 

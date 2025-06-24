@@ -20,6 +20,7 @@ const DISALLOWED_PATHS = [
   '/admin',
   '/my-tasks',
   '/users',
+  '/tasks',
   '/reset-password',
   '/reset-requested',
   '/ai', // landing for logged-in AI chat

@@ -8,6 +8,7 @@ import { VoiceSettingsProvider } from '../../contexts/VoiceSettingsContext';
 import AIChatBubble from '../ai-chat/AIChatBubble';
 import AIChatModal from '../ai-chat/AIChatModal';
 import { useLocation } from 'react-router-dom';
+import Seo from '../common/Seo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,9 +19,34 @@ export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // Define routes that should not be indexed by search engines
+  const PRIVATE_ROUTES = [
+    '/login',
+    '/register',
+    '/dashboard',
+    '/projects',
+    '/settings',
+    '/notifications',
+    '/integrations',
+    '/notes',
+    '/snippets',
+    '/reset-password',
+    '/reset-requested',
+    '/ai',
+    '/cli',
+    '/admin',
+    '/my-tasks',
+    '/users',
+    '/tasks',
+  ];
+
+  const isPrivateRoute = PRIVATE_ROUTES.some(base => location.pathname === base || location.pathname.startsWith(`${base}/`));
+
   return (
     <VoiceSettingsProvider>
     <AIChatProvider>
+      {isPrivateRoute && <Seo title="Labnex" noIndex />}
+
       <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''}`}>
         <div className="flex min-h-screen bg-[var(--lnx-bg)] dark:bg-gray-900">
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

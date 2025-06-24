@@ -1,0 +1,20 @@
+name: "SEO & Lighthouse Audit"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Run Lighthouse CI on production URL
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://www.labnex.dev/
+          uploadArtifacts: true
+          temporaryPublicStorage: true 
