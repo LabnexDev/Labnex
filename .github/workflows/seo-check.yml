@@ -16,5 +16,12 @@ jobs:
         with:
           configPath: .lighthouserc.json
           artifactName: lhci_${{ github.run_id }}
-          uploadArtifacts: true
-          temporaryPublicStorage: true 
+          uploadArtifacts: false
+          temporaryPublicStorage: true
+
+# Upload reports with GitHub's official artifact action to avoid name validation issues
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse_reports_${{ github.run_id }}
+          path: .lighthouseci 
