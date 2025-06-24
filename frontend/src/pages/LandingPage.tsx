@@ -10,17 +10,7 @@ import GlobalBackground from '../components/landing/GlobalBackground';
 
 // Import all landing page components
 import HeroSection from '../components/landing/HeroSection';
-import BeforeAfterComparison from '../components/landing/BeforeAfterComparison';
-import FeatureGrid from '../components/landing/FeatureGrid';
-import TechnicalMetrics from '../components/landing/TechnicalMetrics';
-import AdvancedCodeInterface from '../components/landing/AdvancedCodeInterface';
-import FloatingUIShowcase from '../components/landing/FloatingUIShowcase';
-import WorkflowSteps from '../components/landing/WorkflowSteps';
-import SystemArchitecture from '../components/landing/SystemArchitecture';
-import SecurityCompliance from '../components/landing/SecurityCompliance';
-import PerformanceBenchmarks from '../components/landing/PerformanceBenchmarks';
-import AIHighlights from '../components/landing/AIHighlights';
-import FinalCTA from '../components/landing/FinalCTA';
+import { Suspense, lazy } from 'react';
 
 // Import visual components
 import AIResponseBox from '../components/visual/AIResponseBox';
@@ -54,6 +44,18 @@ export interface AIPowerItem {
   title: string;
   description: string;
 }
+
+const BeforeAfterComparison = lazy(() => import('../components/landing/BeforeAfterComparison'));
+const FeatureGrid = lazy(() => import('../components/landing/FeatureGrid'));
+const TechnicalMetrics = lazy(() => import('../components/landing/TechnicalMetrics'));
+const AdvancedCodeInterface = lazy(() => import('../components/landing/AdvancedCodeInterface'));
+const FloatingUIShowcase = lazy(() => import('../components/landing/FloatingUIShowcase'));
+const WorkflowSteps = lazy(() => import('../components/landing/WorkflowSteps'));
+const SystemArchitecture = lazy(() => import('../components/landing/SystemArchitecture'));
+const SecurityCompliance = lazy(() => import('../components/landing/SecurityCompliance'));
+const PerformanceBenchmarks = lazy(() => import('../components/landing/PerformanceBenchmarks'));
+const AIHighlights = lazy(() => import('../components/landing/AIHighlights'));
+const FinalCTA = lazy(() => import('../components/landing/FinalCTA'));
 
 const LandingPage: React.FC = () => {
   const { openModal } = useModal();
@@ -163,11 +165,17 @@ const LandingPage: React.FC = () => {
 
         {/* Page Sections - Strategically Arranged for Maximum Impact */}
         <HeroSection />
-        <BeforeAfterComparison />
+        <Suspense fallback={null}>
+          <BeforeAfterComparison />
+        </Suspense>
         <div id="features">
-          <FeatureGrid />
+          <Suspense fallback={null}>
+            <FeatureGrid />
+          </Suspense>
         </div>
-        <TechnicalMetrics />
+        <Suspense fallback={null}>
+          <TechnicalMetrics />
+        </Suspense>
         
         {/* Discord Commands Section - Preserved from original */}
         <section 
@@ -201,13 +209,27 @@ const LandingPage: React.FC = () => {
           </div>
         </section>
 
-        <AdvancedCodeInterface />
-        <WorkflowSteps workflowStepsData={workflowStepsData} />
-        <FloatingUIShowcase />
-        <SystemArchitecture />
-        <SecurityCompliance />
-        <PerformanceBenchmarks />
-        <AIHighlights aiHighlightsData={aiHighlightsData} />
+        <Suspense fallback={null}>
+          <AdvancedCodeInterface />
+        </Suspense>
+        <Suspense fallback={null}>
+          <FloatingUIShowcase />
+        </Suspense>
+        <Suspense fallback={null}>
+          <WorkflowSteps workflowStepsData={workflowStepsData} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SystemArchitecture />
+        </Suspense>
+        <Suspense fallback={null}>
+          <SecurityCompliance />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PerformanceBenchmarks />
+        </Suspense>
+        <Suspense fallback={null}>
+          <AIHighlights aiHighlightsData={aiHighlightsData} />
+        </Suspense>
         <FinalCTA />
 
       </div>
