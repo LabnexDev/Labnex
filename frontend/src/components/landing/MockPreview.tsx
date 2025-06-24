@@ -80,7 +80,7 @@ const MockPreview: React.FC = () => {
 
             {/* Recent Activity */}
             <div className="bg-slate-700/30 rounded-xl p-6 border border-slate-600/30">
-              <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
+              <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
               <div className="space-y-3">
                 {[
                   { action: "Project 'Labnex' created", time: "2 minutes ago", status: "success" },
