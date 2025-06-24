@@ -1,10 +1,19 @@
 {
   "ci": {
     "collect": {
-      "staticDistDir": "frontend/dist",
+      "numberOfRuns": 2,
+      "url": [
+        "https://www.labnex.dev/",
+        "https://www.labnex.dev/features/project-management",
+        "https://www.labnex.dev/contact"
+      ],
       "settings": {
-        "preset": "desktop"
+        "preset": "desktop",
+        "emulatedFormFactor": "desktop"
       }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
     },
     "assert": {
       "assertions": {

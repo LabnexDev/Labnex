@@ -14,7 +14,6 @@ jobs:
       - name: Run Lighthouse CI on production URL
         uses: treosh/lighthouse-ci-action@v10
         with:
-          urls: |
-            https://www.labnex.dev/
+          configPath: .lighthouserc.json
           uploadArtifacts: true
           temporaryPublicStorage: true 
