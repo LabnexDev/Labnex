@@ -1,0 +1,64 @@
+{
+  "budgets": [
+    {
+      "type": "initial",
+      "maximumWarning": "2.5mb",
+      "maximumError": "3.5mb"
+    },
+    {
+      "type": "anyComponentStyle",
+      "maximumWarning": "300kb",
+      "maximumError": "500kb"
+    },
+    {
+      "type": "bundle",
+      "name": "vendor-other",
+      "maximumWarning": "800kb",
+      "maximumError": "1.2mb"
+    },
+    {
+      "type": "bundle",
+      "name": "vendor-a-m",
+      "maximumWarning": "400kb",
+      "maximumError": "600kb"
+    },
+    {
+      "type": "bundle",
+      "name": "vendor-n-z",
+      "maximumWarning": "400kb",
+      "maximumError": "600kb"
+    },
+    {
+      "type": "bundle",
+      "name": "react-core",
+      "maximumWarning": "300kb",
+      "maximumError": "500kb"
+    },
+    {
+      "type": "bundle",
+      "name": "pages",
+      "maximumWarning": "300kb",
+      "maximumError": "500kb"
+    },
+    {
+      "type": "bundle",
+      "name": "components",
+      "maximumWarning": "200kb",
+      "maximumError": "400kb"
+    }
+  ],
+  "lighthouse": {
+    "performance": 80,
+    "accessibility": 90,
+    "best-practices": 90,
+    "seo": 100,
+    "pwa": 85
+  },
+  "coreWebVitals": {
+    "lcp": 3000,
+    "fid": 150,
+    "cls": 0.15,
+    "fcp": 2000,
+    "ttfb": 1000
+  }
+} 

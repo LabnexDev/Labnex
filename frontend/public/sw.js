@@ -1,8 +1,9 @@
-const CACHE_NAME = 'labnex-v1.0.0';
-const STATIC_CACHE = 'labnex-static-v1.0.0';
-const DYNAMIC_CACHE = 'labnex-dynamic-v1.0.0';
+const CACHE_VERSION = 'labnex-v2.0.0';
+const STATIC_CACHE = `labnex-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `labnex-dynamic-${CACHE_VERSION}`;
+const API_CACHE = `labnex-api-${CACHE_VERSION}`;
 
-// Files to cache immediately
+// Critical files to cache immediately
 const STATIC_FILES = [
   '/',
   '/index.html',
@@ -10,7 +11,19 @@ const STATIC_FILES = [
   '/icon-192.svg',
   '/icon-512.svg',
   '/screenshot-wide.svg',
-  '/screenshot-narrow.svg'
+  '/screenshot-narrow.svg',
+  '/404.html'
+];
+
+// Files that should be cached with network-first strategy
+const NETWORK_FIRST_FILES = [
+  '/api/',
+  '/auth/',
+  '/dashboard/',
+  '/projects/',
+  '/test-cases/',
+  '/notes/',
+  '/snippets/'
 ];
 
 // Install event - cache static files
@@ -40,7 +53,7 @@ self.addEventListener('activate', (event) => {
         .then((cacheNames) => {
           return Promise.all(
             cacheNames.map((cacheName) => {
-              if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              if (!cacheName.includes(CACHE_VERSION)) {
                 console.log('Deleting old cache:', cacheName);
                 return caches.delete(cacheName);
               }
@@ -78,7 +91,7 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           if (response.status === 200) {
             const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE)
+            caches.open(API_CACHE)
               .then((cache) => {
                 cache.put(request, responseClone);
               });
@@ -98,7 +111,9 @@ self.addEventListener('fetch', (event) => {
       url.pathname.includes('.js') ||
       url.pathname.includes('.png') ||
       url.pathname.includes('.jpg') ||
-      url.pathname.includes('.svg')) {
+      url.pathname.includes('.svg') ||
+      url.pathname.includes('.woff') ||
+      url.pathname.includes('.woff2')) {
     event.respondWith(
       caches.match(request)
         .then((response) => {
@@ -161,8 +176,67 @@ self.addEventListener('sync', (event) => {
   }
 });
 
+// Push notification handling
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: '/icon-192.svg',
+      badge: '/icon-192.svg',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: 1
+      },
+      actions: [
+        {
+          action: 'explore',
+          title: 'View',
+          icon: '/icon-192.svg'
+        },
+        {
+          action: 'close',
+          title: 'Close',
+          icon: '/icon-192.svg'
+        }
+      ]
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
+});
+
+// Notification click handling
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'explore') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+});
+
 function doBackgroundSync() {
   // Implement background sync logic here
   console.log('Background sync triggered');
   return Promise.resolve();
+}
+
+// Cache cleanup function
+async function cleanupOldCaches() {
+  const cacheNames = await caches.keys();
+  const currentCaches = [STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
+  
+  return Promise.all(
+    cacheNames.map(cacheName => {
+      if (!currentCaches.includes(cacheName)) {
+        console.log('Cleaning up old cache:', cacheName);
+        return caches.delete(cacheName);
+      }
+    })
+  );
 } 

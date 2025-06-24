@@ -13,6 +13,7 @@
     "@vitejs/plugin-react": "^4.5.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.4.5",
+    "vite-bundle-analyzer": "^0.23.0",
     "vite-plugin-compression": "^0.5.1"
   }
 }

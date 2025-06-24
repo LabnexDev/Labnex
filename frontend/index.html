@@ -14,9 +14,15 @@
     <meta name="apple-mobile-web-app-title" content="Labnex" />
     <link rel="apple-touch-icon" href="/icon-192.svg" />
     
+    <!-- DNS Prefetch and Preconnect for external resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
     <!-- Preload critical resources -->
     <link rel="preload" href="/src/main.tsx" as="script" type="module" />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
     
     <!-- Static social preview tags so Discord and other bots that do not execute JS can display a rich card -->
     <meta property="og:type" content="website" />
@@ -34,10 +40,9 @@
     <link rel="canonical" href="https://www.labnex.dev/" />
     <title>Labnex</title>
     
-    <!-- Async Google Font load to avoid render-blocking -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..700&display=swap">
+    <!-- Optimized Google Font load -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
     
     <!-- Updated Content Security Policy to enable fonts, TTS, Cloudflare analytics -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: data:; connect-src 'self' https://labnex-backend.onrender.com https://api.openai.com;" />
@@ -70,13 +75,35 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Lazy load images for better performance
+      // Performance optimizations
       window.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('img:not([loading])').forEach(img => img.setAttribute('loading', 'lazy'));
+        // Lazy load images for better performance
+        if ('IntersectionObserver' in window) {
+          const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                img.setAttribute('loading', 'lazy');
+                observer.unobserve(img);
+              }
+            });
+          });
+          
+          document.querySelectorAll('img:not([loading])').forEach(img => {
+            imageObserver.observe(img);
+          });
+        } else {
+          // Fallback for older browsers
+          document.querySelectorAll('img:not([loading])').forEach(img => img.setAttribute('loading', 'lazy'));
+        }
+        
+        // Preload critical CSS
+        const criticalCSS = document.createElement('link');
+        criticalCSS.rel = 'preload';
+        criticalCSS.as = 'style';
+        criticalCSS.href = '/src/index.css';
+        document.head.appendChild(criticalCSS);
       });
-      
-      // Remove SPA redirect script to improve performance
-      // Modern hosting platforms handle SPA routing better
     </script>
   </body>
 </html>

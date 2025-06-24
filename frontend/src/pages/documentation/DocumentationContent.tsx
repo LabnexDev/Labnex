@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { LazyMarkdown } from '../../components/common/LazyMarkdown';
 
 // Placeholder for where individual topic content components would be imported
 // import IntroductionContent from './topics/IntroductionContent';
@@ -72,9 +71,9 @@ const DocumentationContent: React.FC<DocumentationContentProps> = ({ selectedTop
           prose-ul:list-disc prose-ol:list-decimal prose-li:my-1
           break-words dark:prose-invert
           [&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:whitespace-pre-wrap [&_code]:whitespace-pre-wrap [&_table]:block [&_table]:overflow-x-auto [&_td]:whitespace-pre-wrap">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <LazyMarkdown>
             {markdownContent}
-          </ReactMarkdown>
+          </LazyMarkdown>
         </article>
       )}
       {!isLoading && !error && !markdownContent && selectedTopic && (

@@ -8,12 +8,9 @@ import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { Modal } from '../../components/common/Modal';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { LazySyntaxHighlighter } from '../../components/common/LazySyntaxHighlighter';
 import { toast } from 'react-hot-toast';
 import { PlusCircleIcon, CodeBracketSquareIcon, PencilIcon, TrashIcon, SparklesIcon, InformationCircleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-
-// Placeholder for SyntaxHighlighter - assuming it will be installed
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 interface SnippetFormData {
     title: string;
@@ -222,9 +219,8 @@ export const SnippetsPage: React.FC = () => {
                                 <p className="text-xs text-slate-400 mb-2 font-mono bg-slate-700/50 px-2 py-0.5 rounded-full inline-block">{snippet.language}</p>
                                 {snippet.description && <p className="text-sm text-slate-300 mb-3 line-clamp-2 h-10">{snippet.description}</p>}
                                 <div className="bg-slate-900/70 border border-slate-700 p-0 rounded-md max-h-60 overflow-y-auto mb-3 text-sm shadow-inner" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4A5568 #1A202C' }}>
-                                    <SyntaxHighlighter
+                                    <LazySyntaxHighlighter
                                         language={snippet.language.toLowerCase()}
-                                        style={atomOneDark} // atomOneDark is good for dark themes
                                         showLineNumbers={false}
                                         wrapLines={true}
                                         customStyle={{ padding: '0.75rem', margin: 0, background: 'transparent', fontSize: '0.8rem'}}
@@ -232,7 +228,7 @@ export const SnippetsPage: React.FC = () => {
                                         className="!bg-transparent"
                                     >
                                         {String(snippet.code).substring(0, 400) + (String(snippet.code).length > 400 ? '\n... (code truncated)' : '')}
-                                    </SyntaxHighlighter>
+                                    </LazySyntaxHighlighter>
                                 </div>
                                 {snippet.projectId && typeof snippet.projectId === 'object' && (
                                     <p className="text-xs text-slate-400 mb-3">

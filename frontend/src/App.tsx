@@ -1,62 +1,71 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Layout } from './components/layout/Layout';
 import { SimpleLayout } from './components/layout/SimpleLayout';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { Dashboard } from './pages/dashboard/Dashboard';
-import { ProjectList } from './pages/projects/ProjectList';
-import { CreateProject } from './pages/projects/CreateProject';
-import { ProjectDetails } from './pages/projects/ProjectDetails';
-import { EditProject } from './pages/projects/EditProject';
-import { TestCaseList } from './pages/test-cases/TestCaseList';
-import { CreateTestCase } from './pages/test-cases/CreateTestCase';
-import { TestCaseDetails } from './pages/test-cases/TestCaseDetails';
-import { EditTestCase } from './pages/test-cases/EditTestCase';
-import Settings from './pages/settings/Settings';
-import { NotificationsPage } from './pages/notifications/NotificationsPage';
-import DiscordIntegrationPage from './pages/integrations/discord/DiscordIntegrationPage';
-import DiscordLinkPage from './pages/DiscordLinkPage';
-import SettingsIntegrationsPage from './pages/settings/SettingsIntegrationsPage';
-import { NotesPage } from './pages/notes/NotesPage';
-import { SnippetsPage } from './pages/snippets/SnippetsPage';
-import TasksPage from './pages/tasks/TasksPage';
-import MyTasksPage from './pages/tasks/MyTasksPage';
-import DocumentationPage from './pages/documentation/DocumentationPage';
-import { TerminalPage } from './pages/cli/TerminalPage';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { Toaster } from 'react-hot-toast';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
-import LandingPage from './pages/LandingPage';
-import ChangelogPage from './pages/ChangelogPage';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import Support from './pages/Support';
 import { SystemRoleType } from './types/roles';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
-import ProjectManagementFeaturePage from './pages/features/ProjectManagementFeaturePage';
-import TestCaseManagementFeaturePage from './pages/features/TestCaseManagementFeaturePage';
-import NotesAndSnippetsFeaturePage from './pages/features/NotesAndSnippetsFeaturePage';
-import ModernDevelopmentPlatformFeaturePage from './pages/features/ModernDevelopmentPlatformFeaturePage';
-import DiscordAIIntegrationFeaturePage from './pages/features/DiscordAIIntegrationFeaturePage';
-import CLIAutomationFeaturePage from './pages/features/CLIAutomationFeaturePage';
-import TechStackFeaturePage from './pages/features/TechStackFeaturePage';
-import RoadmapPage from './pages/roadmap/RoadmapPage';
-import ThankYouPage from './pages/donation/ThankYouPage';
-import DonationPage from './pages/donation/DonationPage';
 import { ModalProvider } from './contexts/ModalContext';
 import GlobalModalRenderer from './components/common/GlobalModalRenderer';
-import ResetPassword from './pages/auth/ResetPassword';
-import ResetRequested from './pages/auth/ResetRequested';
-import LabnexAIPage from './pages/ai/LabnexAIPage';
-import AIVoiceMode from './pages/ai/AIVoiceMode';
 import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
 import { useCurrentProjectId } from './hooks/useCurrentProjectId';
-import Contact from './pages/Contact';
 import PerformanceMonitor from './components/common/PerformanceMonitor';
+
+// Lazy load all major pages for better performance
+const Login = React.lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
+const Register = React.lazy(() => import('./pages/auth/Register').then(module => ({ default: module.Register })));
+const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard').then(module => ({ default: module.Dashboard })));
+const ProjectList = React.lazy(() => import('./pages/projects/ProjectList').then(module => ({ default: module.ProjectList })));
+const CreateProject = React.lazy(() => import('./pages/projects/CreateProject').then(module => ({ default: module.CreateProject })));
+const ProjectDetails = React.lazy(() => import('./pages/projects/ProjectDetails').then(module => ({ default: module.ProjectDetails })));
+const EditProject = React.lazy(() => import('./pages/projects/EditProject').then(module => ({ default: module.EditProject })));
+const TestCaseList = React.lazy(() => import('./pages/test-cases/TestCaseList').then(module => ({ default: module.TestCaseList })));
+const CreateTestCase = React.lazy(() => import('./pages/test-cases/CreateTestCase').then(module => ({ default: module.CreateTestCase })));
+const TestCaseDetails = React.lazy(() => import('./pages/test-cases/TestCaseDetails').then(module => ({ default: module.TestCaseDetails })));
+const EditTestCase = React.lazy(() => import('./pages/test-cases/EditTestCase').then(module => ({ default: module.EditTestCase })));
+const Settings = React.lazy(() => import('./pages/settings/Settings'));
+const NotificationsPage = React.lazy(() => import('./pages/notifications/NotificationsPage').then(module => ({ default: module.NotificationsPage })));
+const DiscordIntegrationPage = React.lazy(() => import('./pages/integrations/discord/DiscordIntegrationPage'));
+const DiscordLinkPage = React.lazy(() => import('./pages/DiscordLinkPage'));
+const SettingsIntegrationsPage = React.lazy(() => import('./pages/settings/SettingsIntegrationsPage'));
+const NotesPage = React.lazy(() => import('./pages/notes/NotesPage').then(module => ({ default: module.NotesPage })));
+const SnippetsPage = React.lazy(() => import('./pages/snippets/SnippetsPage').then(module => ({ default: module.SnippetsPage })));
+const TasksPage = React.lazy(() => import('./pages/tasks/TasksPage'));
+const MyTasksPage = React.lazy(() => import('./pages/tasks/MyTasksPage'));
+const DocumentationPage = React.lazy(() => import('./pages/documentation/DocumentationPage'));
+const TerminalPage = React.lazy(() => import('./pages/cli/TerminalPage').then(module => ({ default: module.TerminalPage })));
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
+const ChangelogPage = React.lazy(() => import('./pages/ChangelogPage'));
+const PrivacyPolicy = React.lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = React.lazy(() => import('./pages/TermsOfService'));
+const Support = React.lazy(() => import('./pages/Support'));
+const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
+const ProjectManagementFeaturePage = React.lazy(() => import('./pages/features/ProjectManagementFeaturePage'));
+const TestCaseManagementFeaturePage = React.lazy(() => import('./pages/features/TestCaseManagementFeaturePage'));
+const NotesAndSnippetsFeaturePage = React.lazy(() => import('./pages/features/NotesAndSnippetsFeaturePage'));
+const ModernDevelopmentPlatformFeaturePage = React.lazy(() => import('./pages/features/ModernDevelopmentPlatformFeaturePage'));
+const DiscordAIIntegrationFeaturePage = React.lazy(() => import('./pages/features/DiscordAIIntegrationFeaturePage'));
+const CLIAutomationFeaturePage = React.lazy(() => import('./pages/features/CLIAutomationFeaturePage'));
+const TechStackFeaturePage = React.lazy(() => import('./pages/features/TechStackFeaturePage'));
+const RoadmapPage = React.lazy(() => import('./pages/roadmap/RoadmapPage'));
+const ThankYouPage = React.lazy(() => import('./pages/donation/ThankYouPage'));
+const DonationPage = React.lazy(() => import('./pages/donation/DonationPage'));
+const ResetPassword = React.lazy(() => import('./pages/auth/ResetPassword'));
+const ResetRequested = React.lazy(() => import('./pages/auth/ResetRequested'));
+const LabnexAIPage = React.lazy(() => import('./pages/ai/LabnexAIPage'));
+const AIVoiceMode = React.lazy(() => import('./pages/ai/AIVoiceMode'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+
+// Loading fallback component
+const PageLoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <LoadingSpinner size="lg" />
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,11 +82,7 @@ function FullScreenPrivateRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <PageLoadingFallback />;
   }
 
   if (!user) {
@@ -106,11 +111,7 @@ function PrivateRoute({ children, adminOnly = false }: { children: React.ReactNo
 
   if (isLoading) {
     console.log('PrivateRoute: Still loading, showing spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <PageLoadingFallback />;
   }
 
   if (!user || !isAuthenticated) {
@@ -183,117 +184,289 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/changelog" element={<SimpleLayout><ChangelogPage /></SimpleLayout>} />
-      <Route path="/privacy-policy" element={<SimpleLayout><PrivacyPolicy /></SimpleLayout>} />
-      <Route path="/terms-of-service" element={<SimpleLayout><TermsOfService /></SimpleLayout>} />
-      <Route path="/support" element={<SimpleLayout><Support /></SimpleLayout>} />
-      <Route path="/contact" element={<SimpleLayout><Contact /></SimpleLayout>} />
-      <Route path="/features/project-management" element={<ProjectManagementFeaturePage />} />
-      <Route path="/features/test-case-management" element={<TestCaseManagementFeaturePage />} />
-      <Route path="/features/notes-and-snippets" element={<NotesAndSnippetsFeaturePage />} />
-      <Route path="/features/modern-development-platform" element={<ModernDevelopmentPlatformFeaturePage />} />
-      <Route path="/features/discord-ai-integration" element={<DiscordAIIntegrationFeaturePage />} />
-      <Route path="/features/cli-automation" element={<CLIAutomationFeaturePage />} />
-      <Route path="/features/tech-stack" element={<TechStackFeaturePage />} />
-      <Route path="/roadmap" element={<RoadmapPage />} />
-      <Route path="/donation" element={<SimpleLayout><DonationPage /></SimpleLayout>} />
-      <Route path="/donation/thank-you" element={<ThankYouPage />} />
+      <Route path="/login" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Login />
+        </Suspense>
+      } />
+      <Route path="/register" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Register />
+        </Suspense>
+      } />
+      <Route path="/" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <LandingPage />
+        </Suspense>
+      } />
+      <Route path="/changelog" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><ChangelogPage /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/privacy-policy" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><PrivacyPolicy /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/terms-of-service" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><TermsOfService /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/support" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><Support /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/contact" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><Contact /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/features/project-management" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <ProjectManagementFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/test-case-management" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <TestCaseManagementFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/notes-and-snippets" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <NotesAndSnippetsFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/modern-development-platform" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <ModernDevelopmentPlatformFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/discord-ai-integration" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <DiscordAIIntegrationFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/cli-automation" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <CLIAutomationFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/features/tech-stack" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <TechStackFeaturePage />
+        </Suspense>
+      } />
+      <Route path="/roadmap" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <RoadmapPage />
+        </Suspense>
+      } />
+      <Route path="/donation" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><DonationPage /></SimpleLayout>
+        </Suspense>
+      } />
+      <Route path="/donation/thank-you" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <ThankYouPage />
+        </Suspense>
+      } />
       <Route
         path="/admin/dashboard"
-        element={<PrivateRoute adminOnly={true}><AdminDashboardPage /></PrivateRoute>}
+        element={<PrivateRoute adminOnly={true}>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <AdminDashboardPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/dashboard"
-        element={<PrivateRoute><Dashboard /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Dashboard />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects"
-        element={<PrivateRoute><ProjectList /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <ProjectList />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/settings"
-        element={<PrivateRoute><Settings /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Settings />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/new"
-        element={<PrivateRoute><CreateProject /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <CreateProject />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id"
-        element={<PrivateRoute><ProjectDetails /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <ProjectDetails />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id/edit"
-        element={<PrivateRoute><EditProject /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <EditProject />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id/test-cases"
-        element={<PrivateRoute><TestCaseList /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TestCaseList />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id/test-cases/new"
-        element={<PrivateRoute><CreateTestCase /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <CreateTestCase />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id/test-cases/:testCaseId"
-        element={<PrivateRoute><TestCaseDetails /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TestCaseDetails />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:id/test-cases/:testCaseId/edit"
-        element={<PrivateRoute><EditTestCase /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <EditTestCase />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/notifications"
-        element={<PrivateRoute><NotificationsPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <NotificationsPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/integrations/discord"
-        element={<PrivateRoute><DiscordIntegrationPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <DiscordIntegrationPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/users/discord/link"
-        element={<PrivateRoute><DiscordLinkPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <DiscordLinkPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/settings/integrations"
-        element={<PrivateRoute><SettingsIntegrationsPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <SettingsIntegrationsPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/notes"
-        element={<PrivateRoute><NotesPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <NotesPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/snippets"
-        element={<PrivateRoute><SnippetsPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <SnippetsPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/projects/:projectId/tasks"
-        element={<PrivateRoute><TasksPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TasksPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/my-tasks"
-        element={<PrivateRoute><MyTasksPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <MyTasksPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/documentation"
-        element={<PrivateRoute><DocumentationPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <DocumentationPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/cli"
-        element={<PrivateRoute><TerminalPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TerminalPage />
+          </Suspense>
+        </PrivateRoute>}
       />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/reset-requested" element={<SimpleLayout><ResetRequested /></SimpleLayout>} />
+      <Route path="/reset-password" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <ResetPassword />
+        </Suspense>
+      } />
+      <Route path="/reset-requested" element={
+        <Suspense fallback={<PageLoadingFallback />}>
+          <SimpleLayout><ResetRequested /></SimpleLayout>
+        </Suspense>
+      } />
       <Route
         path="/ai"
-        element={<PrivateRoute><LabnexAIPage /></PrivateRoute>}
+        element={<PrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <LabnexAIPage />
+          </Suspense>
+        </PrivateRoute>}
       />
       <Route
         path="/ai/voice"
-        element={<FullScreenPrivateRoute><AIVoiceMode /></FullScreenPrivateRoute>}
+        element={<FullScreenPrivateRoute>
+          <Suspense fallback={<PageLoadingFallback />}>
+            <AIVoiceMode />
+          </Suspense>
+        </FullScreenPrivateRoute>}
       />
     </Routes>
   );

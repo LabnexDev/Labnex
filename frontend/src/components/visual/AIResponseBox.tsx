@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, useAnimation } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { LazyMarkdown } from '../common/LazyMarkdown';
 
 interface AIResponseBoxProps {
   message: string;
@@ -91,7 +90,7 @@ const AIResponseBox: React.FC<AIResponseBoxProps> = ({
     >
       {staticRender ? (
         <div className="prose prose-invert max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{message}</ReactMarkdown>
+          <LazyMarkdown>{message}</LazyMarkdown>
         </div>
       ) : (
         displayedText.split('\n').map((line, index) => (
