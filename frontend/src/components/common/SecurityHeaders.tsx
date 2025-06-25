@@ -91,11 +91,11 @@ const SecurityHeaders: React.FC<SecurityHeadersProps> = ({ children }) => {
         const value = tag.content;
         const existing = document.querySelector(`meta[${tag.name ? 'name' : 'http-equiv'}="${key}"]`);
         
-        if (!existing) {
+        if (!existing && key) {
           const meta = document.createElement('meta');
           if (tag.name) {
             meta.setAttribute('name', tag.name);
-          } else {
+          } else if (tag['http-equiv']) {
             meta.setAttribute('http-equiv', tag['http-equiv']);
           }
           meta.setAttribute('content', value);
