@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import compression from 'vite-plugin-compression';
 import basicSsl from '@vitejs/plugin-basic-ssl';
-import bundleAnalyzer from 'vite-bundle-analyzer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,10 +16,6 @@ export default defineConfig({
       ext: '.br',
     }),
     basicSsl() as any,
-    bundleAnalyzer({
-      analyzerMode: 'static',
-      openAnalyzer: false,
-    }),
   ],
   server: {
     https: {},
