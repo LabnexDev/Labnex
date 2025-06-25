@@ -2,58 +2,34 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Labnex - Redirecting...</title>
+    <title>Labnex - Page Not Found</title>
     <script type="text/javascript">
-      // spa-github-pages script by rafgraph
-      // https://github.com/rafgraph/spa-github-pages
-      // This script is designed to work with GitHub Pages hosting for SPAs.
-      // It captures the path and query string from the URL that caused the 404 error,
-      // stores them in sessionStorage, and then redirects to the root of the SPA.
-      // The SPA's client-side router can then read these values and navigate to the correct view.
+      // Single Page Apps for GitHub Pages
+      // MIT License - https://github.com/rafgraph/spa-github-pages
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment.
+      var pathSegmentsToKeep = 0;
 
-      // IMPORTANT: Set this to your repository name.
-      const repositoryName = 'Labnex'; // Your GitHub repository name
-
-      (function(l) {
-        // If the URL already contains a path segment that looks like a redirect from this script,
-        // it attempts to reconstruct the proper URL. This is a fallback mechanism.
-        // This part is from the original spa-github-pages script to handle certain edge cases.
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) {
-            return s.replace(/~and~/g, '&'); // '~and~' is a placeholder for '&'
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
-        } else {
-          // This is the primary logic for handling a 404.
-          // It captures the path and search query from the URL that was not found.
-          var redirectPath = l.pathname; // e.g., /users/discord/link if the bad URL was domain.com/users/discord/link
-          var redirectSearch = l.search;   // e.g., ?token=xxx&discord_id=yyy
-
-          // Store the intended path and search parameters in sessionStorage.
-          // The SPA will pick these up after redirecting to its root.
-          sessionStorage.setItem('spa_redirect_path', redirectPath);
-          sessionStorage.setItem('spa_redirect_search', redirectSearch);
-
-          // Construct the URL to redirect to. This should be the root of your SPA on GitHub Pages.
-          // e.g., https://labnexdev.github.io/Labnex/
-          var spaRootURL = l.protocol + '//' + l.hostname +
-                           (l.port ? ':' + l.port : '') +
-                           '/' + repositoryName + '/';
-
-          // Perform the redirect.
-          l.replace(spaRootURL);
-        }
-      }(window.location))
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
     </script>
   </head>
   <body>
-    <p>If you are not redirected automatically, please <a id="redirectLink" href="#">click here to go to the homepage</a>.</p>
-    <script type="text/javascript">
-      // Update the href of the link to be dynamic based on repositoryName
-      document.getElementById('redirectLink').href = '/' + repositoryName + '/';
-    </script>
-    <!-- You can add a loading animation or a more user-friendly message here -->
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+          <h1>404 - Page Not Found</h1>
+          <p>The page you're looking for doesn't exist.</p>
+          <p>Redirecting to Labnex...</p>
+        </div>
+      </div>
+    </div>
   </body>
 </html> 

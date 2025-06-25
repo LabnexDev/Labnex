@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.labnex.dev/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard/
+Disallow: /projects/
+Disallow: /test-cases/
+Disallow: /notes/
+Disallow: /snippets/
+Disallow: /tasks/
+Disallow: /settings/
+Disallow: /notifications/
+
+# Allow important pages
+Allow: /
+Allow: /changelog
+Allow: /privacy-policy
+Allow: /terms-of-service
+Allow: /support
+Allow: /contact
+Allow: /roadmap
+Allow: /features/
+Allow: /documentation/
+Allow: /donation/ 

@@ -1,0 +1,1 @@
+import{a}from"../assets/index-DzQGG0sq.js";const t=async t=>{try{await a.post("/auth/forgot-password",{email:t})}catch(s){throw s}},s=async t=>{try{await a.post("/auth/reset-password",t)}catch(s){throw s}};export{t as f,s as r};
