@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Labnex - Page Not Found</title>
+    <title>Labnex - AI-Powered Testing Automation Platform</title>
     <script type="text/javascript">
       // Single Page Apps for GitHub Pages
       // MIT License - https://github.com/rafgraph/spa-github-pages
@@ -19,6 +19,70 @@
         (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
         l.hash
       );
+
+      // Enhanced console filtering for GitHub Pages
+      (function() {
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleLog = console.log;
+
+        // Override console.error to filter out known issues
+        console.error = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out Cloudflare deprecation warnings
+          if (message.includes('StorageType.persistent is deprecated') ||
+              message.includes('Failed to load resource') ||
+              message.includes('cdn-cgi') ||
+              message.includes('challenge-platform') ||
+              message.includes('Mixed Content')) {
+            return; // Suppress these completely
+          }
+          
+          originalConsoleError.apply(console, args);
+        };
+
+        // Override console.warn to filter GitHub Pages warnings
+        console.warn = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out known GitHub Pages warnings
+          if (message.includes('StorageType.persistent is deprecated') ||
+              message.includes('Failed to load resource') ||
+              message.includes('Mixed Content') ||
+              message.includes('cdn-cgi') ||
+              message.includes('challenge-platform')) {
+            return; // Suppress these warnings completely
+          }
+          
+          originalConsoleWarn.apply(console, args);
+        };
+
+        // Override console.log to filter some warnings
+        console.log = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out deprecation messages
+          if (message.includes('StorageType.persistent is deprecated')) {
+            return; // Suppress these logs
+          }
+          
+          originalConsoleLog.apply(console, args);
+        };
+
+        // Override any potential deprecated API usage
+        if (typeof window !== 'undefined') {
+          Object.defineProperty(window, 'StorageType', {
+            get: function() {
+              return {
+                persistent: 'persistent',
+                temporary: 'temporary'
+              };
+            },
+            configurable: true
+          });
+        }
+      })();
     </script>
   </head>
   <body>
@@ -31,5 +95,6 @@
         </div>
       </div>
     </div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html> 

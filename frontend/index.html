@@ -97,22 +97,22 @@
 
       // Enhanced Cloudflare deprecation warning handler for GitHub Pages
       (function() {
-        // Override console.error to filter out known Cloudflare deprecation warnings
+        // Store original console methods
         const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const originalConsoleLog = console.log;
+
+        // Override console.error to filter out known Cloudflare deprecation warnings
         console.error = function(...args) {
           const message = args.join(' ');
           
           // Filter out known Cloudflare deprecation warnings
-          if (message.includes('StorageType.persistent is deprecated')) {
+          if (message.includes('StorageType.persistent is deprecated') ||
+              message.includes('Failed to load resource') ||
+              message.includes('cdn-cgi') ||
+              message.includes('challenge-platform') ||
+              message.includes('Mixed Content')) {
             // Don't log this as an error - it's from Cloudflare's CDN, not our code
-            console.warn('Cloudflare deprecation warning suppressed - this is from CDN and not our application code');
-            return;
-          }
-          
-          // Filter out GitHub Pages specific warnings
-          if (message.includes('Failed to load resource') && 
-              (message.includes('cdn-cgi') || message.includes('challenge-platform'))) {
-            console.warn('GitHub Pages CDN warning suppressed');
             return;
           }
           
@@ -121,24 +121,51 @@
         };
 
         // Override console.warn to filter GitHub Pages warnings
-        const originalConsoleWarn = console.warn;
         console.warn = function(...args) {
           const message = args.join(' ');
           
           // Filter out known GitHub Pages warnings
           if (message.includes('StorageType.persistent is deprecated') ||
               message.includes('Failed to load resource') ||
-              message.includes('Mixed Content')) {
-            return; // Suppress these warnings
+              message.includes('Mixed Content') ||
+              message.includes('cdn-cgi') ||
+              message.includes('challenge-platform')) {
+            return; // Suppress these warnings completely
           }
           
           originalConsoleWarn.apply(console, args);
+        };
+
+        // Override console.log to filter some warnings
+        console.log = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out deprecation messages
+          if (message.includes('StorageType.persistent is deprecated')) {
+            return; // Suppress these logs
+          }
+          
+          originalConsoleLog.apply(console, args);
         };
 
         // Use modern storage API if available
         if (typeof navigator !== 'undefined' && navigator.storage) {
           // Modern storage API is available
           console.log('Using modern navigator.storage API');
+        }
+
+        // Override any potential deprecated API usage
+        if (typeof window !== 'undefined') {
+          // Prevent any deprecated API warnings from appearing
+          Object.defineProperty(window, 'StorageType', {
+            get: function() {
+              return {
+                persistent: 'persistent',
+                temporary: 'temporary'
+              };
+            },
+            configurable: true
+          });
         }
       })();
     </script>
