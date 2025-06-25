@@ -2,79 +2,69 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='%233B82F6'%3EL%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#3b82f6" />
-    <meta name="msvalidate.01" content="4C2AAB4174E5FA3A77822365A5298D82" />
+    <meta name="description" content="Labnex - AI-Powered Testing Automation Platform. Streamline your testing workflow with intelligent automation, CLI tools, and Discord AI integration." />
+    <meta name="keywords" content="testing automation, AI testing, CLI tools, Discord bot, test case management, software testing" />
+    <meta name="author" content="Labnex Team" />
     
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.labnex.dev/" />
+    <meta property="og:title" content="Labnex - AI-Powered Testing Automation Platform" />
+    <meta property="og:description" content="Streamline your testing workflow with intelligent automation, CLI tools, and Discord AI integration." />
+    <meta property="og:image" content="https://www.labnex.dev/og-home.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.labnex.dev/" />
+    <meta property="twitter:title" content="Labnex - AI-Powered Testing Automation Platform" />
+    <meta property="twitter:description" content="Streamline your testing workflow with intelligent automation, CLI tools, and Discord AI integration." />
+    <meta property="twitter:image" content="https://www.labnex.dev/og-home.png" />
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1e293b" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Labnex" />
-    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/index.css" as="style" />
+    <link rel="preload" href="/src/main.tsx" as="script" />
     
-    <!-- DNS Prefetch and Preconnect for external resources -->
+    <!-- DNS prefetch for external resources -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//api.labnex.dev" />
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/src/main.tsx" as="script" type="module" />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
+    <!-- Security headers for GitHub Pages -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" />
     
-    <!-- Static social preview tags so Discord and other bots that do not execute JS can display a rich card -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Labnex – AI-Powered Development Platform" />
-    <meta property="og:description" content="Build, test and ship faster with Labnex: integrated project & test-case management, AI coding assistance, Discord integration and more." />
-    <meta property="og:url" content="https://www.labnex.dev/" />
-    <meta property="og:image" content="https://labnex.dev/og-index.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Labnex – AI-Powered Development Platform" />
-    <meta name="twitter:description" content="Build, test and ship faster with Labnex: integrated project & test-case management, AI coding assistance, Discord integration and more." />
-    <meta name="twitter:image" content="https://labnex.dev/og-index.png" />
-    <link rel="canonical" href="https://www.labnex.dev/" />
-    <title>Labnex</title>
-    
-    <!-- Optimized Google Font load -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
-    
-    <!-- Updated Content Security Policy to enable fonts, TTS, Cloudflare analytics -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: data:; connect-src 'self' https://labnex-backend.onrender.com https://api.openai.com;" />
-    
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js', {
-            scope: '/'
-          })
-            .then((registration) => {
-              console.log('SW registered successfully: ', registration);
-              
-              // Check if the service worker is controlling the page
-              if (navigator.serviceWorker.controller) {
-                console.log('Service worker is controlling the page');
-              } else {
-                console.log('Service worker will control the page on next load');
-              }
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
+    <title>Labnex - AI-Powered Testing Automation Platform</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // GitHub Pages SPA routing support
+      // This script handles the redirect from 404.html
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+
       // Performance optimizations
       window.addEventListener('DOMContentLoaded', () => {
         // Lazy load images for better performance
@@ -104,6 +94,53 @@
         criticalCSS.href = '/src/index.css';
         document.head.appendChild(criticalCSS);
       });
+
+      // Enhanced Cloudflare deprecation warning handler for GitHub Pages
+      (function() {
+        // Override console.error to filter out known Cloudflare deprecation warnings
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out known Cloudflare deprecation warnings
+          if (message.includes('StorageType.persistent is deprecated')) {
+            // Don't log this as an error - it's from Cloudflare's CDN, not our code
+            console.warn('Cloudflare deprecation warning suppressed - this is from CDN and not our application code');
+            return;
+          }
+          
+          // Filter out GitHub Pages specific warnings
+          if (message.includes('Failed to load resource') && 
+              (message.includes('cdn-cgi') || message.includes('challenge-platform'))) {
+            console.warn('GitHub Pages CDN warning suppressed');
+            return;
+          }
+          
+          // Log other errors normally
+          originalConsoleError.apply(console, args);
+        };
+
+        // Override console.warn to filter GitHub Pages warnings
+        const originalConsoleWarn = console.warn;
+        console.warn = function(...args) {
+          const message = args.join(' ');
+          
+          // Filter out known GitHub Pages warnings
+          if (message.includes('StorageType.persistent is deprecated') ||
+              message.includes('Failed to load resource') ||
+              message.includes('Mixed Content')) {
+            return; // Suppress these warnings
+          }
+          
+          originalConsoleWarn.apply(console, args);
+        };
+
+        // Use modern storage API if available
+        if (typeof navigator !== 'undefined' && navigator.storage) {
+          // Modern storage API is available
+          console.log('Using modern navigator.storage API');
+        }
+      })();
     </script>
   </body>
 </html>

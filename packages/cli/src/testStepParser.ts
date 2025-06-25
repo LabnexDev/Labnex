@@ -687,17 +687,8 @@ export class TestStepParser {
           // No hint, so either quoted selector or generic phrases
           const unquotedTarget = extractQuotedText(rawTargetField) || rawTargetField;
 
-          const lowerTarg = unquotedTarget.toLowerCase();
-          if (lowerTarg.includes('username')) {
-            finalTargetSelector = 'input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
-            addLog(`[TypeActionAttempt] Inferred username selector from target field: "${finalTargetSelector}"`);
-          } else if (lowerTarg.includes('password')) {
-            finalTargetSelector = 'input[type="password"], #password, input[name="password"], input[placeholder*="password" i]';
-            addLog(`[TypeActionAttempt] Inferred password selector from target field: "${finalTargetSelector}"`);
-          } else {
-            finalTargetSelector = extractGeneralSelector(unquotedTarget) || unquotedTarget;
-            addLog(`[TypeActionAttempt] Target field parsed as non-hint. Using: "${finalTargetSelector}"`);
-          }
+          finalTargetSelector = this._generateSmartFieldSelector(unquotedTarget);
+          addLog(`[TypeActionAttempt] Target field parsed as non-hint. Using: "${finalTargetSelector}"`);
         }
       } else if (mainHintedSelectorValue) {
         addLog(`[TypeActionAttempt] No explicit target field. Using pre-parsed main hint selector.`);
@@ -709,57 +700,16 @@ export class TestStepParser {
           `[TypeActionAttempt] No explicit target field and no main hint. Inferring target based on value content.`
         );
 
-        if (valueToType.toLowerCase().includes('email') || valueToType.includes('@')) {
-          finalTargetSelector =
-            'input[type="email"], #email, input[name="email"], input[placeholder*="email" i], input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
-          addLog(
-            `[TypeActionAttempt] Inferred email input target: "${finalTargetSelector}"`
-          );
-        } else if (
-          valueToType.toLowerCase().includes('password') ||
-          rawValueToType.toLowerCase().includes('password')
-        ) {
-          finalTargetSelector =
-            'input[type="password"], #password, input[name="password"], input[placeholder*="password" i]';
-          addLog(
-            `[TypeActionAttempt] Inferred password input target: "${finalTargetSelector}"`
-          );
-        } else {
-          const lowerOriginal = originalStepInput.toLowerCase();
-          if (lowerOriginal.includes('first name')) {
-            finalTargetSelector = 'input[id*="first" i], input[name*="first" i], input[placeholder*="first" i]';
-            addLog(`[TypeActionAttempt] Inferred first-name input selector: "${finalTargetSelector}"`);
-          } else if (lowerOriginal.includes('last name')) {
-            finalTargetSelector = 'input[id*="last" i], input[name*="last" i], input[placeholder*="last" i]';
-            addLog(`[TypeActionAttempt] Inferred last-name input selector: "${finalTargetSelector}"`);
-          } else if (lowerOriginal.includes('zip') || lowerOriginal.includes('postal')) {
-            finalTargetSelector = 'input[id*="zip" i], input[name*="zip" i], input[placeholder*="zip" i]';
-            addLog(`[TypeActionAttempt] Inferred zip input selector: "${finalTargetSelector}"`);
-          } else if (lowerOriginal.includes('username') || lowerOriginal.includes('user name')) {
-            finalTargetSelector = 'input[id*="user" i], input[name*="user" i], input[placeholder*="user" i]';
-            addLog(`[TypeActionAttempt] Inferred username input selector: "${finalTargetSelector}"`);
-          } else {
-            finalTargetSelector = 'input, textarea';
-            addLog(
-              `[TypeActionAttempt] No specific content match, using generic input target: "${finalTargetSelector}"`
-            );
-          }
-        }
+        finalTargetSelector = this._generateSmartFieldSelector(valueToType);
+        addLog(
+          `[TypeActionAttempt] Inferred target selector: "${finalTargetSelector}"`
+        );
       }
 
-      // If the user literally typed "" or '', treat it as an empty string
-      if (valueToType === '""' || valueToType === "''") {
-        valueToType = "";
-      }
-
-      addLog(
-        `[ParseSuccess] Action: type, Value: "${valueToType}", Target: "${finalTargetSelector}"`
-      );
       return {
         action: 'type',
+        target: finalTargetSelector || 'input',
         value: valueToType,
-        // We used a non-null assertion (!) because every branch above guarantees it's a non‐undefined string
-        target: finalTargetSelector!,
         originalStep: originalStepInput,
         expectsDialog: dialogExpectation
       };
@@ -828,9 +778,10 @@ export class TestStepParser {
             `[ClickActionAttempt] Inferred checkbox selector: "${finalTargetSelector}"`
           );
         } else {
-          finalTargetSelector = unquotedTarget;
+          // Enhanced selector generation for common patterns
+          finalTargetSelector = this._generateSmartClickSelector(unquotedTarget);
           addLog(
-            `[ClickActionAttempt] Using unquoted/raw target as selector: "${finalTargetSelector}"`
+            `[ClickActionAttempt] Generated smart selector: "${finalTargetSelector}"`
           );
         }
       }
@@ -871,10 +822,10 @@ export class TestStepParser {
       addLog(
         `No specific action or hint matched. Treating entire step "${unquotedStep}" as a click target (broad fallback).`
       );
-      const broadXPath = `xpath:(//*[self::a or self::button or self::input[@type='button'] or self::input[@type='submit']][contains(normalize-space(.), "${unquotedStep}")] | //*[@aria-label="${unquotedStep}"] | //*[contains(normalize-space(@placeholder), "${unquotedStep}")])[1]`;
+      const smartSelector = this._generateSmartClickSelector(unquotedStep);
       return {
         action: 'click',
-        target: broadXPath,
+        target: smartSelector,
         originalStep: originalStepInput,
         expectsDialog: dialogExpectation
       };
@@ -892,6 +843,130 @@ export class TestStepParser {
       originalStep: originalStepInput,
       expectsDialog: dialogExpectation
     };
+  }
+
+  // Helper method to generate smart field selectors
+  private static _generateSmartFieldSelector(fieldDescription: string): string {
+    const lowerDesc = fieldDescription.toLowerCase();
+    
+    // Common field patterns with robust selectors
+    if (lowerDesc.includes('email') || lowerDesc.includes('e-mail')) {
+      return 'input[type="email"], #userEmail, input[name="email"], input[name="userEmail"], input[placeholder*="email" i], input[id*="email" i], input[id*="user" i]';
+    }
+    
+    if (lowerDesc.includes('password')) {
+      return 'input[type="password"], #password, input[name="password"], input[placeholder*="password" i], input[id*="password" i]';
+    }
+    
+    if (lowerDesc.includes('username') || lowerDesc.includes('user name')) {
+      return 'input[name="username"], #username, input[id="username"], input[placeholder*="username" i], input[id*="user" i]';
+    }
+    
+    if (lowerDesc.includes('full name') || lowerDesc.includes('name')) {
+      return 'input[name="fullName"], #userName, input[id="userName"], input[placeholder*="name" i], input[id*="name" i], input[name*="name" i]';
+    }
+    
+    if (lowerDesc.includes('first name')) {
+      return 'input[name="firstName"], input[id="firstName"], input[placeholder*="first" i], input[id*="first" i]';
+    }
+    
+    if (lowerDesc.includes('last name')) {
+      return 'input[name="lastName"], input[id="lastName"], input[placeholder*="last" i], input[id*="last" i]';
+    }
+    
+    if (lowerDesc.includes('address')) {
+      return 'input[name="address"], textarea[name="address"], input[placeholder*="address" i], textarea[placeholder*="address" i]';
+    }
+    
+    if (lowerDesc.includes('phone') || lowerDesc.includes('mobile')) {
+      return 'input[type="tel"], input[name="phone"], input[name="mobile"], input[placeholder*="phone" i], input[placeholder*="mobile" i]';
+    }
+    
+    if (lowerDesc.includes('zip') || lowerDesc.includes('postal')) {
+      return 'input[name="zip"], input[name="postal"], input[placeholder*="zip" i], input[placeholder*="postal" i]';
+    }
+    
+    if (lowerDesc.includes('city')) {
+      return 'input[name="city"], input[placeholder*="city" i]';
+    }
+    
+    if (lowerDesc.includes('state')) {
+      return 'input[name="state"], select[name="state"], input[placeholder*="state" i]';
+    }
+    
+    if (lowerDesc.includes('country')) {
+      return 'input[name="country"], select[name="country"], input[placeholder*="country" i]';
+    }
+    
+    if (lowerDesc.includes('comment') || lowerDesc.includes('message')) {
+      return 'textarea, input[name="comment"], input[name="message"], textarea[placeholder*="comment" i], textarea[placeholder*="message" i]';
+    }
+    
+    // Default to any input field
+    return 'input, textarea, select';
+  }
+
+  // Helper method to generate smart click selectors
+  private static _generateSmartClickSelector(elementDescription: string): string {
+    const lowerDesc = elementDescription.toLowerCase();
+    
+    // Common button patterns
+    if (lowerDesc.includes('button') || lowerDesc.includes('btn')) {
+      return 'button, input[type="button"], input[type="submit"], [role="button"]';
+    }
+    
+    // Modal/dialog patterns
+    if (lowerDesc.includes('modal') || lowerDesc.includes('dialog')) {
+      return 'button[data-target*="modal"], button[data-toggle="modal"], .modal button, [role="dialog"] button, button[aria-label*="modal" i]';
+    }
+    
+    // Checkbox patterns
+    if (lowerDesc.includes('check') || lowerDesc.includes('checkbox')) {
+      return 'input[type="checkbox"]';
+    }
+    
+    // Radio button patterns
+    if (lowerDesc.includes('radio')) {
+      return 'input[type="radio"]';
+    }
+    
+    // Link patterns
+    if (lowerDesc.includes('link') || lowerDesc.includes('href')) {
+      return 'a, a[href]';
+    }
+    
+    // Form submit patterns
+    if (lowerDesc.includes('submit') || lowerDesc.includes('save') || lowerDesc.includes('send')) {
+      return 'button[type="submit"], input[type="submit"], button:contains("Submit"), button:contains("Save"), button:contains("Send")';
+    }
+    
+    // Cancel/close patterns
+    if (lowerDesc.includes('cancel') || lowerDesc.includes('close') || lowerDesc.includes('dismiss')) {
+      return 'button:contains("Cancel"), button:contains("Close"), button:contains("Dismiss"), .close, .cancel';
+    }
+    
+    // Menu/navigation patterns
+    if (lowerDesc.includes('menu') || lowerDesc.includes('nav') || lowerDesc.includes('hamburger')) {
+      return 'button[aria-label*="menu" i], .menu-toggle, .hamburger, [role="menubar"] button';
+    }
+    
+    // Dropdown/select patterns
+    if (lowerDesc.includes('dropdown') || lowerDesc.includes('select') || lowerDesc.includes('option')) {
+      return 'select, .dropdown-toggle, button[data-toggle="dropdown"], [role="combobox"]';
+    }
+    
+    // Tab patterns
+    if (lowerDesc.includes('tab')) {
+      return '[role="tab"], .tab, button[data-toggle="tab"]';
+    }
+    
+    // Accordion patterns
+    if (lowerDesc.includes('accordion') || lowerDesc.includes('collapse')) {
+      return 'button[data-toggle="collapse"], .accordion-toggle, [role="button"][aria-expanded]';
+    }
+    
+    // Generic clickable elements with text matching
+    return `//*[self::a or self::button or self::input[@type="button"] or self::input[@type="submit"]][contains(text(), "${elementDescription}")] | //*[@aria-label="${elementDescription}"] | //*[contains(@placeholder, "${elementDescription}")] | button:contains("${elementDescription}")`;
   }
 
   static parseStep(step: string): ParsedTestStep {

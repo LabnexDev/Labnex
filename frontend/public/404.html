@@ -4,28 +4,32 @@
     <meta charset="utf-8">
     <title>Labnex - Page Not Found</title>
     <script type="text/javascript">
-      // This script handles client-side routing for Single Page Applications (SPAs)
-      // on static hosting platforms like GitHub Pages.
+      // Single Page Apps for GitHub Pages
+      // MIT License - https://github.com/rafgraph/spa-github-pages
+      // This script takes the current url and converts the path and query
+      // string into just a query string, and then redirects the browser
+      // to the new url with only a query string and hash fragment.
+      var pathSegmentsToKeep = 0;
 
-      // It preserves the original path and search query from the URL.
-      const path = window.location.pathname;
-      const search = window.location.search;
-      const hash = window.location.hash;
-
-      // The path and search are stored in sessionStorage. The React app will
-      // read from sessionStorage on its initial load to navigate to the correct route.
-      sessionStorage.setItem('spa_redirect_path', path);
-      if (search) {
-        sessionStorage.setItem('spa_redirect_search', search);
-      }
-
-      // Finally, it redirects to the root of the application.
-      // The hash is preserved in the redirect.
-      window.location.replace('/' + hash);
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
     </script>
   </head>
   <body>
-    <!-- Optional: Add a loading indicator or message for the user -->
-    <p>If you are not redirected automatically, <a href="/">click here</a>.</p>
+    <div id="root">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+          <h1>404 - Page Not Found</h1>
+          <p>The page you're looking for doesn't exist.</p>
+          <p>Redirecting to Labnex...</p>
+        </div>
+      </div>
+    </div>
   </body>
 </html> 

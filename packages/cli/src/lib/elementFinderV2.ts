@@ -432,166 +432,120 @@ function convertSimpleXPathToCSS(xpath: string): string | null {
 function generateFallbackStrategies(primarySelector: string): Array<{type: string, selector: string, method: 'css' | 'xpath'}> {
   const strategies: Array<{type: string, selector: string, method: 'css' | 'xpath'}> = [];
   
-  // Clean selector for fallbacks
-  const cleanSelector = primarySelector.replace(/^["']|["']$/g, '').trim();
+  // Clean the selector
+  const cleanSelector = primarySelector.trim();
   
-  // If it's already a good selector, try variations
-  if (cleanSelector.includes('//')) {
-    // XPath variations
-    strategies.push({ type: 'xpath-original', selector: cleanSelector, method: 'xpath' as const });
-    
-    // Extract text from XPath for CSS alternatives
-    const textMatch = cleanSelector.match(/text\(\)=['"]([^'"]+)['"]/);
-    if (textMatch) {
-      const buttonText = textMatch[1];
-      // Add CSS alternatives for button text
-      strategies.push({ type: 'css-button-id', selector: '#myBtn', method: 'css' as const }); // W3Schools specific
-      strategies.push({ type: 'css-button-class', selector: 'button.w3-button', method: 'css' as const });
-      strategies.push({ type: 'css-button-generic', selector: 'button', method: 'css' as const });
-    }
-    
-    strategies.push({ type: 'xpath-contains-text', selector: `//*[contains(text(), "${cleanSelector.replace(/.*text\(\)=["']([^"']+)["'].*/, '$1')}")]`, method: 'xpath' as const });
-  } else if (cleanSelector.includes('#') || cleanSelector.includes('.') || cleanSelector.includes('[')) {
-    // CSS selector
-    strategies.push({ type: 'css-original', selector: cleanSelector, method: 'css' as const });
-  } else {
-    // Try as various attributes
-    strategies.push({ type: 'id', selector: `#${cleanSelector}`, method: 'css' as const });
-    strategies.push({ type: 'class', selector: `.${cleanSelector}`, method: 'css' as const });
-    strategies.push({ type: 'name', selector: `[name="${cleanSelector}"]`, method: 'css' as const });
-    strategies.push({ type: 'data-testid', selector: `[data-testid="${cleanSelector}"]`, method: 'css' as const });
-    strategies.push({ type: 'aria-label', selector: `[aria-label="${cleanSelector}"]`, method: 'css' as const });
-    // Attribute *contains* fallbacks (case-insensitive)
-    const safeContains = cleanSelector.replace(/"/g, '\\"');
-    strategies.push({ type: 'id-contains', selector: `[id*="${safeContains}" i]`, method: 'css' as const });
-    strategies.push({ type: 'class-contains', selector: `[class*="${safeContains}" i]`, method: 'css' as const });
-    strategies.push({ type: 'data-testid-contains', selector: `[data-testid*="${safeContains}" i]`, method: 'css' as const });
-    
-    // Also try kebab-case version (spaces->-, lowercased)
-    if (safeContains.includes(' ')) {
-      const kebab = safeContains.toLowerCase().replace(/\s+/g, '-');
-      strategies.push({ type: 'data-testid-kebab', selector: `[data-test*="${kebab}" i]`, method: 'css' as const });
-      strategies.push({ type: 'id-kebab-contains', selector: `[id*="${kebab}" i]`, method: 'css' as const });
-      strategies.push({ type: 'class-kebab-contains', selector: `[class*="${kebab}" i]`, method: 'css' as const });
-    }
-    
-    // Text-based XPath
-    strategies.push({ type: 'exact-text', selector: `//*[normalize-space(text())="${cleanSelector}"]`, method: 'xpath' as const });
-    strategies.push({ type: 'contains-text', selector: `//*[contains(normalize-space(text()), "${cleanSelector}")]`, method: 'xpath' as const });
-    strategies.push({ type: 'button-text', selector: `//button[contains(text(), "${cleanSelector}")]`, method: 'xpath' as const });
+  // Skip if empty
+  if (!cleanSelector) return strategies;
 
-    // If the selector is a single word but may appear as two words (e.g., "Login" vs "Log In")
-    if (/^[a-zA-Z]+$/.test(cleanSelector)) {
-      const spaced = cleanSelector.replace(/([a-z])([A-Z])/g, '$1 $2'); // camelCase -> camel Case
-      if (spaced !== cleanSelector) {
-        strategies.push({ type: 'contains-text-spaced', selector: `//*[contains(normalize-space(text()), "${spaced}")]`, method: 'xpath' as const });
-      }
-    }
+  // 1. Try exact CSS selector first
+  strategies.push({ type: 'css', selector: cleanSelector, method: 'css' });
+  
+  // 2. Try as ID
+  if (!cleanSelector.startsWith('#')) {
+    strategies.push({ type: 'id', selector: `#${cleanSelector}`, method: 'css' });
+  }
+  
+  // 3. Try as class
+  if (!cleanSelector.startsWith('.')) {
+    strategies.push({ type: 'class', selector: `.${cleanSelector}`, method: 'css' });
+  }
+  
+  // 4. Try as name attribute
+  strategies.push({ type: 'name', selector: `[name="${cleanSelector}"]`, method: 'css' });
+  
+  // 5. Try as data-testid
+  strategies.push({ type: 'data-testid', selector: `[data-testid="${cleanSelector}"]`, method: 'css' });
+  
+  // 6. Try as aria-label
+  strategies.push({ type: 'aria-label', selector: `[aria-label="${cleanSelector}"]`, method: 'css' });
+  
+  // 7. Try as placeholder
+  strategies.push({ type: 'placeholder', selector: `[placeholder="${cleanSelector}"]`, method: 'css' });
+  
+  // 8. Try as title attribute
+  strategies.push({ type: 'title', selector: `[title="${cleanSelector}"]`, method: 'css' });
+  
+  // 9. Try as alt text for images
+  strategies.push({ type: 'alt', selector: `img[alt="${cleanSelector}"]`, method: 'css' });
+  
+  // 10. Try as button text (case insensitive)
+  strategies.push({ 
+    type: 'button-text', 
+    selector: `button:contains("${cleanSelector}"), input[type="button"]:contains("${cleanSelector}"), input[type="submit"]:contains("${cleanSelector}")`, 
+    method: 'xpath' 
+  });
+  
+  // 11. Try as link text
+  strategies.push({ 
+    type: 'link-text', 
+    selector: `//a[contains(text(), "${cleanSelector}")]`, 
+    method: 'xpath' 
+  });
+  
+  // 12. Try as any element with text content
+  strategies.push({ 
+    type: 'text-content', 
+    selector: `//*[contains(text(), "${cleanSelector}")]`, 
+    method: 'xpath' 
+  });
+  
+  // 13. Try as label text
+  strategies.push({ 
+    type: 'label-text', 
+    selector: `//label[contains(text(), "${cleanSelector}")]`, 
+    method: 'xpath' 
+  });
+  
+  // 14. Try as input with label
+  strategies.push({ 
+    type: 'input-with-label', 
+    selector: `//label[contains(text(), "${cleanSelector}")]/following-sibling::input | //label[contains(text(), "${cleanSelector}")]/input`, 
+    method: 'xpath' 
+  });
+  
+  // 15. Try as button with aria-label containing text
+  strategies.push({ 
+    type: 'button-aria', 
+    selector: `//button[contains(@aria-label, "${cleanSelector}")] | //input[@type="button" and contains(@aria-label, "${cleanSelector}")] | //input[@type="submit" and contains(@aria-label, "${cleanSelector}")]`, 
+    method: 'xpath' 
+  });
+  
+  // 16. Try as any clickable element with text
+  strategies.push({ 
+    type: 'clickable-text', 
+    selector: `//*[self::a or self::button or self::input[@type="button"] or self::input[@type="submit"]][contains(text(), "${cleanSelector}")]`, 
+    method: 'xpath' 
+  });
+  
+  // 17. Try as form field by name
+  strategies.push({ 
+    type: 'form-field', 
+    selector: `input[name="${cleanSelector}"], textarea[name="${cleanSelector}"], select[name="${cleanSelector}"]`, 
+    method: 'css' 
+  });
+  
+  // 18. Try as any element with role
+  strategies.push({ 
+    type: 'role', 
+    selector: `[role="${cleanSelector}"]`, 
+    method: 'css' 
+  });
+  
+  // 19. Try as any element with type
+  strategies.push({ 
+    type: 'type', 
+    selector: `input[type="${cleanSelector}"]`, 
+    method: 'css' 
+  });
+  
+  // 20. Try as any element with value
+  strategies.push({ 
+    type: 'value', 
+    selector: `[value="${cleanSelector}"]`, 
+    method: 'css' 
+  });
 
-    // If the selector has multiple words, require all words present (AND condition)
-    const words = cleanSelector.split(/\s+/).filter(Boolean);
-    if (words.length > 1) {
-      const andContains = words.map(w => `contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${w.toLowerCase()}')`).join(' and ');
-      strategies.push({ type: 'contains-all-words', selector: `//*[${andContains}]`, method: 'xpath' as const });
-    }
-
-    // Add common href pattern for auth/login
-    const loginRegex = /^(login|log in)$/i;
-    const signInRegex = /^sign\s*-?\s*in$/i;
-    if (loginRegex.test(cleanSelector) || signInRegex.test(cleanSelector)) {
-      strategies.push({ type: 'href-login-path', selector: 'a[href*="/login" i], a[href*="auth" i][href*="login" i]', method: 'css' as const });
-    }
-  }
-  
-  // Add W3Schools specific fallbacks for modal button
-  if (cleanSelector.includes('Open Modal') || cleanSelector.includes('Modal')) {
-    strategies.push({ type: 'w3schools-modal-id', selector: '#myBtn', method: 'css' as const });
-    strategies.push({ type: 'w3schools-modal-class', selector: 'button.w3-button', method: 'css' as const });
-    strategies.push({ type: 'w3schools-modal-class-green', selector: 'button.w3-button.w3-green', method: 'css' as const });
-    strategies.push({ type: 'w3schools-modal-class-blue', selector: 'button.w3-button.w3-blue', method: 'css' as const });
-    strategies.push({ type: 'w3schools-modal-onclick', selector: 'button[onclick*="modal"]', method: 'css' as const });
-  }
-  // Add W3Schools specific fallbacks for close buttons
-  if (cleanSelector.includes('close') || cleanSelector.includes('Close')) {
-    strategies.push({ type: 'w3schools-close-class', selector: 'span.w3-button.w3-display-topright', method: 'css' as const });
-    strategies.push({ type: 'w3schools-close-onclick', selector: 'span[onclick*="display=\'none\']', method: 'css' as const });
-    strategies.push({ type: 'w3schools-close-symbol', selector: 'span.w3-xlarge', method: 'css' as const });
-  }
-  
-  // If the target looks like a login/sign-in button/link, add typical variants
-  const loginRegex = /^(login|log in)$/i;
-  const signInRegex = /^sign\s*-?\s*in$/i;
-  if (loginRegex.test(cleanSelector) || signInRegex.test(cleanSelector)) {
-    strategies.push({ type: 'href-login', selector: 'a[href*="login" i]', method: 'css' as const });
-    strategies.push({ type: 'href-signin', selector: 'a[href*="sign" i][href*="in" i]', method: 'css' as const });
-    strategies.push({ type: 'button-login', selector: 'button[id*="login" i], button[class*="login" i]', method: 'css' as const });
-    strategies.push({ type: 'button-signin', selector: 'button[id*="sign" i][id*="in" i], button[class*="sign" i][class*="in" i]', method: 'css' as const });
-    strategies.push({ type: 'xpath-login-text', selector: `//a[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'login') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'log in') or contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'sign in')]`, method: 'xpath' as const });
-  }
-  
-  // ------------------------------------------------------------
-  //  Synonym expansion – map common "username/user/email" terms
-  // ------------------------------------------------------------
-  const lowerSel = cleanSelector.toLowerCase();
-
-  if (/(^|[^a-z])(user(name)?)([^a-z]|$)/i.test(lowerSel)) {
-    const syns = [
-      { type: 'email-id', selector: '#email', method: 'css' as const },
-      { type: 'email-name', selector: '[name*="email" i]', method: 'css' as const },
-      { type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const },
-      { type: 'email-input', selector: 'input[type="email"]', method: 'css' as const },
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-
-  if (/(^|[^a-z])email([^a-z]|$)/i.test(lowerSel)) {
-    const syns = [
-      { type: 'username-id', selector: '#username', method: 'css' as const },
-      { type: 'user-id', selector: '#user', method: 'css' as const },
-      { type: 'user-name', selector: '[name*="user" i]', method: 'css' as const },
-      { type: 'user-placeholder', selector: '[placeholder*="user" i]', method: 'css' as const },
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-  
-  if (/locate the email input field/i.test(primarySelector)) {
-    const syns = [
-      { type: 'email-input', selector: 'input[type="email"]', method: 'css' as const },
-      { type: 'email-id', selector: '#email', method: 'css' as const },
-      { type: 'email-name', selector: '[name="email" i]', method: 'css' as const },
-      { type: 'email-placeholder', selector: '[placeholder*="email" i]', method: 'css' as const },
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-  
-  if (/locate the password input field/i.test(primarySelector)) {
-    const syns = [
-      { type: 'password-input', selector: 'input[type="password"]', method: 'css' as const },
-      { type: 'password-id', selector: '#password', method: 'css' as const },
-      { type: 'password-name', selector: '[name="password" i]', method: 'css' as const },
-      { type: 'password-placeholder', selector: '[placeholder*="password" i]', method: 'css' as const },
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-  
-  if (/^checkout$/i.test(cleanSelector)) {
-    const syns = [
-      { type: 'checkout-id', selector: '#checkout', method: 'css' as const },
-      { type: 'checkout-data-test', selector: '[data-test*="checkout" i]', method: 'css' as const },
-      { type: 'checkout-text-ci', selector: `//*[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'checkout')]`, method: 'xpath' as const }
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-  
-  if (/^finish$/i.test(cleanSelector)) {
-    const syns = [
-      { type: 'finish-id', selector: '#finish', method: 'css' as const },
-      { type: 'finish-data-test', selector: '[data-test*="finish" i]', method: 'css' as const },
-      { type: 'finish-text-ci', selector: `//*[contains(translate(normalize-space(text()), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'finish')]`, method: 'xpath' as const }
-    ];
-    strategies.unshift(...syns.reverse());
-  }
-  
   return strategies;
 }
 

@@ -591,15 +591,21 @@ Relevant DOM Snippet where the element might be found:
 ${domSnippet}
 \`\`\`
 
-IMPORTANT GUIDELINES:
-1. Prefer CSS selectors over XPath when possible (they're faster and more maintainable)
-2. Use IDs first if available, then unique attributes like data-testid, aria-label, then classes
-3. Avoid text-based selectors unless absolutely necessary (they break with i18n)
-4. For XPath, avoid contains() - use exact matches like [@id='value'] or [text()='exact text']
-5. Consider element hierarchy but avoid overly brittle parent-child chains
-6. If the element might be in a shadow DOM or iframe, mention it in reasoning
-7. Ensure the selector is specific enough to avoid matching multiple elements
-8. **Always provide a selector suggestion**, even if it's a best guess based on partial information. If no exact match is found, suggest a selector for the closest matching element or a parent container that might contain the target.
+CRITICAL SELECTOR GUIDELINES:
+1. **PRIORITY ORDER**: ID > data-testid > aria-label > name > class > text content
+2. **CSS PREFERRED**: Use CSS selectors when possible (faster, more maintainable)
+3. **AVOID TEXT SELECTORS**: Don't use text-based selectors unless absolutely necessary
+4. **BE SPECIFIC**: Ensure selector targets exactly one element
+5. **AVOID OVERLY COMPLEX XPATH**: Keep XPath simple and readable
+6. **CONSIDER ACCESSIBILITY**: Use aria-label, role, and other accessibility attributes
+7. **FALLBACK STRATEGY**: If exact match not found, suggest the most likely element
+
+COMMON PATTERNS:
+- Buttons: button[data-testid="submit"], #login-btn, button[aria-label="Submit"]
+- Input fields: input[name="email"], #username, input[data-testid="email-input"]
+- Links: a[href="/login"], #nav-home, a[aria-label="Home page"]
+- Forms: form[data-testid="login-form"], #login-form
+- Labels: label[for="email"], label[data-testid="email-label"]
 
 Based on the descriptive term "${descriptiveTerm}", identify the most likely element in the DOM snippet.
 
@@ -619,15 +625,15 @@ Please respond with a JSON object containing:
       messages: [
         {
           role: "system",
-          content: "You are a web automation expert. Always respond with valid JSON containing selector suggestions. Focus on creating robust, maintainable selectors that won't break easily."
+          content: "You are a web automation expert. Always respond with valid JSON containing selector suggestions. Focus on creating robust, maintainable selectors that won't break easily. If you cannot find an exact match, suggest the most likely element based on the descriptive term."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.3, // Lower temperature for more consistent selector generation
-      max_tokens: 500,
+      temperature: 0.2, // Lower temperature for more consistent selector generation
+      max_tokens: 800,
     });
 
     const content = completion.choices[0]?.message?.content?.trim();
@@ -649,7 +655,7 @@ Please respond with a JSON object containing:
       console.error('[AIController] Failed to parse AI response:', parseError);
       console.error('Raw content:', content);
       
-      // Fallback: try to extract a simple selector from the response
+      // Enhanced fallback: try to extract a simple selector from the response
       const cssMatch = content.match(/[#\.][\w-]+|[\w-]+\[[\w-]+=['"]\w+['"]\]/);
       const xpathMatch = content.match(/\/\/[\w]+\[@[\w-]+=['"]\w+['"]\]/);
       
@@ -663,10 +669,16 @@ Please respond with a JSON object containing:
           estimatedWaitTime: 3000
         };
       } else {
-        return res.status(500).json({ 
-          success: false, 
-          error: 'Failed to parse AI response and no fallback selector found' 
-        });
+        // Generate a simple fallback selector based on the descriptive term
+        const fallbackSelector = generateFallbackSelector(descriptiveTerm, domSnippet);
+        aiResponse = {
+          suggestedSelector: fallbackSelector,
+          suggestedStrategy: 'css',
+          confidence: 0.3,
+          reasoning: 'Generated fallback selector based on descriptive term',
+          waitStrategy: 'visible',
+          estimatedWaitTime: 3000
+        };
       }
     }
 
@@ -705,6 +717,35 @@ Please respond with a JSON object containing:
     });
   }
 };
+
+// Helper function to generate fallback selectors
+function generateFallbackSelector(descriptiveTerm: string, domSnippet: string): string {
+  const term = descriptiveTerm.toLowerCase();
+  
+  // Common patterns for different element types
+  if (term.includes('button') || term.includes('submit') || term.includes('click')) {
+    return 'button, input[type="button"], input[type="submit"]';
+  }
+  
+  if (term.includes('input') || term.includes('field') || term.includes('text')) {
+    return 'input, textarea, select';
+  }
+  
+  if (term.includes('link') || term.includes('href')) {
+    return 'a';
+  }
+  
+  if (term.includes('form')) {
+    return 'form';
+  }
+  
+  if (term.includes('modal') || term.includes('dialog')) {
+    return '[role="dialog"], .modal, .dialog';
+  }
+  
+  // Default to any clickable element
+  return 'button, a, input[type="button"], input[type="submit"], [role="button"]';
+}
 
 // Add new chat controller for in-app AI assistant
 export const chatWithAI = async (req: AuthRequest, res: Response) => {

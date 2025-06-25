@@ -14,6 +14,7 @@ import GlobalModalRenderer from './components/common/GlobalModalRenderer';
 import { VoiceSettingsProvider } from './contexts/VoiceSettingsContext';
 import { useCurrentProjectId } from './hooks/useCurrentProjectId';
 import PerformanceMonitor from './components/common/PerformanceMonitor';
+import SecurityHeaders from './components/common/SecurityHeaders';
 
 // Lazy load all major pages for better performance
 const Login = React.lazy(() => import('./pages/auth/Login').then(module => ({ default: module.Login })));
@@ -530,7 +531,9 @@ function App() {
           <ThemeProvider>
             <AuthProvider>
               <VoiceSettingsProvider>
-                <AppContent />
+                <SecurityHeaders>
+                  <AppContent />
+                </SecurityHeaders>
               </VoiceSettingsProvider>
             </AuthProvider>
           </ThemeProvider>
