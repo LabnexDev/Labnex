@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+const { motion, AnimatePresence } = lazy(() => import('framer-motion').then(module => ({ default: { motion: module.motion, AnimatePresence: module.AnimatePresence } })));
 import { CheckCircleIcon, CubeTransparentIcon, BeakerIcon, LightBulbIcon, ChevronDownIcon, ArrowLeftIcon, HeartIcon, SparklesIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import GlobalBackground from '../../components/landing/GlobalBackground';
-import { motion, AnimatePresence } from 'framer-motion';
+import { lazy } from 'react';
 import { Link } from 'react-router-dom';
 import Seo from '../../components/common/Seo';
 import { Button } from '../../components/common/Button';

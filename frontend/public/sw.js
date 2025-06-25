@@ -1,75 +1,53 @@
-const CACHE_VERSION = 'labnex-v2.0.0';
-const STATIC_CACHE = `labnex-static-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `labnex-dynamic-${CACHE_VERSION}`;
-const API_CACHE = `labnex-api-${CACHE_VERSION}`;
+const CACHE_NAME = 'labnex-v1.0.0';
+const STATIC_CACHE = 'labnex-static-v1.0.0';
+const DYNAMIC_CACHE = 'labnex-dynamic-v1.0.0';
 
-// Critical files to cache immediately
-const STATIC_FILES = [
+// Static assets that should be cached immediately
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.svg',
   '/icon-512.svg',
-  '/screenshot-wide.svg',
-  '/screenshot-narrow.svg',
-  '/404.html'
 ];
 
-// Files that should be cached with network-first strategy
-const NETWORK_FIRST_FILES = [
-  '/api/',
-  '/auth/',
-  '/dashboard/',
-  '/projects/',
-  '/test-cases/',
-  '/notes/',
-  '/snippets/'
+// Assets that should be cached with long-term strategy
+const LONG_TERM_ASSETS = [
+  '/assets/',
+  '/public/',
 ];
 
-// Install event - cache static files
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('Caching static files');
-        return cache.addAll(STATIC_FILES);
-      })
-      .then(() => {
-        console.log('Static files cached successfully');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('Error caching static files:', error);
-      })
-  );
-});
-
-// Activate event - clean up old caches and claim clients
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    Promise.all([
-      // Clean up old caches
-      caches.keys()
-        .then((cacheNames) => {
-          return Promise.all(
-            cacheNames.map((cacheName) => {
-              if (!cacheName.includes(CACHE_VERSION)) {
-                console.log('Deleting old cache:', cacheName);
-                return caches.delete(cacheName);
-              }
-            })
-          );
-        }),
-      // Claim all clients immediately
-      self.clients.claim()
-    ])
-    .then(() => {
-      console.log('Service worker activated and claiming clients');
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log('Caching static assets');
+      return cache.addAll(STATIC_ASSETS);
     })
   );
+  self.skipWaiting();
 });
 
-// Fetch event - serve from cache or network
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch event - implement cache-first strategy with network fallback
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -79,95 +57,120 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip external requests (except for our API)
-  if (!url.origin.includes('labnex.dev') && !url.origin.includes('localhost')) {
+  // Skip chrome-extension and other non-http requests
+  if (!url.protocol.startsWith('http')) {
     return;
   }
 
-  // Handle API requests with network-first strategy
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(API_CACHE)
-              .then((cache) => {
-                cache.put(request, responseClone);
-              });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request);
-        })
-    );
-    return;
+  // Handle different types of requests
+  if (isStaticAsset(url.pathname)) {
+    // Static assets: Cache-first with 1 year cache
+    event.respondWith(cacheFirst(request, STATIC_CACHE, 31536000));
+  } else if (isAssetFile(url.pathname)) {
+    // Asset files: Cache-first with 1 month cache
+    event.respondWith(cacheFirst(request, DYNAMIC_CACHE, 2592000));
+  } else if (isAPIRequest(url.pathname)) {
+    // API requests: Network-first with short cache
+    event.respondWith(networkFirst(request, DYNAMIC_CACHE, 300));
+  } else {
+    // HTML pages: Network-first with short cache
+    event.respondWith(networkFirst(request, DYNAMIC_CACHE, 3600));
   }
-
-  // Handle static assets with cache-first strategy
-  if (url.pathname.startsWith('/assets/') || 
-      url.pathname.includes('.css') || 
-      url.pathname.includes('.js') ||
-      url.pathname.includes('.png') ||
-      url.pathname.includes('.jpg') ||
-      url.pathname.includes('.svg') ||
-      url.pathname.includes('.woff') ||
-      url.pathname.includes('.woff2')) {
-    event.respondWith(
-      caches.match(request)
-        .then((response) => {
-          if (response) {
-            return response;
-          }
-          return fetch(request)
-            .then((fetchResponse) => {
-              if (fetchResponse.status === 200) {
-                const responseClone = fetchResponse.clone();
-                caches.open(DYNAMIC_CACHE)
-                  .then((cache) => {
-                    cache.put(request, responseClone);
-                  });
-              }
-              return fetchResponse;
-            });
-        })
-    );
-    return;
-  }
-
-  // Handle HTML pages with network-first strategy
-  if (request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then((cache) => {
-                cache.put(request, responseClone);
-              });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match('/index.html');
-        })
-    );
-    return;
-  }
-
-  // Default: try cache first, then network
-  event.respondWith(
-    caches.match(request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
-        return fetch(request);
-      })
-  );
 });
+
+// Cache-first strategy
+async function cacheFirst(request, cacheName, maxAge = 3600) {
+  try {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      // Check if cache is still valid
+      const cacheTime = new Date(cachedResponse.headers.get('sw-cache-time'));
+      const now = new Date();
+      if (now - cacheTime < maxAge * 1000) {
+        return cachedResponse;
+      }
+    }
+
+    // Fetch from network and cache
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
+      const cache = await caches.open(cacheName);
+      
+      // Add cache timestamp
+      const headers = new Headers(responseToCache.headers);
+      headers.set('sw-cache-time', new Date().toISOString());
+      
+      const responseWithTimestamp = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: headers,
+      });
+      
+      cache.put(request, responseWithTimestamp);
+    }
+    return networkResponse;
+  } catch (error) {
+    console.error('Cache-first strategy failed:', error);
+    return new Response('Network error', { status: 503 });
+  }
+}
+
+// Network-first strategy
+async function networkFirst(request, cacheName, maxAge = 3600) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const responseToCache = networkResponse.clone();
+      const cache = await caches.open(cacheName);
+      
+      // Add cache timestamp
+      const headers = new Headers(responseToCache.headers);
+      headers.set('sw-cache-time', new Date().toISOString());
+      
+      const responseWithTimestamp = new Response(responseToCache.body, {
+        status: responseToCache.status,
+        statusText: responseToCache.statusText,
+        headers: headers,
+      });
+      
+      cache.put(request, responseWithTimestamp);
+    }
+    return networkResponse;
+  } catch (error) {
+    console.error('Network-first strategy failed, trying cache:', error);
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      // Check if cache is still valid
+      const cacheTime = new Date(cachedResponse.headers.get('sw-cache-time'));
+      const now = new Date();
+      if (now - cacheTime < maxAge * 1000) {
+        return cachedResponse;
+      }
+    }
+    return new Response('Network error', { status: 503 });
+  }
+}
+
+// Helper functions to determine request type
+function isStaticAsset(pathname) {
+  return STATIC_ASSETS.some(asset => pathname === asset || pathname.endsWith(asset));
+}
+
+function isAssetFile(pathname) {
+  return pathname.startsWith('/assets/') || 
+         pathname.includes('.js') || 
+         pathname.includes('.css') || 
+         pathname.includes('.svg') || 
+         pathname.includes('.png') || 
+         pathname.includes('.jpg') || 
+         pathname.includes('.woff') || 
+         pathname.includes('.woff2');
+}
+
+function isAPIRequest(pathname) {
+  return pathname.startsWith('/api/');
+}
 
 // Background sync for offline functionality
 self.addEventListener('sync', (event) => {
@@ -175,6 +178,15 @@ self.addEventListener('sync', (event) => {
     event.waitUntil(doBackgroundSync());
   }
 });
+
+async function doBackgroundSync() {
+  try {
+    // Handle any pending background tasks
+    console.log('Performing background sync...');
+  } catch (error) {
+    console.error('Background sync failed:', error);
+  }
+}
 
 // Push notification handling
 self.addEventListener('push', (event) => {
@@ -218,25 +230,4 @@ self.addEventListener('notificationclick', (event) => {
       clients.openWindow('/')
     );
   }
-});
-
-function doBackgroundSync() {
-  // Implement background sync logic here
-  console.log('Background sync triggered');
-  return Promise.resolve();
-}
-
-// Cache cleanup function
-async function cleanupOldCaches() {
-  const cacheNames = await caches.keys();
-  const currentCaches = [STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
-  
-  return Promise.all(
-    cacheNames.map(cacheName => {
-      if (!currentCaches.includes(cacheName)) {
-        console.log('Cleaning up old cache:', cacheName);
-        return caches.delete(cacheName);
-      }
-    })
-  );
-} 
+}); 

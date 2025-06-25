@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 
 // Lazy load the heavy markdown components
-const LazyReactMarkdown = lazy(() => import('react-markdown'));
+const LazyLightweightMarkdown = lazy(() => import('./LightweightMarkdown'));
 const LazyRemarkGfm = lazy(() => import('remark-gfm'));
 
 interface LazyMarkdownProps {
@@ -26,11 +26,11 @@ export const LazyMarkdown: React.FC<LazyMarkdownProps> = ({
   return (
     <div className={className}>
       <Suspense fallback={<MarkdownFallback />}>
-        <LazyReactMarkdown 
+        <LazyLightweightMarkdown 
           remarkPlugins={[...remarkPlugins, LazyRemarkGfm]}
         >
           {children}
-        </LazyReactMarkdown>
+        </LazyLightweightMarkdown>
       </Suspense>
     </div>
   );

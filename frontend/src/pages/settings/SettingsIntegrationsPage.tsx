@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+const { format } = await import('date-fns');
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ILinkedDiscordAccount } from '../../api/discordIntegration';
 import { getLinkedDiscordAccountsApi, unlinkDiscordAccountApi } from '../../api/discordIntegration';
@@ -9,7 +10,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Modal } from '../../components/common/Modal'; // Assuming a Modal component exists
 import toast from 'react-hot-toast';
 import { TrashIcon, UserCircleIcon, LinkIcon } from '@heroicons/react/24/outline';
-import { format } from 'date-fns'; // For formatting dates
+// Lazy loaded date-fns
 
 const SettingsIntegrationsPage: React.FC = () => {
     const queryClient = useQueryClient();

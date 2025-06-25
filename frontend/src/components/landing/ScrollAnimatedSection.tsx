@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+const motion = lazy(() => import('framer-motion').then(module => ({ default: module.motion })));
+import { useScroll, useTransform } from 'framer-motion';
 import './LandingStyles.css'; // Import shared landing styles
 
 interface ScrollAnimatedSectionProps {

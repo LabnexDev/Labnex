@@ -1,10 +1,11 @@
 import React, { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
+const { debounce } = await import('lodash');
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProjectRoles, assignRole, removeRole, searchUsers } from '../../api/roles';
 import type { Role, User } from '../../types/role';
 import { RoleType } from '../../types/role'; // Removed Permission, rolePermissions as they are not used
 import { toast } from 'react-hot-toast';
-import debounce from 'lodash/debounce';
+// Lazy loaded lodash
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Modal } from '../common/Modal/Modal';
