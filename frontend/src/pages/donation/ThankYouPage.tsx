@@ -1,12 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-const html2canvas = lazy(() => import('html2canvas'));
-const motion = lazy(() => import('framer-motion').then(module => ({ default: module.motion })));
+import { motion } from 'framer-motion';
+import html2canvas from 'html2canvas';
 import { useSearchParams, Link } from 'react-router-dom';
 import GlobalBackground from '../../components/landing/GlobalBackground';
-import { lazy } from 'react';
 import { CheckIcon, ShareIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
-// @ts-ignore
-import { lazy } from 'react';
 import Seo from '../../components/common/Seo';
 
 const ThankYouPage: React.FC = () => {

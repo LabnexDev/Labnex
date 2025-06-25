@@ -1,6 +1,5 @@
 import React from 'react';
-const motion = lazy(() => import('framer-motion').then(module => ({ default: module.motion })));
-import { lazy } from 'react';
+import { motion } from 'framer-motion';
 
 interface TypingDotsProps {
   staticRender?: boolean;

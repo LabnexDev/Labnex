@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-const motion = lazy(() => import('framer-motion').then(module => ({ default: module.motion })));
-import { useAnimation } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { LazyMarkdown } from '../common/LazyMarkdown';
 
 interface AIResponseBoxProps {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
-const { debounce } = await import('lodash');
+import debounce from 'lodash/debounce';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProjectRoles, assignRole, removeRole, searchUsers } from '../../api/roles';
 import type { Role, User } from '../../types/role';

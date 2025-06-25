@@ -88,7 +88,7 @@ export default defineConfig({
           // Other heavy dependencies
           'other-heavy': ['react-helmet-async', 'react-hot-toast'],
         },
-        chunkFileNames: (chunkInfo) => {
+        chunkFileNames: () => {
           return `js/[name]-[hash].js`;
         },
         assetFileNames: (assetInfo) => {
@@ -101,7 +101,7 @@ export default defineConfig({
         },
       },
     },
-    target: 'es2015',
+    target: 'es2020',
     chunkSizeWarningLimit: 1000,
   },
   esbuild: {

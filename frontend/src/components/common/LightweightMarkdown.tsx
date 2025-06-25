@@ -19,13 +19,10 @@ const LightweightMarkdown: React.FC<LightweightMarkdownProps> = ({
       marked.setOptions({
         breaks: true,
         gfm: true,
-        headerIds: false,
-        mangle: false,
       });
 
-      // Convert markdown to HTML
-      const html = marked(children);
-      
+      // Convert markdown to HTML (marked is always sync)
+      const html = marked(children) as string;
       // Sanitize HTML
       const sanitizedHtml = DOMPurify.sanitize(html, {
         ALLOWED_TAGS: [
@@ -38,7 +35,6 @@ const LightweightMarkdown: React.FC<LightweightMarkdownProps> = ({
         ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id'],
         ALLOW_DATA_ATTR: false,
       });
-
       containerRef.current.innerHTML = sanitizedHtml;
     }
   }, [children]);

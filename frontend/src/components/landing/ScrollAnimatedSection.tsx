@@ -1,6 +1,5 @@
-import { useRef } from 'react';
-const motion = lazy(() => import('framer-motion').then(module => ({ default: module.motion })));
-import { useScroll, useTransform } from 'framer-motion';
+import React from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import './LandingStyles.css'; // Import shared landing styles
 
 interface ScrollAnimatedSectionProps {
@@ -18,7 +17,7 @@ const ScrollAnimatedSection: React.FC<ScrollAnimatedSectionProps> = ({
   staggerChildren = 0.1,
   staticRender = false,
 }) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'], 

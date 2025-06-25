@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, ComponentType } from 'react';
+import React, { Suspense, lazy } from 'react';
+import type { ComponentType } from 'react';
 
 interface LazyLoaderProps {
   component: () => Promise<{ default: ComponentType<any> }>;

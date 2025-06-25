@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-const { motion, AnimatePresence } = lazy(() => import('framer-motion').then(module => ({ default: { motion: module.motion, AnimatePresence: module.AnimatePresence } })));
-import { lazy } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './LandingStyles.css';
 
 const InteractiveAIScene: React.FC = () => {

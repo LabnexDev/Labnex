@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-const { format } = await import('date-fns');
+import { format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ILinkedDiscordAccount } from '../../api/discordIntegration';
 import { getLinkedDiscordAccountsApi, unlinkDiscordAccountApi } from '../../api/discordIntegration';
